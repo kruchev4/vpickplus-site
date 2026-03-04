@@ -1,4 +1,5 @@
-/* VPick+ site styles */
+
+/* VPick+ site styles (v2) */
 :root{--teal:#2B8781;--ink:#0f141a;--slate:#3c4752;--line:#e6e9ec;--bg:#ffffff;--bg-alt:#f7f8f9}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -37,6 +38,5 @@ nav a{margin:0 8px}
 .steps li::before{counter-increment:step;content:counter(step);display:inline-grid;place-items:center;width:28px;height:28px;margin-right:10px;border-radius:50%;background:var(--teal);color:#fff;font-weight:700}
 .bullets{padding-left:18px}
 @media (max-width:960px){.grid-2,.grid-3{grid-template-columns:1fr}.hero-wrap,.page-hero .hero-inner{grid-template-columns:1fr}.curve{display:none}}
-/* Inputs basic defaults (for future form) */
 input,select,textarea{width:100%;padding:10px;border:1px solid #C3C9CE;border-radius:8px}
 .stack a{display:inline-block;margin:6px 6px 0 0}
