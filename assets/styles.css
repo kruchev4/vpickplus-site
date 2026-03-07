@@ -40,3 +40,24 @@ nav a{margin:0 8px}
 @media (max-width:960px){.grid-2,.grid-3{grid-template-columns:1fr}.hero-wrap,.page-hero .hero-inner{grid-template-columns:1fr}.curve{display:none}}
 input,select,textarea{width:100%;padding:10px;border:1px solid #C3C9CE;border-radius:8px}
 .stack a{display:inline-block;margin:6px 6px 0 0}
+/* Breadcrumbs */
+.breadcrumb {
+  font-size: 14px;
+  margin: 16px 0 24px;
+  color: #3c4752;
+}
+
+.breadcrumb a {
+  color: var(--teal);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb span.separator {
+  margin: 0 6px;
+  color: #5a6572;
+}
+
