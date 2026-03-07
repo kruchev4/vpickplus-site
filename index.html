@@ -191,6 +191,25 @@
     <small>info@vpickplus.us</small>
   </div>
 </footer>
+<script>
+(function () {
+  var path = location.pathname.replace(/\/+$/, '');
 
+  var route =
+    path === '' || path === '/'                ? 'home' :
+    path === '/product.html'                   ? 'product' :
+    path === '/why.html'                       ? 'why' :
+    path.startsWith('/industries')             ? 'industries' :
+    path.startsWith('/learn')                  ? 'learn' :
+    path === '/leasing.html'                   ? 'leasing' :
+    path === '/contact.html'                   ? 'contact' :
+    null;
+
+  if (route) {
+    var link = document.querySelector('nav a[data-nav="'+route+'"]');
+    if (link) link.classList.add('active');
+  }
+})();
+</script>
 </body>
 </html>
