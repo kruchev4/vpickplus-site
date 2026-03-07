@@ -60,4 +60,13 @@ input,select,textarea{width:100%;padding:10px;border:1px solid #C3C9CE;border-ra
   margin: 0 6px;
   color: #5a6572;
 }
-
+/* --- Header / Nav (sitewide) --- */
+.site-header { background:#fff; border-bottom:1px solid var(--line); }
+.site-header .nav { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 0; }
+.site-header .brand { display:inline-flex; align-items:center; gap:10px; }
+.site-header .brand img { height:28px; width:auto; display:block; }
+.site-header nav a { margin:0 8px; color:var(--ink); text-decoration:none; font-weight:500; }
+.site-header nav a:hover { color:var(--teal); text-decoration:underline; }
+.site-header nav a.active { color:var(--teal); }
+@media (max-width: 720px){ .site-header nav { display:flex; flex-wrap:wrap; gap:8px; } }
+``
