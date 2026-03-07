@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Primary SEO -->
-  <meta name="description" content="VPick+ — Modern multimodal picking for real warehouses. Voice + screen + scan with Scan‑Driven Mute Mode on Android-native devices.">
+  <meta name="description" content="VPick+ — Modern multimodal picking for real warehouses. Voice + screen + scan with Scan‑Driven Mute Mode on Android‑native devices.">
 
   <!-- Open Graph -->
   <meta property="og:title" content="VPick+ — Android-Native Voice, Screen & Scan Workflows">
@@ -15,7 +15,7 @@
   <meta property="og:url" content="https://www.vpickplus.us/">
   <meta property="og:image" content="https://www.vpickplus.us/assets/social/vpickplus-social.png">
 
-  <!-- Twitter Card -->
+  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="VPick+ — Android-Native Voice, Screen & Scan Workflows">
   <meta name="twitter:description" content="Modern pick-to-voice for warehouses with multimodal guidance and Scan‑Driven Mute Mode.">
@@ -23,20 +23,31 @@
 
   <!-- Fonts & Styles -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght:400;500;600;700&family=Montserrat:wght:600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/styles.css">
 
   <!-- Icons -->
-  <link rel="icon" type="image/png" href="/assets/icons/favicon-32er">
+  <link rel="icon" type="image/png" href="/assets/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#2B8781">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
   <div class="container nav">
-    <a class="brand"brand/vpickplus-logo.svg
+    <a class="brand" href="/" aria-label="VPick+ Home">
+      <img src="/assets/brand/vpickplus-logo.svg" alt="VPick+">
     </a>
 
     <nav aria-label="Primary">
       <a href="/" data-nav="home">Home</a>
       <a href="/product.html" data-nav="product">Product</a>
       <a href="/why.html" data-nav="why">Why VPick+</a>
-      <a hrefleasing">Leasing</a>
+      <a href="/industries/" data-nav="industries">Industries</a>
+      <a href="/learn/" data-nav="learn">Learn</a>
+      <a href="/leasing.html" data-nav="leasing">Leasing</a>
       <a href="/contact.html" data-nav="contact">Contact</a>
     </nav>
   </div>
@@ -70,16 +81,15 @@
       <!-- Soft S-curve divider -->
       <div class="curve" aria-hidden="true"></div>
 
-      <!-- Hero image -->
+      <!-- Right-side hero image -->
       <div class="hero-image">
-        <img src="/assets/hero/operator-android-headset.jpg"
-             alt="Warehouse operator using headset and Android device">
+        <img src="/assets/hero/operator-android-headset.jpg" alt="Warehouse operator using headset with Android device">
       </div>
 
     </div>
   </section>
 
-  <!-- MULTIMODAL SECTION -->
+  <!-- MULTIMODAL TEASER -->
   <section>
     <div class="container">
       <h2 class="section-title">The Modern Approach: Multimodal Picking</h2>
@@ -96,11 +106,11 @@
         <li><strong>Scan for accuracy</strong> — guaranteed verification where it counts</li>
       </ul>
 
-      <div style="margin-top:12px">
-  <a class="button" href="/learn/what-is-multimodal-picking.html">
-    Learn about Multimodal Picking →
-  </a>
-</div>
+      <div style="margin-top:12px;">
+        <a class="button secondary" href="/learn/what-is-multimodal-picking.html">
+          Learn about Multimodal Picking →
+        </a>
+      </div>
     </div>
   </section>
 
@@ -108,10 +118,11 @@
   <section>
     <div class="container">
 
-      <h2 class="section-title">Trusted by warehouse teams who need clarity and speed</h2>
+      <h2 class="section-title">Trusted by warehouse and distribution teams who need clarity and speed</h2>
       <p class="section-sub">Designed to help operations move confidently, every shift.</p>
 
       <div class="grid-2">
+
         <div class="card">
           <h3>Operational Benefits</h3>
           <ul class="list">
@@ -131,8 +142,8 @@
             <li><strong>Configurable workflows</strong> per site or customer</li>
           </ul>
         </div>
-      </div>
 
+      </div>
     </div>
   </section>
 
@@ -142,37 +153,38 @@
       <h2 class="section-title">Industries We Support</h2>
 
       <div class="grid-2">
+
         <div class="card">
           <h3>3PL & Logistics</h3>
-          <p class="muted">Standardize voice across customers and buildings.</p>
+          <p class="muted">Flexible workflows across customers and buildings.</p>
           <p><a href="/industries/3pl.html">Explore 3PL →</a></p>
         </div>
 
         <div class="card">
           <h3>Retail & Distribution</h3>
-          <p class="muted">Maintain throughput and accuracy at scale.</p>
+          <p class="muted">High throughput and accuracy at scale.</p>
           <p><a href="/industries/retail-distribution.html">Explore Retail & DC →</a></p>
         </div>
 
         <div class="card">
           <h3>eCommerce Fulfillment</h3>
-          <p class="muted">Item-level accuracy for fast-paced workflows.</p>
+          <p class="muted">Dense SKU picking with precision.</p>
           <p><a href="/industries/ecommerce.html">Explore eCommerce →</a></p>
         </div>
 
         <div class="card">
           <h3>Manufacturing & Kitting</h3>
-          <p class="muted">Guided steps and standardized components.</p>
+          <p class="muted">Verified steps and component accuracy.</p>
           <p><a href="/industries/manufacturing-kitting.html">Explore Manufacturing →</a></p>
         </div>
 
         <div class="card">
           <h3>Grocery & CPG</h3>
-          <p class="muted">Reliable performance in demanding environments.</p>
+          <p class="muted">Reliable workflows in demanding environments.</p>
           <p><a href="/industries/grocery-cpg.html">Explore Grocery & CPG →</a></p>
         </div>
-      </div>
 
+      </div>
     </div>
   </section>
 
@@ -188,24 +200,17 @@
 
 <!-- FOOTER -->
 <footer>
-  <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+  <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
     <small>© VPick+</small>
     <small>info@vpickplus.us</small>
   </div>
 </footer>
 
-<!-- ACTIVE NAV HIGHLIGHT -->
+<!-- ACTIVE NAV -->
 <script>
-(function () {
-  var path = location.pathname.replace(/\/+$/, '');
-  var route =
-    path === '' || path === '/' ? 'home' :
-    null;
-
-  if (route) {
-    var link = document.querySelector('nav a[data-nav="'+route+'"]');
-    if (link) link.classList.add('active');
-  }
+(function(){
+  var link = document.querySelector('nav a[data-nav="home"]');
+  if (link) link.classList.add('active');
 })();
 </script>
 
