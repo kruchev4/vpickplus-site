@@ -60,6 +60,36 @@ input,select,textarea{width:100%;padding:10px;border:1px solid #C3C9CE;border-ra
   margin: 0 6px;
   color: #5a6572;
 }
+/* LiveMap Homepage Banner */
+.home-livemap-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.home-livemap-block .pill.new {
+  background: #10b981;
+  color: #fff;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.home-livemap-block .hlm-image img {
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 8px 26px rgba(0,0,0,.15);
+}
+
+@media (max-width: 900px){
+  .home-livemap-block {
+    grid-template-columns: 1fr;
+  }
+}
 /* LiveMap block */
 .section-accent .feature-head { display:flex; align-items:center; gap:.6rem; }
 .pill.new { background:#10b981; color:#fff; font-weight:600; font-size:.75rem; padding:.2rem .5rem;
