@@ -60,6 +60,13 @@ input,select,textarea{width:100%;padding:10px;border:1px solid #C3C9CE;border-ra
   margin: 0 6px;
   color: #5a6572;
 }
+/* LiveMap block */
+.section-accent .feature-head { display:flex; align-items:center; gap:.6rem; }
+.pill.new { background:#10b981; color:#fff; font-weight:600; font-size:.75rem; padding:.2rem .5rem;
+  border-radius:999px; letter-spacing:.02em; text-transform:uppercase; }
+.iframe-wrap { position:relative; overflow:hidden; border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,.12); }
+.iframe-wrap iframe { width:100%; height:520px; border:0; display:block; }
+@media (max-width: 640px){ .iframe-wrap iframe { height:420px; } }
 /* --- Header / Nav (sitewide) --- */
 .site-header { background:#fff; border-bottom:1px solid var(--line); }
 .site-header .nav { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 0; }
