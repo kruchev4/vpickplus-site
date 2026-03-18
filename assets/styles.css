@@ -67,6 +67,69 @@ input,select,textarea{width:100%;padding:10px;border:1px solid #C3C9CE;border-ra
   gap: 2.5rem;
   align-items: center;
 }
+/* ===========================
+   Multimodal icon row (Industry pages)
+   =========================== */
+.mode-icons {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2rem;                 /* space between icons */
+  margin: 2rem auto 2.5rem;  /* space above/below the row */
+  padding: 0;
+  list-style: none;
+  max-width: 960px;          /* keeps the row from stretching too wide on large screens */
+}
+
+.mode-icons li {
+  text-align: center;
+  color: var(--text, #1A1A1A);  /* fallback if CSS variables aren't defined */
+  min-width: 120px;             /* prevents labels wrapping too tightly */
+}
+
+.mode-icons li img {
+  width: 56px;
+  height: 56px;
+  display: block;
+  margin: 0 auto .5rem;
+}
+
+.mode-icons li span {
+  display: inline-block;
+  font-size: .95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Subtle divider below the icon row, if desired */
+.mode-icons + .section,
+.mode-icons + section {
+  scroll-margin-top: 80px; /* nicer anchor scroll if you ever link to next section */
+}
+
+/* ---------------------------
+   Responsive tweaks
+   --------------------------- */
+@media (max-width: 900px) {
+  .mode-icons { gap: 1.25rem; }
+  .mode-icons li { min-width: 100px; }
+  .mode-icons li img { width: 48px; height: 48px; }
+}
+
+@media (max-width: 640px) {
+  .mode-icons {
+    flex-wrap: wrap;          /* wrap to two rows on small screens */
+    row-gap: 1rem;
+    column-gap: 1.25rem;
+    margin: 1.5rem auto 2rem;
+  }
+  .mode-icons li { min-width: 46%; } /* two columns on small screens */
+}
+
+/* Optional: dark-mode friendly labels if you use prefers-color-scheme */
+@media (prefers-color-scheme: dark) {
+  .mode-icons li { color: rgba(255, 255, 255, 0.92); }
+}
 
 .home-livemap-block .pill.new {
   background: #10b981;
