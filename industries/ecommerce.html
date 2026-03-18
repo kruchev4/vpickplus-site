@@ -29,20 +29,149 @@
 
   <!-- Fonts & CSS -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/styles.css">
-</head>
-<body>
-  <!-- Header -->
+ <!-- Header -->
   <header class="site-header" role="banner">
     <div class="container nav">
-      <a class="brand" href="/" aria-label="VPick+ Home">
-        <img src="/assets/brand/vpickplus-logo.svg" alt="VPick+">
+      /
+        /assets/brand/vpickplus-logo.svg
       </a>
       <nav aria-label="Primary">
         <a href="/" data-nav="home">Home</a>
         <a href="/product.html" data-nav="product">Product</a>
         <a href="/why.html" data-nav="why">Why VPick+</a>
-        <a href="/industries/" data-nav="industries">Industries</a>
-        <a href="/learn/" data-nav="learn">Learn</a>
+        <a href="/industries/" data</a>
+        <a href="/contact.html" data-nav="contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="content">
+
+    <!-- Breadcrumbs -->
+    <nav class="breadcrumb container" aria-label="Breadcrumb">
+     ustries/Industries</a>
+      <span class="separator">›</span>
+      <span aria-current="page">eCommerce Fulfillment</span>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container hero-wrap">
+        <div class="hero-copy">
+          <h1>eCommerce Fulfillment</h1>
+          <p class="section-sub">
+            Dense SKU environments with short SLAs demand precision. <strong>Multimodal picking</strong> blends voice navigation
+            with visual cues and barcode verification—keeping pickers fast and accurate. <strong>SilentScan™</strong> quiets
+            the chatter during rapid scan streaks for focused throughput.
+          </p>
+
+          <div class="hero-ctas">
+            /product.htmlSee the Product</a>
+            /why.htmlWhy Multimodal</a>
+          </div>
+        </div>
+        <div class="curve" aria-hidden="true"></div>
+        <div class="hero-image" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- Multimodal icon row -->
+    <section class="section">
+      <div class="container">
+        <ul class="mode-icons" aria-label="Multimodal capabilities">
+          <li>
+            <img src="/assets/icons/voice.svg" alt="Voice icon">
+            <span>Voice</span>
+          </li>
+          <li>
+            <img src="/assets/icons/screen.svg" alt="Screen icon">
+            <span>Screen</span>
+          </li>
+          <li>
+            <img src="/assets/icons/scan.svg" alt="Scan icon">
+            <span>Scan</span>
+          </li>
+          <li>
+            <img src="/assets/icons/silentscan.svg" alt="SilentScan icon">
+            <span>SilentScan™</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Why It Works -->
+    <section class="section">
+      <div class="container grid-2">
+
+        <article class="card">
+          <h2>Why It Works for eCommerce</h2>
+          <ul class="list">
+            <li><strong>Accuracy at speed:</strong> Scan checks prevent look‑alike mispicks and keep return rates down.</li>
+            <li><strong>Short SLAs:</strong> Voice guides movement while on‑screen details handle complex lines.</li>
+            <li><strong>Peak‑ready onboarding:</strong> Familiar Android UI reduces training time for seasonal teams.</li>
+            <li><strong>SilentScan™:</strong> Mutes voice during rapid scan streaks for packout or dense picking.</li>
+          </ul>
+          <p class="small">
+            Learn more:
+            <a href="/learn/what-is-multimodal-picking.html">What Is Multimodal Picking?</a> ·
+            <a href="/learn/what-is-scan-driven-mute-mode.html">What is SilentScan™?</a> ·
+            <a href="/learn/why-pick-to-voice-is-moving-to-android.html">Why Android for Pick‑to‑Voice</a>
+          </p>
+        </article>
+
+        <aside class="card">
+          <h3>Built for Dense SKU Ops</h3>
+          <p>Guide each‑picking and cluster workflows with barcode verification and clear exception handling.</p>
+          <ul class="checklist">
+            <li>Android‑native devices (handhelds, wearables)</li>
+            <li>Flexible integrations to WMS/ERP</li>
+            <li>Configurable prompts and confirmations</li>
+          </ul>
+          <p><a href="/leasing.html">Prefer OPEX? Explore Leasing</a></p>
+        </aside>
+
+      </div>
+    </section>
+
+    <!-- Use Cases -->
+    <section class="section">
+      <div class="container">
+        <h2>Common eCommerce Use Cases</h2>
+        <div class="cards cards--3">
+          <article class="card">
+            <h3>Each &amp; Cluster Picking</h3>
+            <p>Voice for navigation; screen for details; scan for accuracy.</p>
+          </article>
+          <article class="card">
+            <h3>Returns &amp; QC</h3>
+            <p>Barcode‑guided checks for re‑stock or disposition.</p>
+          </article>
+          <article class="card">
+            <h3>Packout Handoffs</h3>
+            <p>SilentScan™ for quiet, rapid scan confirmation streaks.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA band -->
+    <section class="cta-band subtle">
+      <div class="container cta-band-inner">
+        <p><strong>Prefer OPEX?</strong> Lease preconfigured Android devices with updates and SLAs.</p>
+        <a class="button secondary" href="/leasing.html">Explore Leasing</a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer role="contentinfo">
+    <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+      <small>© VPick+</small>
+      <small>info@vpickplus.us</small>
+    </div>
+  </footer>
+
+</body>
+</html>
 
