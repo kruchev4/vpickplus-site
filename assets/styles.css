@@ -114,6 +114,20 @@ nav a{ margin:0 8px; }
   padding:20px;
   background:#fff;
 }
+.references h3 {
+  margin-bottom: .5rem;
+}
+.references ol {
+  margin-left: 1.25rem;
+  padding-left: 0;
+  font-size: .9rem;
+  color: #3c4752;
+}
+.ref-line {
+  margin: 48px 0 24px;
+  border: none;
+  border-top: 1px solid #e6e9ec;
+}
 
 /* ---------- Lists & steps ---------- */
 .list{ padding-left:18px; }
