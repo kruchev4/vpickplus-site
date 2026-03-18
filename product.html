@@ -109,29 +109,39 @@
         </div>
       </div>
     </section>
-        <section class="section">
+       <section class="section">
   <div class="container">
-    <h2>Serverless Voice Picking™ — No Middleware. No Voice Server.</h2>
+    <h2>Serverless Voice Picking™ — No Voice Server. No Middleware.</h2>
+
     <p>
-      Traditional voice‑picking systems rely on a dedicated <strong>voice server</strong> or middleware layer to
-      translate WMS tasks into spoken instructions and interpret picker confirmations — introducing extra cost,
-      infrastructure, and failure points. Industry references show the voice server as a required component in legacy
-      deployments.<a href [1](https://seobuddy.com/blog/how-to-find-a-sitemap/)> </a>
+      Traditional voice‑picking systems rely on a dedicated <strong>voice server</strong> or middleware 
+      layer to convert WMS tasks into spoken prompts and interpret confirmations <sup>[1]</sup>. 
+      This architecture adds cost, latency, and a second point of failure.
     </p>
+
     <p>
-      VPick+ eliminates this entire layer. All speech, dialog, and multimodal logic run directly on the Android device,
-      with no cloud or on‑prem voice server required. This removes the complexity that systems like SAP EWM still depend
-      on through mandatory voice middleware.<a href [2](https://www.linkedin.com/posts/vpickplus_industries-vpick-activity-7437429112144609280-CvHk)></a>
+      Even enterprise systems like SAP EWM depend on external <strong>voice middleware</strong> for 
+      recognition and dialog flow — SAP states that the middleware “handles the actual voice interface,” 
+      meaning speech processing does not occur on the device <sup>[2]</sup>.
     </p>
+
+    <p>
+      <strong>VPick+ eliminates this entire layer.</strong> All multimodal logic, speech behavior, confirmations, 
+      and SilentScan™ mode run directly on the Android device — no servers to deploy, no middleware to patch, 
+      and no backend voice engine to manage.
+    </p>
+
     <ul class="list">
-      <li>Zero voice‑server licensing or hosting</li>
-      <li>Fewer moving parts, fewer outages</li>
-      <li>Lower total cost of ownership</li>
-      <li>Instant scale to new sites — no backend load</li>
-      <li>Direct WMS → device communication</li>
+      <li><strong>No voice‑server hosting or licensing</strong></li>
+      <li><strong>No middleware integrations</strong> or maintenance windows</li>
+      <li><strong>Higher reliability</strong> — fewer moving parts</li>
+      <li><strong>Lower TCO</strong> compared to legacy voice systems</li>
+      <li><strong>Instant scalability</strong> across fleets and locations</li>
+      <li><strong>Faster response</strong> — no server round‑trips</li>
     </ul>
   </div>
 </section>
+
 
     <!-- Modes -->
     <section class="section">
@@ -218,13 +228,30 @@
     </section>
   </main>
 
-  <!-- Footer (identical site-wide) -->
-  <footer>
-  <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-    <small>© VPick+</small>
-    <small>info@vpickplus.us</small>
-  </div>
-</footer>
+ <hr class="ref-line">
+
+<section class="references container">
+  <h3>References</h3>
+  <ol>
+    <li>
+      <sup>[1]</sup> Traditional voice picking systems use a <strong>voice server</strong> as the 
+      central component responsible for converting WMS tasks into spoken instructions and interpreting 
+      operator confirmations.  
+      <a href="https://dvunified.com/3pl/voice-picking-warehouse/" target="_blank">
+        https://dvunified.com/3pl/voice-picking-warehouse/
+      </a> 
+      og/how-to-find-a-sitemap/)
+    </li>
+
+    <li>
+      <sup>[2]</sup> SAP EWM Voice Picking requires <strong>voice middleware</strong> for recognition 
+      and dialog; SAP states the middleware “handles the actual voice interface.”  
+      <a href="https://community.sap.com/t5/supply-chain-management-blog-posts-by-members/sap-ewm-voice-picking-setup-boost-accuracy-and-productivity-in-your/ba-p/14113494" target="_blank">
+        SAP EWM Voice Middleware Explanation
+      </inkedin.com/posts/vpickplus_industries-vpick-activity-7437429112144609280-CvHk)
+    </li>
+  </ol>
+</section>
   <!-- CTA BAND -->
 <section class="cta-band subtle">
   <div class="container cta-band-inner">
