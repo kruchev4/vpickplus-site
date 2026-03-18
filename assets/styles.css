@@ -67,19 +67,6 @@ input,select,textarea{width:100%;padding:10px;border:1px solid #C3C9CE;border-ra
   gap: 2.5rem;
   align-items: center;
 }
-/* ===========================
-   Multimodal icon row (Industry pages)
-   =========================== */
-.mode-icons {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 2rem;                 /* space between icons */
-  margin: 2rem auto 2.5rem;  /* space above/below the row */
-  padding: 0;
-  list-style: none;
-  max-width: 960px;          /* keeps the row from stretching too wide on large screens */
-}
 /* Global fixed gutter */
 .container {
   max-width: 1160px;
@@ -94,6 +81,20 @@ input,select,textarea{width:100%;padding:10px;border:1px solid #C3C9CE;border-ra
   padding-top: 64px;
   padding-bottom: 64px;
 }
+/* ===========================
+   Multimodal icon row (Industry pages)
+   =========================== */
+.mode-icons {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2rem;                 /* space between icons */
+  margin: 2rem auto 2.5rem;  /* space above/below the row */
+  padding: 0;
+  list-style: none;
+  max-width: 960px;          /* keeps the row from stretching too wide on large screens */
+}
+
 
 /* Prevent layout shifts */
 img, svg {
