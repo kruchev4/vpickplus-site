@@ -216,7 +216,18 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 /* Action queue */
 .action-section{margin-bottom:14px;}
 .action-title{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+
+
 .action-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+
+.a-keybind{
+  display:inline-block;width:14px;height:14px;line-height:14px;
+  text-align:center;font-size:.5rem;font-family:monospace;
+  border:1px solid var(--border-b);color:var(--border-b);
+  margin-right:4px;flex-shrink:0;vertical-align:middle;
+}
+.action-btn:hover .a-keybind{border-color:var(--gold);color:var(--gold);}
+
 .action-btn{font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:1px;padding:10px 8px;border:1px solid var(--border-b);color:var(--parch);background:transparent;cursor:pointer;transition:all .2s;text-align:left;position:relative;}
 .action-btn:hover:not(:disabled){border-color:var(--gold);background:rgba(201,146,42,.08);color:var(--gold-b);}
 .action-btn:disabled{opacity:.3;cursor:not-allowed;}
@@ -952,15 +963,14 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 ════════════════════════════════════════════════════ */
 .battlefield{
   width:100%;height:100%;
-  display:grid;
-  grid-template-rows:36px 1fr auto 1fr 4px;
-  /* topbar | enemy zone | action zone | party zone | padding */
+  display:flex;flex-direction:column;
   overflow:hidden;position:relative;z-index:1;
 }
 
 /* ── TOP BAR ── */
 .bf-topbar{
-  grid-row:1;display:flex;align-items:center;gap:10px;
+  flex-shrink:0;height:36px;
+  display:flex;align-items:center;gap:10px;
   padding:0 14px;background:rgba(0,0,0,.8);
   border-bottom:1px solid rgba(139,26,26,.3);z-index:3;
 }
@@ -968,32 +978,69 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
   font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:3px;
   color:var(--blood-b);white-space:nowrap;flex-shrink:0;
 }
-.bf-log-strip{
-  flex:1;overflow:hidden;display:flex;gap:8px;align-items:center;
-  font-size:.65rem;color:var(--parch-dk);
-}
-.bf-log-strip .clog{
+.bf-cast-status{
+  flex:1;font-family:'Cinzel',serif;font-size:.62rem;
+  letter-spacing:1px;color:var(--gold-b);padding-left:12px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  max-width:280px;padding-right:8px;border-right:1px solid rgba(74,53,32,.4);
 }
-.bf-log-strip .clog:last-child{border-right:none;}
 
-/* ── ENEMY ZONE (top half) ── */
+/* ── MAIN AREA: log left + combat centre ── */
+.bf-main{
+  flex:1;display:flex;overflow:hidden;
+}
+
+/* Combat log column — left side, fixed ~180px */
+.bf-combat-log-col{
+  width:180px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  border-right:1px solid rgba(74,53,32,.4);
+  background:rgba(0,0,0,.5);
+  overflow:hidden;
+}
+.bf-log-title{
+  font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:3px;
+  color:var(--parch-dk);padding:5px 8px 4px;
+  border-bottom:1px solid rgba(74,53,32,.3);
+  text-transform:uppercase;flex-shrink:0;
+}
+.bf-combat-log-scroll{
+  flex:1;overflow-y:auto;padding:4px 6px;
+  display:flex;flex-direction:column;gap:2px;
+}
+.bf-combat-log-scroll::-webkit-scrollbar{width:3px;}
+.bf-combat-log-scroll::-webkit-scrollbar-thumb{background:#4a3520;}
+.bf-combat-log-scroll .clog{
+  font-size:.6rem;line-height:1.4;padding:1px 0;word-break:break-word;
+  border-bottom:1px solid rgba(74,53,32,.15);color:var(--parch-dk);
+}
+.bf-combat-log-scroll .clog.player-hit{color:#80c080;}
+.bf-combat-log-scroll .clog.hit{color:#e07070;}
+.bf-combat-log-scroll .clog.miss{opacity:.6;}
+.bf-combat-log-scroll .clog.spell{color:#c090ff;}
+.bf-combat-log-scroll .clog.sys{color:var(--gold-b);font-style:italic;}
+
+/* ── Centre column: enemies / actions / party ── */
+.bf-centre{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;
+}
+
+/* Enemy zone */
 .bf-enemy-row{
-  grid-row:2;
+  flex:1;
   display:flex;justify-content:center;align-items:flex-end;gap:32px;
   padding:12px 24px 16px;
   background:linear-gradient(180deg,rgba(20,4,4,.9) 0%,rgba(10,2,2,.4) 100%);
+  overflow-x:auto;
 }
 
-/* ── ACTION ZONE (middle strip) ── */
+/* Action zone */
 .bf-action-zone{
-  grid-row:3;
+  flex-shrink:0;
   background:rgba(0,0,0,.85);
   border-top:1px solid rgba(139,26,26,.25);
   border-bottom:1px solid rgba(201,162,39,.2);
   padding:8px 16px;z-index:3;
-  overflow-y:auto;max-height:38vh;
+  overflow-y:auto;max-height:40vh;
 }
 .bf-action-inner{width:100%;max-width:680px;margin:0 auto;}
 .bf-action-label{
@@ -1001,14 +1048,18 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
   text-transform:uppercase;color:var(--gold);margin-bottom:6px;
 }
 
-/* ── PARTY ZONE (bottom half) ── */
+/* Party zone */
 .bf-party-row{
-  grid-row:4;
+  flex-shrink:0;
   display:flex;justify-content:center;align-items:flex-start;gap:32px;
-  padding:16px 24px 12px;
+  padding:12px 24px;
   background:linear-gradient(0deg,rgba(4,2,10,.95) 0%,rgba(4,2,8,.5) 100%);
   border-top:1px solid rgba(201,162,39,.15);
+  overflow-x:auto;
 }
+
+/* Quick slots bar in combat */
+.combat-quick-slots-bar{display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap;}
 
 /* ── UNIT CARD ── */
 .bf-unit{
@@ -1382,36 +1433,44 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
       <!-- Full-screen battlefield layout -->
       <div class="battlefield">
 
-        <!-- TOP: Round + log strip -->
+        <!-- TOP BAR: round counter -->
         <div class="bf-topbar">
           <span class="bf-round" id="cb-round">Round 1</span>
-          <div class="bf-log-strip" id="cb-log"></div>
+          <span class="bf-cast-status" id="queued-display" style="flex:1;font-size:.62rem;color:var(--gold-b);padding-left:12px;">Choose a skill…</span>
         </div>
 
-        <!-- ENEMY ROW -->
-        <div class="bf-enemy-row" id="bf-enemy-row">
-          <!-- Populated by buildBattlefieldUI() -->
-        </div>
+        <!-- MAIN AREA: log left, combat centre+right -->
+        <div class="bf-main">
 
-        <!-- MIDDLE: Action buttons + queued state -->
-        <div class="bf-action-zone">
-          <div class="bf-action-inner">
-            <!-- Quick slots / potion bar (visible during combat) -->
-            <div id="combat-quick-slots" style="display:flex;gap:5px;margin-bottom:8px;"></div>
-            <div class="bf-action-label" id="action-title-lbl">Your Action</div>
-            <div class="action-grid" id="action-grid"></div>
-            <div class="queued-display" id="queued-display">Choose your action before the timer runs out!</div>
-            <div id="heal-target-section" class="heal-target-section" style="display:none;">
-              <div class="heal-target-title">💚 Choose Heal Target</div>
-              <div class="heal-target-grid" id="heal-target-grid"></div>
-            </div>
+          <!-- Scrolling combat log (left column) -->
+          <div class="bf-combat-log-col">
+            <div class="bf-log-title">Combat Log</div>
+            <div id="cb-log" class="bf-combat-log-scroll"></div>
           </div>
-        </div>
 
-        <!-- PARTY ROW (bottom) -->
-        <div class="bf-party-row" id="bf-party-row">
-          <!-- Populated by buildBattlefieldUI() -->
-        </div>
+          <!-- Centre: enemies top, actions middle, party bottom -->
+          <div class="bf-centre">
+            <!-- ENEMY ROW -->
+            <div class="bf-enemy-row" id="bf-enemy-row"></div>
+
+            <!-- ACTION ZONE -->
+            <div class="bf-action-zone">
+              <div class="bf-action-inner">
+                <div id="combat-quick-slots" class="combat-quick-slots-bar"></div>
+                <div class="bf-action-label" id="action-title-lbl">Your Action <span style="font-size:.5rem;color:var(--border-b);">[1-6] to cast</span></div>
+                <div class="action-grid" id="action-grid"></div>
+                <div id="heal-target-section" class="heal-target-section" style="display:none;">
+                  <div class="heal-target-title">💚 Choose Heal Target</div>
+                  <div class="heal-target-grid" id="heal-target-grid"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PARTY ROW -->
+            <div class="bf-party-row" id="bf-party-row"></div>
+          </div>
+
+        </div><!-- .bf-main -->
 
       </div><!-- .battlefield -->
 
@@ -3474,7 +3533,7 @@ function initGame(){
   if(!G.abilities)G.abilities=[];
   if(!G.passives)G.passives={};
   recalcStats();
-  reapplyAbilities();
+  if(typeof reapplyAbilities==='function') reapplyAbilities(); // optional ability reapplication
   resizeCanvas();
   buildInventoryUI();
   updateHUD();
@@ -3779,6 +3838,14 @@ const SLOT_FOR_TYPE = {
   potion:null, misc:null,
 };
 
+
+function reapplyAbilities(){
+  // Reapply any active ability effects to G stats
+  if(!G.abilities) return;
+  G.abilities.forEach(ab=>{
+    if(ab && ab.effect) Object.assign(G.passives, ab.effect);
+  });
+}
 function recalcStats(){
   // Start from base character values
   const cls = G.cls;
@@ -4136,6 +4203,14 @@ let moveAccum=0;const MOVE_MS=150;
 
 function onKey(e){
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key))e.preventDefault();
+
+  // 1-6 keys trigger action buttons during combat
+  if(G.inCombat && !combat.playerCasting && ['1','2','3','4','5','6'].includes(e.key)){
+    const idx = parseInt(e.key)-1;
+    const btns = document.querySelectorAll('#action-grid .action-btn:not(:disabled)');
+    if(btns[idx]) btns[idx].click();
+    return;
+  }
   if(e.key==='Escape'){
     if(_menuOpen){ closeGameMenu(); return; }
     if(document.getElementById('ov-inventory')?.classList.contains('active')){ closeInventory(); return; }
@@ -4233,16 +4308,16 @@ const SKILL_CAST_TIMES = {
   'Heavy Strike':1400, 'Sneak Attack':1100, 'Poison Strike':1200,
   'Sacred Flame':1000, 'Lay on Hands':1100, 'Divine Smite':1300,
   'Rage Attack':900, 'Reckless Attack':1000, 'Flurry of Blows':1100,
-  'Multishot':1200, "Hunter's Mark":800, 'Evade':700,
+  'Multishot':1200, "Hunter's Mark":800, 'Evade':600,
   'Vicious Mockery':900, 'Inspiration':800,
   // Slow (spells)
-  'Magic Missile':1600, 'Fireball':2400, 'Blink':1800,
+  'Magic Missile':1600, 'Fireball':2400, 'Blink':1000,
   'Chaos Bolt':2000, 'Metamagic':1500, 'Dragon Breath':2600,
   'Eldritch Blast':1400, 'Hex':1600, "Dark One's Blessing":1200,
   'Thorn Whip':1300, 'Entangle':2000, 'Wild Shape':2200,
   'Stunning Strike':1500, 'Turn Undead':1800,
   // Heals (slower — reward planning)
-  'Heal':2000, 'Aura of Protection':1500, 'Meditate':2500,
+  'Heal':2000, 'Aura of Protection':1000, 'Wild Shape':1200, 'Meditate':2500, 'Entangle':1600,
   'Charm':1600, 'Intimidate':1000,
 };
 const DEFAULT_CAST_TIME = 1000;
@@ -4302,6 +4377,42 @@ function makeEnemy(mon, zoneLevel, startDelayMs){
     timerStarted:false,
     status:{},
   };
+}
+
+
+function triggerWorldBossCombat(boss){
+  // Spawn the world boss as a single very powerful enemy
+  combat.enemies=[{
+    def:{
+      name:boss.name, icon:boss.icon, hd:20,
+      loot:['Legendary Shard','Boss Core'], gold:[500,2000], xp:50000
+    },
+    hp:boss.hp, hpMax:boss.hp_max,
+    ac:22, atk:15, dmg:8,
+    isBoss:true, worldBossId:boss.id,
+    phaseTwo:null, phaseFired:false,
+    timer:0, timerMax:2500, timerStarted:true, timerStartDelay:500,
+    status:{},
+    _announcedDead:false,
+  }];
+  combat.targetIdx=0;
+  combat.round=1;
+  combat.active=true;
+  combat.playerCasting=false;
+  combat.playerCastTimer=0;
+  combat.playerCastAction=null;
+  combat.playerTurn=true;
+  combat.queuedAction=null;
+  G.inCombat=true;
+  G.encounterCooldown=30;
+
+  buildCombatUI();
+  document.getElementById('ov-combat').classList.add('active');
+  addCombatLog(`${boss.icon} ${boss.name} attacks with FURY!`,'hit');
+  addCombatLog('⚠ This is a world boss — extremely dangerous!','hit');
+  combat.lastTick=performance.now();
+  if(combat.animFrame) cancelAnimationFrame(combat.animFrame);
+  combat.animFrame=requestAnimationFrame(tickCombat);
 }
 
 function triggerCombat(tileType){
@@ -4377,7 +4488,9 @@ function buildCombatUI(){
       'Eldritch Blast':'👁️','Hex':'🔮',"Dark One's Blessing":'🌑',
       'Flurry of Blows':'👊','Stunning Strike':'💫','Patient Defense':'🧘',
     };
-    btn.innerHTML=`<span class="a-icon">${icons[a]||'⚔️'}</span>${a}${mpCost?`<span class="a-cost">${mpCost}MP</span>`:''}`;
+    const _bidx = Array.from(ag.children).length; // 0-based index at time of creation
+    const _kbind = _bidx<6 ? `<span class="a-keybind">${_bidx+1}</span>` : '';
+    btn.innerHTML=`${_kbind}<span class="a-icon">${icons[a]||'⚔️'}</span>${a}${mpCost?`<span class="a-cost">${mpCost}MP</span>`:''}`;
     btn.onclick=()=>queueAction(a,mpCost,btn);
     btn.dataset.action=a;btn.dataset.mp=mpCost;
     ag.appendChild(btn);
@@ -4502,12 +4615,17 @@ function tickCombat(now){
     }
   });
 
-  combat.animFrame=requestAnimationFrame(tickCombat);
+  // Only reschedule if combat is still active
+  if(combat.active){
+    combat.animFrame=requestAnimationFrame(tickCombat);
+  }
 }
 
 // _firePlayerAction: called when cast timer expires
 function _firePlayerAction(actionObj){
   if(!combat.active) return;
+  // Don't fire if all enemies are already dead (race condition)
+  if(combat.enemies&&combat.enemies.every(e=>e.hp<=0)) return;
   if(!actionObj) { addCombatLog('Cast cancelled.','miss'); _resetPlayerCast(); return; }
   const {action, mpCost} = actionObj;
   if(mpCost>0) G.mp=Math.max(0,G.mp-mpCost);
@@ -4522,8 +4640,11 @@ function _resetPlayerCast(){
   combat.playerCastAction=null;
   combat.queuedAction=null;
   document.querySelectorAll('.action-btn').forEach(b=>{b.disabled=false;b.classList.remove('queued');});
-  const qd=document.getElementById('queued-display');
-  if(qd) qd.textContent='Choose a skill to cast…';
+  // Don't overwrite the escape button if player is in defensive stance
+  if(!G.defending){
+    const qd=document.getElementById('queued-display');
+    if(qd) qd.textContent='Choose a skill to cast…';
+  }
   const myIdx=coopIsHost?0:(G.partyIdx||0);
   if(partyTimers[myIdx]){partyTimers[myIdx].queued=false;partyTimers[myIdx].action='';}
   // Reset cast bar
@@ -4534,6 +4655,7 @@ function _resetPlayerCast(){
 // New per-enemy attack resolver
 function resolveEnemyAttack(e, enemyIdx){
   if(!combat.active||!e||e.hp<=0) return;
+  if(G.hp<=0) return; // player already dead
 
   // DoT ticks
   if(e.status?.bleeding){
@@ -4565,7 +4687,18 @@ function resolveEnemyAttack(e, enemyIdx){
     if(G.passives?.dmgReduce) dmg=Math.max(0,dmg-G.passives.dmgReduce);
     if(G.invincibleRounds>0){G.invincibleRounds--;dmg=0;addCombatLog('Divine Shield — negated!','player-hit');}
     playSound('enemy_hit');
+    // Temp HP absorbs first
+    if(G.passives?.tempHP>0){
+      const absorbed=Math.min(G.passives.tempHP,dmg);
+      G.passives.tempHP-=absorbed; dmg-=absorbed;
+      if(absorbed>0) addCombatLog(`Temp HP absorbs ${absorbed}!`,'player-hit');
+    }
     G.hp=Math.max(0,G.hp-dmg);
+    // Decay Second Wind dmg reduction
+    if(G.passives?._windHits>0){ G.passives._windHits--; if(G.passives._windHits<=0){G.passives.dmgReduce=0;delete G.passives._windHits;} }
+    // Clear defensive bonus after hit
+    if(G._acBonus){ G._acBonus=0; }
+    G.defending=false;
     addCombatLog(`${e.def.name} hits! — ${dmg} dmg${roll===20?' CRIT!':''}`,roll===20?'hit':'hit');
     // Flash the enemy figure
     const figEl=document.getElementById('bf-fig-enemy'+enemyIdx);
@@ -4734,25 +4867,138 @@ function executePlayerAction({action,mpCost}){
       msg=hit?`Stunning Strike deals ${dmg} and stuns!`:'Strike misses!';
       break;}
     case 'Defend':
-    case 'Dodge':
-    case 'Patient Defense':
+    case 'Patient Defense':{
       G.defending=true;
-      addCombatLog(`${G.name} takes a defensive stance (+4 AC this round).`);
-      updateHUD();return;
-    case 'Second Wind':{
-      const h=rollDice(10,1)+G.level;G.hp=Math.min(G.hpMax,G.hp+h);
-      addCombatLog(`Second Wind restores ${h} HP!`,'player-hit');
-      updateCombatBars();updateHUD();return;}
-    case 'Intimidate':{
-      if(d20()+modOf(G.stats.CHA)>=14){e.intimidated=true;addCombatLog('Enemy is intimidated — next attack disadvantaged!','player-hit');}
-      else addCombatLog('Intimidate fails.','miss');
+      G._acBonus=(G._acBonus||0)+4;
+      combat.enemies.forEach(en=>{ if(en.hp>0) en.timer=Math.max(0,en.timer*0.7); });
+      addCombatLog(`${G.name} raises their guard! (+4 AC, enemies slowed). Escape available.`);
+      updateCombatBars(); updateHUD();
+      showEscapeOption();
       return;}
+
+    case 'Dodge':{ 
+      G.defending=true;
+      G._acBonus=(G._acBonus||0)+6;
+      G.passives=G.passives||{};
+      G.passives._dodgeBonus=true;
+      const _fastestDodge=combat.enemies.filter(en=>en.hp>0).sort((a,b)=>(b.timer/b.timerMax)-(a.timer/a.timerMax))[0];
+      if(_fastestDodge){ _fastestDodge.timer=0; addCombatLog(`${G.name} dodges! (${_fastestDodge.def.name}'s attack reset, +6 AC). Escape available.`); }
+      else addCombatLog(`${G.name} dodges! (+6 AC). Escape available.`);
+      updateCombatBars(); updateHUD();
+      showEscapeOption();
+      return;}
+
+    case 'Blink':
+      // Wizard — instant escape, costs MP, no roll
+      { const blinkCost=Math.ceil(G.mpMax*.15);
+        if(G.mp<blinkCost){addCombatLog('Not enough MP to Blink!','miss');return;}
+        G.mp-=blinkCost;
+        addCombatLog(`${G.name} blinks out of existence!`,'spell');
+        cancelAnimationFrame(combat.animFrame);
+        combat.active=false;
+        _resetPlayerCast();
+        setTimeout(()=>{
+          document.getElementById('ov-combat').classList.remove('active');
+          hideHealTargetPicker();
+          G.inCombat=false; G.encounterCooldown=30;
+          addLog('You blink away from combat!','sys');
+          toast('Blinked away!');
+          updateHUD(); render();
+        },400);
+        return;
+      }
+
+    case 'Evade':{
+      G.defending=true;
+      G._acBonus=(G._acBonus||0)+4;
+      G.passives=G.passives||{};
+      G.passives._dodgeBonus=true;
+      combat.enemies.forEach(en=>{ if(en.hp>0){ en.timer=0; en.timerStarted=false; en.timerStartDelay=randInt(800,2000); } });
+      addCombatLog(`${G.name} evades — all enemies must restart! (+4 AC). Escape available.`,'spell');
+      updateCombatBars(); updateHUD();
+      showEscapeOption();
+      return;}
+
+    case 'Aura of Protection':{
+      G.defending=true;
+      G._acBonus=(G._acBonus||0)+5;
+      G.passives=G.passives||{};
+      G.passives.auraActive=true;
+      if(coopActive) coopBroadcast({type:'aura_protection',bonus:3});
+      addCombatLog(`${G.name}'s Aura of Protection radiates! (+5 AC self, +3 party). Escape available.`,'spell');
+      updateCombatBars(); updateHUD();
+      showEscapeOption();
+      return;}
+
+    case 'Wild Shape':
+      // Druid — grants temp HP equal to 50% hpMax, can escape
+      { const tempHP=Math.floor(G.hpMax*0.5);
+        G.passives=G.passives||{};
+        G.passives.tempHP=(G.passives.tempHP||0)+tempHP;
+        G.defending=true;
+        addCombatLog(`${G.name} transforms — +${tempHP} temporary HP! Escape available.`,'spell');
+        updateCombatBars(); updateHUD();
+        showEscapeOption();
+        return;
+      }
+
+    case 'Entangle':
+      // Druid — roots all enemies, pauses their timers for 4s
+      { const entangleDur=4000;
+        combat.enemies.forEach(en=>{
+          if(en.hp>0){
+            en.status=en.status||{};
+            en.status.rooted=entangleDur;
+            en.timerStarted=false;
+            en.timerStartDelay=entangleDur;
+            en.timer=0;
+          }
+        });
+        addCombatLog(`${G.name} calls roots — all enemies entangled for 4s!`,'spell');
+        updateCombatBars(); updateHUD();
+        // Re-enable after duration
+        setTimeout(()=>{
+          combat.enemies.forEach(en=>{ if(en.hp>0&&en.status?.rooted){delete en.status.rooted;en.timerStarted=true;} });
+        }, entangleDur);
+        return;
+      }
+
+    case 'Second Wind':{
+      // Fighter — heal AND grant 1 round of 50% damage reduction
+      const h=rollDice(10,1)+G.level;
+      G.hp=Math.min(G.hpMax,G.hp+h);
+      G.passives=G.passives||{};
+      G.passives.dmgReduce=(G.passives.dmgReduce||0)+Math.floor(G.level*1.5);
+      addCombatLog(`Second Wind! +${h} HP and damage reduction active.`,'player-hit');
+      // Reset after next 2 hits by removing in resolveEnemyAttack
+      G.passives._windHits=2;
+      updateCombatBars(); updateHUD(); return;}
+
+    case 'Intimidate':{
+      // Works on ALL enemies now
+      const intRoll=d20()+modOf(G.stats.CHA);
+      const intDC=12;
+      let intCount=0;
+      combat.enemies.forEach(en=>{
+        if(en.hp>0&&intRoll>=intDC){
+          en.status=en.status||{};
+          en.status.intimidated=true;
+          en.timer=Math.max(0,en.timer*0.5); // also slow them
+          intCount++;
+        }
+      });
+      if(intCount>0) addCombatLog(`${G.name} intimidates ${intCount} enem${intCount>1?'ies':'y'}! (roll ${intRoll}) — attacks slowed!`,'player-hit');
+      else addCombatLog(`Intimidate fails! (roll ${intRoll} vs DC${intDC})`,'miss');
+      return;}
+
     case 'Meditate':{
-      const manaGain=Math.max(3,Math.floor(G.mpMax*0.25));
+      // Bigger mana restore + brief timer on enemies
+      const manaGain=Math.max(5,Math.floor(G.mpMax*0.4));
       G.mp=Math.min(G.mpMax,G.mp+manaGain);
-      addCombatLog(`You meditate — +${manaGain} MP recovered.`,'player-hit');
-      updateHUD(); return;
-    }
+      // Also slow enemies slightly
+      combat.enemies.forEach(en=>{ if(en.hp>0) en.timer=Math.max(0,en.timer*0.8); });
+      addCombatLog(`${G.name} meditates — +${manaGain} MP! Enemies briefly disrupted.`,'player-hit');
+      updateHUD(); return;}
     default:{
       hit=toHit>=e.ac;dmg=hit?rollDice(6,1)+G.dmgBonus:0;
       msg=hit?`${action} deals ${dmg}!`:`${action} misses!`;
@@ -4761,80 +5007,64 @@ function executePlayerAction({action,mpCost}){
 
   if(hit&&dmg>0){
   e.hp-=dmg; playSound('hit'); addCombatLog(msg,'player-hit');
-  // Flash enemy figure
-  const _ef=document.getElementById('bf-fig-enemy');
+  const _ef=document.getElementById('bf-fig-enemy'+combat.targetIdx);
   if(_ef){_ef.classList.add('hit');setTimeout(()=>_ef.classList.remove('hit'),200);}
 }else{playSound('miss');addCombatLog(msg,'miss');}
   updateCombatBars();updateHUD();
 }
 
 function resolveEnemyTurn(){
-  cancelAnimationFrame(combat.animFrame);
-  const e=combat.enemy;
-
-  // Stunned? Skip
-  // DoT effects (bleeding, burning)
-  if(e.bleeding && e.bleeding.rounds > 0){
-    e.hp -= e.bleeding.dmg; e.bleeding.rounds--;
-    addCombatLog(`${e.def.name} bleeds for ${e.bleeding.dmg} damage!`,'player-hit');
-    if(e.bleeding.rounds <= 0) delete e.bleeding;
-  }
-  if(e.burning){
-    e.hp -= e.burning; addCombatLog(`${e.def.name} burns for ${e.burning}!`,'player-hit');
-    delete e.burning;
-  }
-  if(e.hp <= 0){ updateCombatBars(); updateHUD(); checkCombatEnd(); return; }
-  if(e.stunned>0){e.stunned--;addCombatLog(`${e.def.name} is stunned — loses turn!`,'player-hit');}
-  else{
-    const roll=d20();
-    const toHit=roll+e.atk;
-    const playerAC=G.ac+(G.defending?4:0);
-    G.defending=false;
-    if(toHit>=playerAC||roll===20){
-      let dmg=rollDice(e.def.hd/2||4,1)+e.dmg;
-      if(roll===20)dmg*=2;
-      if(e.intimidated){dmg=Math.floor(dmg*.6);e.intimidated=false;}
-      if(G.passives && G.passives.dmgReduce) dmg = Math.max(0, dmg - G.passives.dmgReduce);
-      if(G.invincibleRounds && G.invincibleRounds > 0){ G.invincibleRounds--; dmg=0; addCombatLog('Divine Shield — damage negated!','player-hit'); }
-      if(G.passives && G.passives.lowHpAtk && G.hp <= G.hpMax*0.5) { /* atk bonus already applied in recalc */ }
-      playSound('enemy_hit');
-      G.hp=Math.max(0,G.hp-dmg);
-      addCombatLog(`${e.def.name} hits! (${roll}+${e.atk}=${toHit} vs AC${playerAC}) — ${dmg} dmg${roll===20?' CRIT!':''}`,roll===20?'hit':'hit');
-    }else{
-      addCombatLog(`${e.def.name} misses! (${roll}+${e.atk}=${toHit} vs AC${playerAC})`,'miss');
-    }
-  }
-
-  updateCombatBars();updateHUD();
-  if(checkCombatEnd())return;
-
-  // Switch back to player — in new system this is a no-op
-  // (player timers are always running asynchronously)
-  combat.round++;
-  combat.playerTurn=true;
-  _resetPlayerCast();
-  buildBattlefieldUI();
-  combat.lastTick=performance.now();
-  combat.animFrame=requestAnimationFrame(tickCombat);
+  // Legacy function — no longer used in async combat system
+  // Kept as no-op to avoid reference errors
 }
 
+
+function checkOnKillPassives(){
+  if(!G.passives) return;
+  // On-kill HP restore
+  if(G.passives.onKillHp){
+    const heal=G.passives.onKillHp;
+    G.hp=Math.min(G.hpMax,G.hp+heal);
+    addLog(`On-kill: +${heal} HP`,'sys');
+  }
+  // On-kill MP restore
+  if(G.passives.onKillMp){
+    G.mp=Math.min(G.mpMax,G.mp+G.passives.onKillMp);
+  }
+}
 function checkCombatEnd(){
   if(!combat.active) return false;
 
-  // Check if any enemy just died — auto-target next living enemy
-  const aliveEnemies = combat.enemies.filter(e=>e.hp>0);
-  if(combat.enemies[combat.targetIdx]?.hp<=0){
-    const nextAlive = combat.enemies.findIndex(e=>e.hp>0);
+  // Announce newly dead enemies
+  combat.enemies.forEach((e,i)=>{
+    if(e.hp<=0 && !e._announcedDead){
+      e._announcedDead=true;
+      addCombatLog(`${e.def.name} is defeated!`,'player-hit');
+      const fig=document.getElementById('bf-fig-enemy'+i);
+      if(fig) fig.classList.add('dead');
+    }
+  });
+
+  // Count alive enemies
+  const aliveEnemies=combat.enemies.filter(e=>e.hp>0);
+
+  // Retarget if current target is dead but others live
+  if(aliveEnemies.length>0 && combat.enemies[combat.targetIdx]?.hp<=0){
+    const nextAlive=combat.enemies.findIndex(e=>e.hp>0);
     if(nextAlive>=0){
       combat.targetIdx=nextAlive;
       addCombatLog(`Targeting ${combat.enemies[nextAlive].def.name}!`,'sys');
       updateBattlefieldBars();
     }
+    return false; // still fighting
   }
 
-  // All enemies dead = victory
+  // All dead = victory
   if(aliveEnemies.length===0){
-    cancelAnimationFrame(combat.animFrame);combat.active=false;
+    combat.active=false;
+    G.inCombat=false; // clear immediately so movement resumes
+    G._acBonus=0; G.defending=false;
+    if(combat.animFrame){cancelAnimationFrame(combat.animFrame);combat.animFrame=null;}
     _resetPlayerCast();
 
     // Aggregate XP/gold from all enemies
@@ -4895,9 +5125,11 @@ function checkCombatEnd(){
     });
 
     setTimeout(()=>{
-      document.getElementById('ov-combat').classList.remove('active');
+      const ovEl=document.getElementById('ov-combat');
+      if(ovEl){ ovEl.classList.remove('active'); ovEl.style.display=''; }
       hideHealTargetPicker();
-      G.inCombat=false;combat.active=false;
+      G.inCombat=false; combat.active=false;
+      G._acBonus=0; G.defending=false;
       if(G.mpMax>0){
         const regen=Math.max(1,Math.floor(G.mpMax*0.3));
         G.mp=Math.min(G.mpMax,G.mp+regen);
@@ -4906,16 +5138,18 @@ function checkCombatEnd(){
       if(coopIsHost) coopBroadcastCombatEnd(true, xpGain, goldGain);
       updateHUD();
       while(G.xp>=G.xpNext)doLevelUp();
-      saveGame();render();
+      saveGame(); render();
     },1200);
     return true;
   }
   if(G.hp<=0){
-    cancelAnimationFrame(combat.animFrame);combat.active=false;
+    combat.active=false; // stop loop immediately
+    if(combat.animFrame){cancelAnimationFrame(combat.animFrame);combat.animFrame=null;}
     addCombatLog('You have fallen…','hit');
     setTimeout(()=>{
       document.getElementById('ov-combat').classList.remove('active');
       G.inCombat=false;
+      G._acBonus=0; G.defending=false;
       triggerDeath();
     },1000);
     return true;
@@ -5426,7 +5660,11 @@ let worldBosses = [
 
 // Load boss state from Supabase and subscribe to realtime updates
 async function initWorldBosses(){
-  if(_isLocal){ console.log('[Bosses] Local mode — skipping Supabase sync'); return; }
+  if(_isLocal){
+    console.log('[Bosses] Local mode — Supabase sync skipped, movement active');
+    startBossMovement(); // movement works locally without Supabase
+    return;
+  }
   try{
     const {data,error}=await _supa.from('world_bosses').select('*');
     if(!error&&data&&data.length){
@@ -5457,32 +5695,72 @@ async function initWorldBosses(){
       .subscribe();
   }catch(e){ console.warn('World boss init failed:', e.message); }
 
-  // Boss local movement — all clients move bosses locally for smooth rendering
-  // Only the FIRST connected player (determined by token sort) writes to Supabase
-  // This avoids N players all writing simultaneously
-  setInterval(()=>{
-    worldBosses.forEach(b=>{
-      if(!b.alive) return;
-      const dx=Math.round((Math.random()-0.5)*4);
-      const dy=Math.round((Math.random()-0.5)*4);
-      const nx=Math.max(8,Math.min(MAP_W-9,b.x+dx));
-      const ny=Math.max(8,Math.min(MAP_H-9,b.y+dy));
-      if(Math.abs(nx-b.homeX)<=15&&Math.abs(ny-b.homeY)<=15&&PASSABLE.has(worldMap[ny*MAP_W+nx])){
-        b.x=nx; b.y=ny;
-      }
-    });
-  }, 3000); // local movement every 3s (smooth, no network)
+  startBossMovement();
+}
 
-  // Supabase sync — only every 60s, and only if this is the co-op host or solo player
+function startBossMovement(){
   setInterval(()=>{
-    if(coopActive && !coopIsHost) return; // peers don't write boss positions
-    worldBosses.forEach(b=>{
-      if(!b.alive) return;
-      _supa.from('world_bosses')
-        .update({x:b.x,y:b.y,updated_at:new Date().toISOString()})
-        .eq('id',b.id).then(()=>{});
-    });
-  }, 60000); // sync to server every 60s only
+    try{
+      if(G.inCombat||G.inTown||!combat) return;
+      worldBosses.forEach(b=>{
+        if(!b.alive) return;
+        const distToPlayer=Math.sqrt((G.x-b.x)**2+(G.y-b.y)**2);
+
+        // Enrage: within 3 tiles
+        if(distToPlayer<=3){
+          if(!G.inCombat){
+            addLog(`⚠ ${b.name} ENRAGES and attacks!`,'combat');
+            toast(`⚠ ${b.name} ENRAGES!`);
+            triggerWorldBossCombat(b);
+          }
+          return;
+        }
+
+        let nx=b.x, ny=b.y;
+        if(distToPlayer<=60){
+          // Chase: step toward player
+          const ddx=G.x-b.x, ddy=G.y-b.y;
+          const stepX=ddx===0?0:(ddx>0?1:-1);
+          const stepY=ddy===0?0:(ddy>0?1:-1);
+          if(Math.abs(ddx)>=Math.abs(ddy)) nx=b.x+stepX;
+          else ny=b.y+stepY;
+          // Warn player when boss starts chasing
+          if(distToPlayer<=20&&!b._warned){
+            b._warned=true;
+            toast(`⚠ ${b.name} has spotted you!`,'err');
+            addLog(`⚠ ${b.name} turns its gaze upon you!`,'combat');
+          }
+        } else {
+          // Roam within 20 tiles of home
+          b._warned=false;
+          const rdx=Math.round((Math.random()-0.5)*3);
+          const rdy=Math.round((Math.random()-0.5)*3);
+          nx=b.x+rdx; ny=b.y+rdy;
+          if(Math.abs(nx-b.homeX)>20) nx=b.homeX+Math.sign(b.homeX-nx)*18;
+          if(Math.abs(ny-b.homeY)>20) ny=b.homeY+Math.sign(b.homeY-ny)*18;
+        }
+
+        nx=Math.max(4,Math.min(MAP_W-5,nx));
+        ny=Math.max(4,Math.min(MAP_H-5,ny));
+        if(nx!==b.x||ny!==b.y){
+          if(PASSABLE.has(worldMap[ny*MAP_W+nx])){b.x=nx;b.y=ny;}
+        }
+      });
+    }catch(err){ /* guard against any reference errors */ }
+  }, 1500);
+
+  // Supabase sync — only every 60s, host only, deployed only
+  if(!_isLocal){
+    setInterval(()=>{
+      if(coopActive&&!coopIsHost) return;
+      worldBosses.forEach(b=>{
+        if(!b.alive) return;
+        _supa.from('world_bosses')
+          .update({x:b.x,y:b.y,updated_at:new Date().toISOString()})
+          .eq('id',b.id).then(()=>{});
+      });
+    }, 60000);
+  }
 }
 
 function drawWorldBosses(stX,stY,offX,offY){
@@ -5698,7 +5976,7 @@ function coopJoin(){
 function coopHandleData(data, fromConn){
   switch(data.type){
 
-    case 'player_join':
+    case 'player_join':{
       if(coopIsHost){
         const idx = coopParty.length;
         fromConn._partyIdx = idx;
@@ -5719,6 +5997,7 @@ function coopHandleData(data, fromConn){
         setCoopStatus('host','ok',`Party: ${coopParty.length} player(s).`);
       }
       break;
+    }
 
     case 'welcome':
       coopParty = data.party;
@@ -5806,7 +6085,7 @@ function coopHandleData(data, fromConn){
       if(data.partyHp) updatePartyHpFromData(data.partyHp);
       break;
 
-    case 'combat_action':
+    case 'combat_action':{
       // Peer sends their action to the host
       if(coopIsHost && combat.active && combat.enemy){
         const pName = coopParty[fromConn._partyIdx]?.name || 'Ally';
@@ -5827,6 +6106,7 @@ function coopHandleData(data, fromConn){
         checkCombatEnd();
       }
       break;
+    }
 
     case 'combat_end':
       if(!coopIsHost){
@@ -5851,7 +6131,7 @@ function coopHandleData(data, fromConn){
       }
       break;
 
-    case 'peer_move':
+    case 'peer_move':{
       if(coopIsHost){
         const pIdx = fromConn._partyIdx;
         if(pIdx!=null && coopParty[pIdx]){
@@ -5887,14 +6167,16 @@ function coopHandleData(data, fromConn){
         }
       }
       break;
+    }
 
-    case 'start_campaign':
+    case 'start_campaign':{
       if(!coopIsHost){
         // Show dungeon invite popup with accept/decline + 15s timer
         const _hostName = coopParty[0]?.name || 'Your party leader';
         showDungeonInvite(data.campaignId, _hostName);
       }
-      break;
+      break;    }
+
     case 'portal_prompt':
       // Peer walked into a portal tile — show dungeon invite if party is active,
       // otherwise show the normal portal info screen
@@ -5970,7 +6252,7 @@ function coopHandleData(data, fromConn){
       }
       break;
 
-    case 'room_advance':
+    case 'room_advance':{
       // Host advanced to next room — peer follows
       if(!coopIsHost && campState){
         const _room = campState.camp.rooms.find(r=>r.id===data.roomId);
@@ -5984,8 +6266,9 @@ function coopHandleData(data, fromConn){
         }
       }
       break;
+    }
 
-    case 'field_rest':
+    case 'field_rest':{
       if(coopIsHost){
         // Peer rested — update their HP/MP and broadcast
         const pIdx = fromConn._partyIdx;
@@ -5998,6 +6281,7 @@ function coopHandleData(data, fromConn){
         }
       }
       break;
+    }
 
     case 'chat':
       addLog(`[${data.from}]: ${data.msg}`);
@@ -6091,13 +6375,7 @@ function coopOnCampCombatStart(room){
 }
 
 // ── Patching checkCombatEnd to broadcast result ──
-const _coopOrigCheckEnd = checkCombatEnd;
-function checkCombatEnd(){
-  const result = _coopOrigCheckEnd();
-  // If host and peers connected, broadcast end on victory
-  // (death already handled inside _coopOrigCheckEnd)
-  return result;
-}
+// co-op wrapper removed
 
 // ── PEER SENDS MOVES/ACTIONS TO HOST ──
 function coopSendMove(dx,dy){
@@ -6813,20 +7091,18 @@ function updateBattlefieldBars(){
   });
 }
 
-// ── addCombatLog: also show in battlefield topbar strip ──
-// We extend the existing function rather than patching to avoid hoisting issues
-const _addCombatLogOrig = addCombatLog;
+// addCombatLog — writes to the scrolling log column
 function addCombatLog(msg, type=''){
-  // Call original (writes to hidden #cb-log used by old code)
-  try{ _addCombatLogOrig(msg, type); }catch(e){}
-  // Also write to the visible battlefield log strip
-  const strip = document.getElementById('cb-log');
-  if(!strip) return;
+  const log = document.getElementById('cb-log');
+  if(!log) return;
   const d = document.createElement('div');
   d.className = 'clog ' + (type||'');
   d.textContent = msg;
-  strip.appendChild(d);
-  while(strip.children.length > 4) strip.removeChild(strip.firstChild);
+  log.appendChild(d);
+  // Keep last 80 entries
+  while(log.children.length > 80) log.removeChild(log.firstChild);
+  // Auto-scroll to bottom
+  log.scrollTop = log.scrollHeight;
 }
 
 
@@ -7437,20 +7713,42 @@ function closePortal(){
   G.inTown = false;
 }
 
-function startCampaign(){
-  const camp = CAMPAIGNS[pendingPortalId];
-  if(!camp) return;
-  document.getElementById('ov-portal').classList.remove('active');
-  G.inTown = false; // clear portal lock so dungeon can open freely
-  pendingPortalId = null;
+// Dungeon file map — campaignId → dungeon HTML path
+const DUNGEON_FILES = {
+  'goblin_warrens':  'dungeons/dungeon-goblin-warrens.html',
+  'bandit_cave':     'dungeons/dungeon-bandit-cave.html',
+  'sunken_throne':   'dungeons/dungeon-sunken-throne.html',
+  'duskwood_siege':  'dungeons/dungeon-duskwood-siege.html',
+  'glacial_tomb':    'dungeons/dungeon-glacial-tomb.html',
+  'ashspire':        'dungeons/dungeon-ashspire.html',
+  'irondeep':        'dungeons/dungeon-irondeep.html',
+  'drowned_citadel': 'dungeons/dungeon-drowned-citadel.html',
+};
 
-  // If host in co-op, broadcast dungeon invite to all peers NOW
+function startCampaign(){
+  const campaignId = pendingPortalId;
+  document.getElementById('ov-portal').classList.remove('active');
+  G.inTown = false;
+
+  // ── New dungeon engine: navigate to standalone dungeon file ──
+  if(DUNGEON_FILES[campaignId]){
+    pendingPortalId = null;
+    saveGame();
+    addLog(`Entering ${campaignId.replace(/_/g,' ')}…`,'disc');
+    toast('Entering dungeon…');
+    setTimeout(()=>{ window.location.href = DUNGEON_FILES[campaignId]; }, 600);
+    return;
+  }
+
+  // ── Legacy: old room-card campaign system ──
+  const camp = CAMPAIGNS[campaignId];
+  pendingPortalId = null;
+  if(!camp){ toast('Dungeon not yet available.','err'); return; }
+
   if(coopIsHost && coopConns.length > 0){
     coopBroadcast({type:'start_campaign', campaignId:camp.id});
     addLog(`Sent dungeon invite to party for: ${camp.name}`,'sys');
   }
-
-  // Load or create progress
   if(!G.campaignProgress) G.campaignProgress = {};
   let prog = G.campaignProgress[camp.id];
   if(!prog || prog.completed){
@@ -7689,322 +7987,8 @@ function startCampCombat(){
   combat.animFrame=requestAnimationFrame(tickCombat);
 }
 
-// Patch checkCombatEnd to handle campaign room victories
-const _origCheckEnd = checkCombatEnd;
-// We override globally with a new version below
+// campaign checkCombatEnd patch removed — handled in main function
 
-function checkCombatEnd(){
-  if(combat.enemy.hp<=0){
-    cancelAnimationFrame(combat.animFrame); combat.active=false;
-    const e=combat.enemy;
-
-    // Phase two trigger for campaign bosses
-    if(e.phaseTwo && !e.phaseFired){
-      // already handled in resolveEnemyTurn via dmg
-    }
-
-    const xpGain = (e.def.xp||100) + G.level*10;
-    const goldGain = (e.isCampBoss && e.campRoom && e.campRoom.bossReward)
-      ? e.campRoom.bossReward.gold
-      : randInt((e.def.gold&&e.def.gold[0])||0, (e.def.gold&&e.def.gold[1])||5);
-
-    G.xp+=xpGain; G.gold+=goldGain;
-    addCombatLog(`Victory! +${xpGain} XP  +${goldGain} gp`,'player-hit');
-    addCombatLog(`XP: ${G.xp}/${G.xpNext} (Lv ${G.level})`);
-    addLog(`Victory! +${xpGain} XP · ${G.xp}/${G.xpNext} to next level`,'loot');
-
-    // Campaign boss loot
-    if(e.isCampBoss && e.campRoom && campState){
-      const room = e.campRoom;
-      if(room.bossReward && room.bossReward.loot){
-        room.bossReward.loot.forEach(item=>{
-          if(item.tier==='legendary'){
-            addLog(`⭐ LEGENDARY: ${item.name} — "${item.flavour}"`, 'legendary');
-            toast(`⭐ Legendary: ${item.name}!`);
-          } else if(item.tier==='rare'){
-            addLog(`✦ Rare item: ${item.name}`,'loot');
-          }
-          addToInventory({...item});
-        });
-      }
-      if(room.loot){
-        room.loot.forEach(item=>addToInventory({...item}));
-      }
-      // Session end?
-      if(room.sessionEnd){
-        setTimeout(()=>{
-          document.getElementById('ov-combat').classList.remove('active');
-          G.inCombat=false;
-          showSessionPause(room);
-          if(G.xp>=G.xpNext) doLevelUp();
-          saveGame(); render();
-        },1400);
-        return true;
-      }
-    }
-
-    // Phase two?
-    if(e.phaseTwo && !e.phaseFired && e.isCampBoss){
-      // Already at 0 — skip phase 2
-    }
-
-    setTimeout(()=>{
-      document.getElementById('ov-combat').classList.remove('active');
-      G.inCombat=false; combat.active=false;
-
-      // Advance campaign if this was a camp combat
-      if(e.isCampBoss && e.campRoom){
-        campState.prog.completedRooms.push(e.campRoom.id);
-        saveGame();
-        const nextRoom = campState.camp.rooms.find(r=>r.id===e.campRoom.next);
-        if(nextRoom) showRoom(nextRoom);
-        else endCampaign();
-      } else {
-        // Regular world combat
-        // MP regen
-        if(G.mpMax>0){
-          const regen=Math.max(1,Math.floor(G.mpMax*0.3));
-          G.mp=Math.min(G.mpMax,G.mp+regen);
-          addLog(`Recovered ${regen} MP after combat.`,'sys');
-        }
-        // Broadcast victory to all peers
-        if(coopIsHost && coopConns.length>0) coopBroadcastCombatEnd(true, xpGain, goldGain);
-        updateHUD();
-        while(G.xp>=G.xpNext) doLevelUp();
-        saveGame(); render();
-      }
-    }, 1200);
-    return true;
-  }
-
-  if(G.hp<=0){
-    if(checkCheatDeath()){ updateCombatBars(); updateHUD(); return false; }
-    cancelAnimationFrame(combat.animFrame); combat.active=false;
-    _resetPlayerCast();
-    addCombatLog('You have fallen…','hit');
-    setTimeout(()=>{
-      document.getElementById('ov-combat').classList.remove('active');
-      G.inCombat=false;
-      if(coopIsHost && coopConns.length>0) coopBroadcastCombatEnd(false, 0, 0);
-      const bossEnemy=combat.enemies?.find(e=>e.isCampBoss);
-      if(bossEnemy){
-        // Campaign death — offer retry
-        addLog('You were defeated. The campaign pauses — rest and try again.','combat');
-        if(campState) G.inTown=false;
-        document.getElementById('ov-campaign').classList.remove('active');
-        G.hp = Math.max(1, Math.floor(G.hpMax*0.3));
-        updateHUD();
-      }
-      triggerDeath();
-    },1000);
-    return true;
-  }
-
-  // Phase two check mid-combat
-  const _p2e=combat.enemies?.[combat.targetIdx];
-  if(_p2e?.phaseTwo && !_p2e.phaseFired){
-    if(_p2e.hp <= _p2e.phaseTwo.threshold){
-      _p2e.phaseFired=true;
-      _p2e.atk  += _p2e.phaseTwo.atkBonus||0;
-      _p2e.dmg  += _p2e.phaseTwo.dmgBonus||0;
-      addCombatLog('⚠ '+_p2e.phaseTwo.text,'hit');
-      const _es=document.getElementById('bf-st-enemy'+combat.targetIdx);
-      if(_es)_es.textContent='⚡ ENRAGED';
-    }
-  }
-
-  // Pact weakness bonus
-  if(combat.enemy.knewPact){
-    // Applied as bonus dmg to player attacks — handled in executePlayerAction modifier
-  }
-
-  return false;
-}
-
-function showSessionPause(room){
-  campState.prog.sessionCount = (campState.prog.sessionCount||0)+1;
-  document.getElementById('pause-desc').textContent = room.sessionEndText ||
-    'The party makes camp. Your progress is saved. Gather again when ready to continue.';
-  document.getElementById('pause-info').innerHTML =
-    `Campaign: <strong>${campState.camp.name}</strong><br>
-     Session ${campState.prog.sessionCount} complete<br>
-     Next: ${campState.camp.rooms[campState.prog.roomIdx+1]?.title||'Final Act'}`;
-  document.getElementById('ov-session-pause').classList.add('active');
-  G.inTown=true;
-  saveGame();
-}
-
-function resumeCampaign(){
-  document.getElementById('ov-session-pause').classList.remove('active');
-  const prog = campState.prog;
-  const nextRoom = campState.camp.rooms[prog.roomIdx+1];
-  if(nextRoom){
-    prog.roomIdx++;
-    showRoom(nextRoom);
-  } else endCampaign();
-}
-
-function exitCampaignToWorld(){
-  document.getElementById('ov-session-pause').classList.remove('active');
-  document.getElementById('ov-campaign').classList.remove('active');
-  document.getElementById('ov-combat').classList.remove('active');
-  G.inTown=false; G.inCombat=false;
-  if(combat.animFrame){cancelAnimationFrame(combat.animFrame);combat.animFrame=null;}
-  combat.active=false;
-  campState=null;
-  hideHealTargetPicker();
-  updateMinimapMode();
-  addLog('You return to the world. Your campaign progress is saved.','sys');
-  render(); updateHUD(); saveGame();
-}
-
-function endCampaign(){
-  document.getElementById('ov-campaign').classList.remove('active');
-  G.inTown=false;
-  if(campState){
-    campState.prog.completed=true;
-    addLog(`✦ Campaign complete: ${campState.camp.name}!`,'disc');
-    campState=null;
-  }
-  saveGame(); render(); updateHUD();
-}
-
-
-// ╔══════════════════════════════════════════════════════╗
-// ║           ABILITY CHOICE & DEATH REVAMP             ║
-// ╚══════════════════════════════════════════════════════╝
-
-// ── Ability choice UI ──
-let _pendingLevelForAbility = null;
-
-function showAbilityChoice(level){
-  _pendingLevelForAbility = level;
-  const clsId = G.cls.id;
-  const allAbilities = CLASS_ABILITIES[clsId] || CLASS_ABILITIES['fighter'];
-
-  // Get 3 abilities valid for this level, not already owned
-  const owned = G.abilities || [];
-  const ownedIds = owned.map(a=>a.id);
-  const pool = allAbilities.filter(a =>
-    a.levels.includes(level) && !ownedIds.includes(a.id)
-  );
-
-  // If pool < 3, pad with higher-level ones not owned
-  const extras = allAbilities.filter(a => !ownedIds.includes(a.id) && !pool.includes(a));
-  while(pool.length < 3 && extras.length) pool.push(extras.shift());
-
-  // Pick 3 (or fewer if class has few)
-  const choices = pool.slice(0, 3);
-
-  // Also always offer to upgrade an owned ability if any exist
-  if(owned.length > 0 && choices.length < 3){
-    // already handled above
-  }
-
-  document.getElementById('ab-level-label').textContent = `Level ${level} Milestone`;
-  document.getElementById('ab-instruct').textContent =
-    choices.length >= 2
-      ? 'You have grown in power. Choose one ability to gain:'
-      : 'Your path is clear. Claim your power:';
-
-  const grid = document.getElementById('ab-grid');
-  grid.innerHTML = '';
-  choices.forEach((ab,i) => {
-    const div = document.createElement('div');
-    div.className = 'ab-card' + (ab.tag==='upgrade'?' upgrade':'');
-    div.innerHTML = `
-      <div class="ab-card-head">
-        <span class="ab-card-icon">${ab.icon}</span>
-        <span class="ab-card-name">${ab.name}</span>
-        <span class="ab-card-tag ${ab.tag}">${ab.tag.toUpperCase()}</span>
-      </div>
-      <div class="ab-card-desc">${ab.desc}</div>
-    `;
-    div.onclick = () => selectAbility(ab);
-    grid.appendChild(div);
-  });
-
-  // If no choices available at all, just close
-  if(!choices.length){ closeLevelUpAndAbility(); return; }
-
-  document.getElementById('ov-ability').classList.add('active');
-}
-
-function selectAbility(ab){
-  if(!G.abilities) G.abilities = [];
-  G.abilities.push(ab);
-  applyAbilityEffect(ab);
-  document.getElementById('ov-ability').classList.remove('active');
-  playSound('ability');
-  addLog(`✦ New ability: ${ab.name}!`, 'disc');
-  toast(`Gained: ${ab.name}!`);
-  saveGame();
-  updateHUD();
-  buildEquipSlotsUI(); // refresh panel
-}
-
-function applyAbilityEffect(ab){
-  const e = ab.effect;
-  if(!e) return;
-  switch(e.type){
-    case 'passive':
-      if(e.hpMax)  { G.hpMax += e.hpMax;  G.hp = Math.min(G.hp+e.hpMax, G.hpMax); }
-      if(e.mpMax)  { G.mpMax += e.mpMax;   G.mp = Math.min(G.mp+e.mpMax, G.mpMax); }
-      if(e.ac)     { G.ac    += e.ac;    }
-      if(e.atk)    { G.atkBonus += e.atk; }
-      if(e.dmg)    { G.dmgBonus += e.dmg; }
-      // Complex passives stored on G.passives for combat to check
-      if(e.dmgReduce||e.dodge||e.critMult||e.onKillHp||e.cheatDeath||
-         e.healBonus||e.spellDmg||e.lowHpAtk||e.encounterAvoid||e.timerBonus||e.quickstrike){
-        if(!G.passives) G.passives = {};
-        Object.assign(G.passives, e);
-      }
-      break;
-    case 'new_action':
-      // Add to class actions list
-      if(!G.cls.actions.includes(e.action)){
-        G.cls.actions.push(e.action);
-        // Rebuild combat UI if mid-combat (shouldn't happen but safe)
-      }
-      if(!G.cls.customActions) G.cls.customActions = {};
-      G.cls.customActions[e.action] = e;
-      break;
-    case 'upgrade_action':
-      if(!G.cls.upgradedActions) G.cls.upgradedActions = {};
-      G.cls.upgradedActions[e.action] = e;
-      break;
-    case 'combat_buff':
-      // Stored, activated per-combat
-      if(!G.cls.combatBuffs) G.cls.combatBuffs = {};
-      G.cls.combatBuffs[ab.id] = {...e, used:false};
-      break;
-  }
-}
-
-// Re-apply all saved abilities on load (since G.cls gets rebuilt)
-function reapplyAbilities(){
-  if(!G.abilities || !G.abilities.length) return;
-  for(const ab of G.abilities) applyAbilityEffect(ab);
-}
-
-function closeLevelUpAndAbility(){
-  document.getElementById('ov-levelup').classList.remove('active');
-  document.getElementById('ov-ability').classList.remove('active');
-  updateHUD();
-}
-
-// ── Check passives in combat ──
-// Called from executePlayerAction for kill handling
-function checkOnKillPassives(){
-  if(G.passives && G.passives.onKillHp){
-    G.hp = Math.min(G.hpMax, G.hp + G.passives.onKillHp);
-  }
-  if(G.passives && G.passives.onKillMp){
-    G.mp = Math.min(G.mpMax, G.mp + G.passives.onKillMp);
-  }
-}
-
-// ── Cheat death passive ──
 function checkCheatDeath(){
   if(G.passives && G.passives.cheatDeath && !G.passives._cheatDeathUsed){
     G.passives._cheatDeathUsed = true;
@@ -8426,6 +8410,49 @@ async function deleteCloudSave(){
 }
 
 
+
+
+function showEscapeOption(){
+  const qd=document.getElementById('queued-display');
+  if(!qd) return;
+  qd.innerHTML=`Defensive stance active. <button onclick="escapeCombat()"
+    style="font-family:Cinzel,serif;font-size:.6rem;padding:4px 12px;
+    border:1px solid #4a8a4a;color:#80c080;background:rgba(30,80,30,.2);
+    cursor:pointer;margin-left:8px;">🏃 Escape Combat</button>`;
+}
+
+function escapeCombat(){
+  if(!combat.active||!G.defending){toast('Take a defensive stance first!','err');return;}
+  // Escape roll — DEX vs average enemy level
+  const _dodgeBonus=(G.passives&&G.passives._dodgeBonus)?5:0;
+  if(G.passives&&G.passives._dodgeBonus) delete G.passives._dodgeBonus;
+  const roll=d20()+modOf(G.stats.DEX||10)+_dodgeBonus;
+  const threshold=10+Math.floor(getZoneLevel()/2);
+  if(roll>=threshold){
+    addCombatLog(`${G.name} escapes! (roll ${roll} vs DC${threshold})`,'sys');
+    cancelAnimationFrame(combat.animFrame);
+    combat.active=false;
+    _resetPlayerCast();
+    setTimeout(()=>{
+      document.getElementById('ov-combat').classList.remove('active');
+      hideHealTargetPicker();
+      G.inCombat=false;
+      G.defending=false;
+      G._acBonus=0;
+      // Small XP penalty for fleeing
+      G.encounterCooldown=30;
+      addLog('You escape from combat!','sys');
+      toast('Escaped!');
+      updateHUD();render();
+    },600);
+  } else {
+    addCombatLog(`Escape fails! (roll ${roll} vs DC${threshold}) — ${G.name} is caught!`,'hit');
+    G.defending=false;
+    const qd=document.getElementById('queued-display');
+    if(qd) qd.textContent='Choose a skill to cast…';
+    toast('Escape failed!','err');
+  }
+}
 
 // ╔══════════════════════════════════════════════════════╗
 // ║           CHARACTER SELECT SCREEN                   ║
@@ -9186,6 +9213,23 @@ console.log('%c Realm of Echoes v2.4 %c built ' + new Date().toISOString().slice
   'background:#c9a227;color:#000;font-weight:bold;padding:2px 6px;',
   'color:#888;');
 buildCC();
+
+// Check if returning from a dungeon
+(()=>{
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('from_dungeon')==='1'){
+    const result=params.get('result')||'unknown';
+    const dungeon=(params.get('dungeon')||'dungeon').replace(/_/g,' ');
+    const floor=params.get('floor')||'1';
+    history.replaceState({},'',window.location.pathname);
+    setTimeout(()=>{
+      const msg=result==='death'?'You were carried out of '+dungeon+'…':
+        result==='escape'?'You escaped from '+dungeon+'!':'Returned from '+dungeon+' (floor '+floor+')';
+      if(typeof toast==='function') toast(msg, result==='death'?'err':'');
+      if(typeof addLog==='function') addLog(msg,'disc');
+    },1200);
+  }
+})();
 
 // Show character select — wrapped in rAF to ensure DOM is ready
 requestAnimationFrame(()=>{
