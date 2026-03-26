@@ -5858,9 +5858,9 @@ function loadPeerJS(cb){
   s.onload=()=>{
     // If using self-hosted broker, ping health check to wake Render from cold start
     if(PEER_HOST){
-      fetch('https://'+PEER_HOST+'/')
-        .then(()=>setTimeout(cb,300)) // small delay after wake
-        .catch(()=>cb()); // proceed anyway if ping fails
+      fetch('https://'+PEER_HOST+'/', {mode:'no-cors'})
+        .then(()=>setTimeout(cb,400))
+        .catch(()=>cb());
     } else {
       cb();
     }
@@ -9226,11 +9226,11 @@ console.log('%c Realm of Echoes v2.4 %c built ' + new Date().toISOString().slice
 // ── PeerJS broker config ──
 // Set PEER_HOST to your Render URL after deploying the broker.
 // Leave as null to fall back to the public peerjs.com broker.
-const PEER_HOST =  'realm-echoes-broker.onrender.com'
+const PEER_HOST = null; // e.g. 'realm-echoes-broker.onrender.com'
 const PEER_CONFIG = PEER_HOST ? {
   host: PEER_HOST,
   port: 443,
-  path: '/peerjs',
+  path: '/',
   secure: true,
   debug: 0,
   config: {
