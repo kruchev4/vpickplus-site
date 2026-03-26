@@ -2473,8 +2473,7 @@ function initDgCanvas(){
   dgCanvas=document.getElementById('dg-cv');
   dgCtx=dgCanvas.getContext('2d');
   window.addEventListener('resize',resizeDgCanvas);
-  // Wait for layout then size — RAF ensures CSS flex has computed
-  requestAnimationFrame(()=>requestAnimationFrame(resizeDgCanvas));
+  resizeDgCanvas(); // size immediately — we use window dimensions so no layout dependency
 }
 function resizeDgCanvas(){
   const W=Math.max(400,window.innerWidth-180);
@@ -2485,7 +2484,7 @@ function resizeDgCanvas(){
 
 // ── Render ──
 function renderDungeon(){
-  if(!dgMap.length||!dgCtx)return;
+  if(!dgMap||!dgMap.length||!dgCtx||!dgVpW||!dgVpH)return;
   const camX=dgPx*TILE_SIZE-dgVpW/2+TILE_SIZE/2;
   const camY=dgPy*TILE_SIZE-dgVpH/2+TILE_SIZE/2;
   const stX=Math.floor(camX/TILE_SIZE),stY=Math.floor(camY/TILE_SIZE);
@@ -2951,13 +2950,11 @@ if(!loadPlayerFromStorage()){
   }catch(e){console.warn('[Dungeon] Failed to load definition:',e);}
   if(DUNGEON_DEF){
     // Double-RAF ensures flex layout has computed before we size and render
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      resizeDgCanvas();
-      goToFloor(1,'down');
-      dgLog('Welcome to '+DUNGEON_DEF.name+'.','sys');
-      dgLog('[F] Search  [R] Rest  [I] Inventory  [E] Exit','sys');
-      requestAnimationFrame(dgLoop);
-    }));
+    resizeDgCanvas();
+    goToFloor(1,'down');
+    dgLog('Welcome to '+DUNGEON_DEF.name+'.','sys');
+    dgLog('[F] Search  [R] Rest  [I] Inventory  [E] Exit','sys');
+    requestAnimationFrame(dgLoop);
   } else {
     document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Cinzel,serif;color:#e07070;">No dungeon definition found.</div>';
   }
