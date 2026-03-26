@@ -1028,13 +1028,7 @@ function savePlayerToStorage(){
   }catch(e){}
 }
 
-function reapplyAbilities(){
-  // Reapply any active ability effects to G stats
-  if(!G.abilities) return;
-  G.abilities.forEach(ab=>{
-    if(ab && ab.effect) Object.assign(G.passives, ab.effect);
-  });
-}
+// reapplyAbilities defined below
 function recalcStats(){
   // Start from base character values
   const cls = G.cls;
@@ -1108,10 +1102,10 @@ let _modalItemIdx = null;
 
 
 function modOf(v){return Math.floor((v-10)/2);}
-function d20(){return Math.floor(Math.random()*20)+1;}
-function rollDice(sides,count=1){let t=0;for(let i=0;i<count;i++)t+=Math.floor(Math.random()*sides)+1;return t;}
-function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
-function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+// d20 defined below
+// rollDice defined below
+// randInt defined below
+// delay defined below
 
 
 function d20(){return Math.floor(Math.random()*20)+1;}
@@ -1183,13 +1177,7 @@ const SLOT_FOR_TYPE = {
 };
 
 
-function reapplyAbilities(){
-  // Reapply any active ability effects to G stats
-  if(!G.abilities) return;
-  G.abilities.forEach(ab=>{
-    if(ab && ab.effect) Object.assign(G.passives, ab.effect);
-  });
-}
+// reapplyAbilities defined below
 
 function reapplyAbilities(){}
 
@@ -1318,51 +1306,7 @@ function triggerCombat(tileType){
   combat.animFrame = requestAnimationFrame(tickCombat);
 }
 
-function buildCombatUI(){
-  const e=combat.enemy;
-  if(e){
-    document.getElementById('cb-e-icon').textContent=e.def.icon||'👹';
-    document.getElementById('cb-e-name').textContent=e.def.name||'Enemy';
-  }
-  document.getElementById('cb-p-icon').textContent=G.cls?.icon||'👤';
-  document.getElementById('cb-p-name').textContent=G.name;
-  // Init party timers
-  partyTimers={};
-  const myIdx=coopIsHost?0:(G.partyIdx||0);
-  partyTimers[myIdx]={timer:combat.playerTimerMax,timerMax:combat.playerTimerMax,queued:false,action:''};
-  // Build the full battlefield UI
-  buildBattlefieldUI();
-  updateCombatBars();
-
-  // Actions
-  const ag=document.getElementById('action-grid');
-  ag.innerHTML='';
-  G.cls.actions.forEach(a=>{
-    const isMagic=G.cls.spells.includes(a);
-    const mpCost=isMagic?Math.ceil(G.mpMax*.15):0;
-    const btn=document.createElement('button');
-    btn.className='action-btn';
-    const icons={
-      'Attack':'⚔️','Heavy Strike':'💥','Defend':'🛡️','Second Wind':'💨',
-      'Magic Missile':'✨','Fireball':'🔥','Blink':'💨','Sneak Attack':'🗡️',
-      'Dodge':'🏃','Poison Strike':'☠️','Sacred Flame':'✝️','Heal':'💚',
-      'Turn Undead':'☀️','Divine Smite':'⚡','Lay on Hands':'🙏',
-      'Aura of Protection':'🔰',"Multishot":'🏹',"Hunter's Mark":'🎯','Evade':'🌬️',
-      'Rage Attack':'😡','Reckless Attack':'🌀','Intimidate':'👿',
-      'Vicious Mockery':'🎭','Inspiration':'✨','Charm':'💫',
-      'Thorn Whip':'🌿','Entangle':'🌱','Wild Shape':'🐻',
-      'Chaos Bolt':'⚡','Metamagic':'🔮','Dragon Breath':'🐉',
-      'Eldritch Blast':'👁️','Hex':'🔮',"Dark One's Blessing":'🌑',
-      'Flurry of Blows':'👊','Stunning Strike':'💫','Patient Defense':'🧘',
-    };
-    const _bidx = Array.from(ag.children).length; // 0-based index at time of creation
-    const _kbind = _bidx<6 ? `<span class="a-keybind">${_bidx+1}</span>` : '';
-    btn.innerHTML=`${_kbind}<span class="a-icon">${icons[a]||'⚔️'}</span>${a}${mpCost?`<span class="a-cost">${mpCost}MP</span>`:''}`;
-    btn.onclick=()=>queueAction(a,mpCost,btn);
-    btn.dataset.action=a;btn.dataset.mp=mpCost;
-    ag.appendChild(btn);
-  });
-}
+// buildCombatUI defined below
 
 function queueAction(action,mpCost,btn){
   if(mpCost>0&&G.mp<mpCost){toast('Not enough MP!','err');return;}
@@ -1404,20 +1348,7 @@ function queueAction(action,mpCost,btn){
   setTimeout(()=>{ if(combat.active&&combat.playerTurn) resolvePlayerTurn(combat.queuedAction); },300);
 }
 
-function updateCombatBars(){
-  const e=combat.enemy;
-  if(e){
-    document.getElementById('cb-e-hp').style.width=Math.max(0,e.hp/e.hpMax*100)+'%';
-    document.getElementById('cb-e-hpnum').textContent=`${Math.max(0,e.hp)}/${e.hpMax}`;
-  }
-  document.getElementById('cb-p-hp').style.width=(G.hp/G.hpMax*100)+'%';
-  document.getElementById('cb-p-hpnum').textContent=`${G.hp}/${G.hpMax}`;
-  document.getElementById('cb-round').textContent=`Round ${combat.round}`;
-  document.getElementById('cb-p-status').textContent=G.hp<=G.hpMax*.25?'⚠ Low HP!':'';
-  // Update battlefield visuals
-  updateBattlefieldBars();
-  updatePartyHUD();
-}
+// updateCombatBars defined below
 
 function tickCombat(now){
   if(!combat.active)return;
@@ -1886,19 +1817,7 @@ function resolveEnemyTurn(){
 }
 
 
-function checkOnKillPassives(){
-  if(!G.passives) return;
-  // On-kill HP restore
-  if(G.passives.onKillHp){
-    const heal=G.passives.onKillHp;
-    G.hp=Math.min(G.hpMax,G.hp+heal);
-    addLog(`On-kill: +${heal} HP`,'sys');
-  }
-  // On-kill MP restore
-  if(G.passives.onKillMp){
-    G.mp=Math.min(G.mpMax,G.mp+G.passives.onKillMp);
-  }
-}
+// checkOnKillPassives defined below
 function checkCombatEnd(){
   if(!combat.active) return false;
 
@@ -2050,14 +1969,7 @@ function addToInventory(item){
 }
 // applyItemEffect defined in inventory system
 
-function useActiveSlotItem(idx){
-  const item=G.activeSlots?.[idx];
-  if(!item){toast('Empty slot');return;}
-  applyItemEffect(item);
-  item.qty=(item.qty||1)-1;
-  if(item.qty<=0)G.activeSlots[idx]=null;
-  buildDgQuickSlots();updateHUD();
-}
+// useActiveSlotItem defined below
 function buildDgQuickSlots(){
   const grid=document.getElementById('dg-quick-slots');if(!grid)return;
   grid.innerHTML='';
@@ -2074,27 +1986,13 @@ function buildDgQuickSlots(){
   }
   buildCombatQuickSlots();
 }
-function buildCombatQuickSlots(){
-  const bar=document.getElementById('combat-quick-slots');if(!bar)return;
-  bar.innerHTML='';
-  (G.activeSlots||[]).forEach((item,i)=>{
-    const cell=document.createElement('div');
-    cell.style.cssText='width:36px;height:36px;border:1px solid rgba(60,120,60,.4);background:rgba(20,50,20,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:1.1rem;flex-shrink:0;';
-    if(item){
-      cell.textContent=item.icon||'📦';cell.title=item.name;
-      if((item.qty||1)>1){const q=document.createElement('span');q.style.cssText='position:absolute;bottom:1px;right:2px;font-size:.4rem;color:rgba(255,255,255,.6);';q.textContent=item.qty;cell.appendChild(q);}
-      cell.onclick=()=>{useActiveSlotItem(i);buildCombatQuickSlots();updateCombatBars();};
-    }else{cell.style.opacity='.3';}
-    bar.appendChild(cell);
-  });
-}
+// buildCombatQuickSlots defined below
 
 // Dungeon stubs for inventory system
 function sellValue(item){ return Math.floor((item.price||0)*0.5); }
 function openGameMenu(){}
 function openCoopLobby(){}
 function toggleSound(){}
-let _modalItemIdx=null;
 // openItemModal — not needed in dungeon (use new inventory overlay instead)
 function openItemModal(idx){ openInventory(); }
 function closeItemModal(){}
@@ -2778,14 +2676,7 @@ function engageDgEnemy(en){
   combat.animFrame=requestAnimationFrame(tickCombat);
 }
 
-// Override checkCombatEnd to sync HP back to dungeon entities
-const _dgOrigCheckEnd=checkCombatEnd;
-function checkCombatEnd(){
-  combat.enemies.forEach(ce=>{if(ce._dgEntity)ce._dgEntity.hp=ce.hp;});
-  const result=_dgOrigCheckEnd();
-  if(result&&!G.inCombat){setTimeout(()=>{renderDungeon();updateHUD();},400);}
-  return result;
-}
+// checkCombatEnd patched in init block below
 
 // ── Floor transitions ──
 function goToFloor(num,dir){
@@ -3040,6 +2931,14 @@ if(!loadPlayerFromStorage()){
   recalcStats();
   initDgCanvas();
   updateHUD();buildDgQuickSlots();
+  // Patch checkCombatEnd to sync HP back to dungeon entities
+  const _origCheckEnd=checkCombatEnd;
+  checkCombatEnd=function(){
+    combat.enemies.forEach(ce=>{if(ce._dgEntity)ce._dgEntity.hp=ce.hp;});
+    const result=_origCheckEnd();
+    if(result&&!G.inCombat){setTimeout(()=>{renderDungeon();updateHUD();},400);}
+    return result;
+  };
   // Always try to load dungeon definition from localStorage first
   // (set by the dungeon redirect page before navigating here)
   try{
