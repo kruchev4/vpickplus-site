@@ -576,71 +576,22 @@ html,body{width:100%;height:100%;background:#060208;color:var(--parch);font-fami
 
 
 
-</style>
 
-</head>
-
-<body>
-
-
-
-<canvas id="bg-particles" style="position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;"></canvas>
-
-
-
-<!-- ══ CHARACTER CREATION SCREEN ══ -->
-
-<div id="screen-create" class="screen">
-
-<div class="cc-wrap">
-
-  <header style="text-align:center;margin-bottom:28px;">
-
-    <div class="realm-title">Realm of Echoes</div>
-
-    <div class="forge-title">Forge Your Fate</div>
-
-    <div class="orn">✦</div>
-
-  </header>
-
-
-
-  <div class="step-dots">
-
-    <div class="sdot active" id="d0"></div>
-
-    <div class="sdot" id="d1"></div>
-
-    <div class="sdot" id="d2"></div>
 
 .action-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
-
-
-
-.a-keybind{
-
-  display:inline-block;width:14px;height:14px;line-height:14px;
-
-  text-align:center;font-size:.5rem;font-family:monospace;
-
-  border:1px solid var(--border-b);color:var(--border-b);
-
-  margin-right:4px;flex-shrink:0;vertical-align:middle;
-
-}
-
+.a-keybind{display:inline-block;width:14px;height:14px;line-height:14px;text-align:center;font-size:.5rem;font-family:monospace;border:1px solid var(--border-b);color:var(--border-b);margin-right:4px;flex-shrink:0;vertical-align:middle;}
 .action-btn:hover .a-keybind{border-color:var(--gold);color:var(--gold);}
-
-
-
 .action-btn{font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:1px;padding:10px 8px;border:1px solid var(--border-b);color:var(--parch);background:transparent;cursor:pointer;transition:all .2s;text-align:left;position:relative;}
-
 .action-btn:hover:not(:disabled){border-color:var(--gold);background:rgba(201,146,42,.08);color:var(--gold-b);}
-
+.action-btn:disabled{opacity:.3;cursor:not-allowed;}
+.action-btn.queued{border-color:var(--gold-b);background:rgba(201,146,42,.15);color:var(--gold-b);}
+.action-btn .a-icon{margin-right:5px;}
+.action-btn .a-cost{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:.55rem;color:var(--mp-col);}
 .combat-quick-slots-bar{display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap;}
+
 </style>
 </head>
+
 <body>
 
 <div id="dungeon-screen">
@@ -2406,13 +2357,16 @@ if(!loadPlayerFromStorage()){
   recalcStats();
   initDgCanvas();
   updateHUD();buildDgQuickSlots();
-  // Load dungeon definition from localStorage (set by dungeon redirect page)
-  if(typeof DUNGEON_DEF==='undefined'||!DUNGEON_DEF){
-    try{
-      const raw=localStorage.getItem('realmCurrentDungeon');
-      if(raw){ DUNGEON_DEF=JSON.parse(raw); localStorage.removeItem('realmCurrentDungeon'); }
-    }catch(e){}
-  }
+  // Always try to load dungeon definition from localStorage first
+  // (set by the dungeon redirect page before navigating here)
+  try{
+    const _dgRaw=localStorage.getItem('realmCurrentDungeon');
+    if(_dgRaw){
+      DUNGEON_DEF=JSON.parse(_dgRaw);
+      localStorage.removeItem('realmCurrentDungeon');
+      console.log('[Dungeon] Loaded definition:',DUNGEON_DEF.name);
+    }
+  }catch(e){console.warn('[Dungeon] Failed to load definition:',e);}
   if(DUNGEON_DEF){
     goToFloor(1,'down');
     dgLog('Welcome to '+DUNGEON_DEF.name+'.','sys');
