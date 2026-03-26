@@ -1028,7 +1028,6 @@ function savePlayerToStorage(){
   }catch(e){}
 }
 
-const EQUIP_SLOTS=['head','shoulders','chest','pants','boots','mainhand','offhand','ring1','ring2','necklace'];
 function reapplyAbilities(){
   // Reapply any active ability effects to G stats
   if(!G.abilities) return;
@@ -2580,10 +2579,10 @@ function initDgCanvas(){
   requestAnimationFrame(()=>requestAnimationFrame(resizeDgCanvas));
 }
 function resizeDgCanvas(){
-  const wrap=document.getElementById('dg-canvas-wrap');
-  dgCanvas.width=wrap.clientWidth;
-  dgCanvas.height=Math.max(100,wrap.clientHeight-36-72);
-  dgVpW=dgCanvas.width; dgVpH=dgCanvas.height;
+  const W=Math.max(400,window.innerWidth-180);
+  const H=Math.max(300,window.innerHeight-108);
+  dgCanvas.width=W; dgCanvas.height=H;
+  dgVpW=W; dgVpH=H;
 }
 
 // ── Render ──
