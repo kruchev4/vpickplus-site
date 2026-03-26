@@ -7713,20 +7713,42 @@ function closePortal(){
   G.inTown = false;
 }
 
-function startCampaign(){
-  const camp = CAMPAIGNS[pendingPortalId];
-  if(!camp) return;
-  document.getElementById('ov-portal').classList.remove('active');
-  G.inTown = false; // clear portal lock so dungeon can open freely
-  pendingPortalId = null;
+// Dungeon file map — campaignId → dungeon HTML path
+const DUNGEON_FILES = {
+  'goblin_warrens':  'dungeons/dungeon-goblin-warrens.html',
+  'bandit_cave':     'dungeons/dungeon-bandit-cave.html',
+  'sunken_throne':   'dungeons/dungeon-sunken-throne.html',
+  'duskwood_siege':  'dungeons/dungeon-duskwood-siege.html',
+  'glacial_tomb':    'dungeons/dungeon-glacial-tomb.html',
+  'ashspire':        'dungeons/dungeon-ashspire.html',
+  'irondeep':        'dungeons/dungeon-irondeep.html',
+  'drowned_citadel': 'dungeons/dungeon-drowned-citadel.html',
+};
 
-  // If host in co-op, broadcast dungeon invite to all peers NOW
+function startCampaign(){
+  const campaignId = pendingPortalId;
+  document.getElementById('ov-portal').classList.remove('active');
+  G.inTown = false;
+
+  // ── New dungeon engine: navigate to standalone dungeon file ──
+  if(DUNGEON_FILES[campaignId]){
+    pendingPortalId = null;
+    saveGame();
+    addLog(`Entering ${campaignId.replace(/_/g,' ')}…`,'disc');
+    toast('Entering dungeon…');
+    setTimeout(()=>{ window.location.href = DUNGEON_FILES[campaignId]; }, 600);
+    return;
+  }
+
+  // ── Legacy: old room-card campaign system ──
+  const camp = CAMPAIGNS[campaignId];
+  pendingPortalId = null;
+  if(!camp){ toast('Dungeon not yet available.','err'); return; }
+
   if(coopIsHost && coopConns.length > 0){
     coopBroadcast({type:'start_campaign', campaignId:camp.id});
     addLog(`Sent dungeon invite to party for: ${camp.name}`,'sys');
   }
-
-  // Load or create progress
   if(!G.campaignProgress) G.campaignProgress = {};
   let prog = G.campaignProgress[camp.id];
   if(!prog || prog.completed){
