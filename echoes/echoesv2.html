@@ -5855,7 +5855,16 @@ function loadPeerJS(cb){
   if(window.Peer){ cb(); return; }
   const s=document.createElement('script');
   s.src=PEERJS_CDN;
-  s.onload=cb;
+  s.onload=()=>{
+    // If using self-hosted broker, ping health check to wake Render from cold start
+    if(PEER_HOST){
+      fetch('https://'+PEER_HOST+'/')
+        .then(()=>setTimeout(cb,300)) // small delay after wake
+        .catch(()=>cb()); // proceed anyway if ping fails
+    } else {
+      cb();
+    }
+  };
   s.onerror=()=>setCoopStatus('host','err','Could not load PeerJS. Check your connection.');
   document.head.appendChild(s);
 }
@@ -5891,9 +5900,10 @@ function coopStartHost(){
     document.getElementById('coop-room-code').textContent = code;
     document.getElementById('coop-host-panel').classList.add('open');
     document.getElementById('coop-join-panel').classList.remove('open');
-    setCoopStatus('host','warn','Connecting to broker…');
+    const brokerLabel = PEER_HOST ? PEER_HOST : 'peerjs.com (public)';
+    setCoopStatus('host','warn','Connecting to broker: '+brokerLabel+'…');
 
-    coopPeer = new Peer('realm-'+code, {debug:0});
+    coopPeer = new Peer('realm-'+code, PEER_CONFIG);
 
     const hostTimeout = setTimeout(()=>{
       if(!coopPeer||coopPeer.disconnected)
@@ -5941,7 +5951,7 @@ function coopJoin(){
     setCoopStatus('join','warn','Connecting to room '+code+'…');
 
     const myId = 'realm-peer-'+Math.random().toString(36).slice(2,10);
-    coopPeer = new Peer(myId, {debug:0});
+    coopPeer = new Peer(myId, PEER_CONFIG);
 
     const joinTimeout = setTimeout(()=>{
       setCoopStatus('join','err','Timed out. Check the code and try again.');
@@ -9212,6 +9222,25 @@ window.addEventListener('beforeunload', ()=>{
 console.log('%c Realm of Echoes v2.4 %c built ' + new Date().toISOString().slice(0,10),
   'background:#c9a227;color:#000;font-weight:bold;padding:2px 6px;',
   'color:#888;');
+
+// ── PeerJS broker config ──
+// Set PEER_HOST to your Render URL after deploying the broker.
+// Leave as null to fall back to the public peerjs.com broker.
+const PEER_HOST =  'realm-echoes-broker.onrender.com'
+const PEER_CONFIG = PEER_HOST ? {
+  host: PEER_HOST,
+  port: 443,
+  path: '/peerjs',
+  secure: true,
+  debug: 0,
+  config: {
+    iceServers: [
+      {urls: 'stun:stun.l.google.com:19302'},
+      {urls: 'stun:stun1.l.google.com:19302'},
+    ]
+  }
+} : {debug: 0};
+
 buildCC();
 
 // Check if returning from a dungeon
