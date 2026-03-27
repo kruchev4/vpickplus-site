@@ -2934,6 +2934,87 @@ function drawBattlefieldBg(){
   sky.addColorStop(0,'#060108');sky.addColorStop(1,'#04020a');
   c.fillStyle=sky;c.fillRect(0,0,cv.width,cv.height);
 }
+
+// Combat helper stubs (dungeon-specific)
+function applyMarkBonus(dmg){ return dmg; } // no mark mechanic in dungeon
+function executeCustomAction(action, e){ return {skip:true}; } // no custom actions
+
+function makeBfUnit(o){
+  // o: {id, name, icon, hp, hpMax, isEnemy, isBoss, isMe, color,
+  //      timerPct, queued, queuedAction, showHealBtn, partyIdx, fallen}
+  const wrap=document.createElement('div');
+  wrap.className='bf-unit'+(o.fallen?' fallen':'');
+  wrap.id='bf-unit-'+o.id;
+
+  const hpPct=Math.max(0,o.hp/Math.max(1,o.hpMax)*100);
+  const hpCls=o.isEnemy?'enemy-hp':hpPct<25?'low':hpPct<50?'mid':'good';
+  const color=o.color||(o.isEnemy?'#e07070':'#c9a227');
+
+  // ── Bars (above figure in DOM = visually above) ──
+  const bars=document.createElement('div');
+  bars.className='bf-unit-bars';
+
+  // Name
+  const nm=document.createElement('div');
+  nm.className='bf-unit-name'+(o.isEnemy?' enemy-name':' party-name');
+  nm.style.setProperty('--member-color',color);
+  nm.textContent=o.name+(o.isBoss?' 👑':'');
+  bars.appendChild(nm);
+
+  // HP bar
+  const hpt=document.createElement('div');hpt.className='bf-hp-track';
+  const hpf=document.createElement('div');
+  hpf.className='bf-hp-fill '+hpCls;hpf.style.width=hpPct+'%';hpf.id='bf-hp-'+o.id;
+  hpt.appendChild(hpf);bars.appendChild(hpt);
+  const hpn=document.createElement('div');
+  hpn.className='bf-hp-num';hpn.id='bf-hpn-'+o.id;
+  hpn.textContent=Math.max(0,o.hp)+'/'+o.hpMax;
+  bars.appendChild(hpn);
+
+  // Timer bar
+  const tmt=document.createElement('div');tmt.className='bf-timer-track';
+  const tmf=document.createElement('div');tmf.id='bf-tmr-'+o.id;
+  const tmCls=o.isEnemy?'bf-timer-fill enemy-timer':o.isMe?'bf-timer-fill player-timer':'bf-timer-fill ally-waiting';
+  tmf.className=tmCls+(o.timerPct<25&&!o.isEnemy&&o.isMe?' bf-timer-urgent':'');
+  tmf.style.width=(o.timerPct||0)+'%';
+  tmt.appendChild(tmf);bars.appendChild(tmt);
+
+  // Queued badge
+  if(o.queued){
+    const qb=document.createElement('div');qb.className='bf-queued-badge';qb.id='bf-q-'+o.id;
+    qb.textContent='▶ '+o.queuedAction;bars.appendChild(qb);
+  } else {
+    const qb=document.createElement('div');qb.className='bf-queued-badge';qb.id='bf-q-'+o.id;
+    qb.style.display='none';bars.appendChild(qb);
+  }
+
+  wrap.appendChild(bars);
+
+  // ── Figure ──
+  const fig=document.createElement('div');
+  fig.className='bf-figure'+(o.isBoss?' boss':'')+(o.isActive?' active':'')+(o.fallen?' dead':'');
+  fig.id='bf-fig-'+o.id;
+  fig.textContent=o.icon||'👤';
+  wrap.appendChild(fig);
+
+  // Status line
+  const st=document.createElement('div');
+  st.className='bf-unit-status';st.id='bf-st-'+o.id;
+  if(o.fallen)st.textContent='☠ Fallen';
+  wrap.appendChild(st);
+
+  // Heal button (healers targeting others)
+  if(o.showHealBtn){
+    const hb=document.createElement('button');hb.className='bf-heal-btn';
+    hb.textContent='💚 Heal';hb.onclick=()=>hudHealTarget(o.partyIdx);
+    wrap.appendChild(hb);
+  }
+
+  return wrap;
+}
+
+function hudHealTarget(idx){applyHeal('Heal',0,idx);}
+
 function buildBattlefieldUI(){
   drawBattlefieldBg();
   const eRow=document.getElementById('bf-enemy-row');
