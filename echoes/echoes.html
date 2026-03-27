@@ -5901,14 +5901,14 @@ function coopStartHost(){
     document.getElementById('coop-host-panel').classList.add('open');
     document.getElementById('coop-join-panel').classList.remove('open');
     const brokerLabel = PEER_HOST ? PEER_HOST : 'peerjs.com (public)';
-    setCoopStatus('host','warn','Connecting to broker: '+brokerLabel+'…');
+    setCoopStatus('host','warn','Connecting to broker: '+brokerLabel+'… (may take 30s if inactive)');
 
     coopPeer = new Peer('realm-'+code, PEER_CONFIG);
 
     const hostTimeout = setTimeout(()=>{
       if(!coopPeer||coopPeer.disconnected)
-        setCoopStatus('host','err','Could not reach broker. Try again.');
-    },8000);
+        setCoopStatus('host','err','Broker waking up — this can take 30s on first connect. Try again.');
+    },35000);
 
     coopPeer.on('open',()=>{
       clearTimeout(hostTimeout);
@@ -5937,7 +5937,13 @@ function coopStartHost(){
         updatePartyHUD();
       });
     });
-    coopPeer.on('error',e=>setCoopStatus('host','err','Error: '+e.type));
+    coopPeer.on('error',e=>{
+      const msg = e.type==='peer-unavailable' ? 'Room not found.' :
+                  e.type==='network' ? 'Network error — check connection.' :
+                  e.type==='server-error' ? 'Broker error — may be waking up, try again in 30s.' :
+                  'Error: '+e.type;
+      setCoopStatus('host','err', msg);
+    });
   });
 }
 
@@ -5954,8 +5960,8 @@ function coopJoin(){
     coopPeer = new Peer(myId, PEER_CONFIG);
 
     const joinTimeout = setTimeout(()=>{
-      setCoopStatus('join','err','Timed out. Check the code and try again.');
-    },10000);
+      setCoopStatus('join','err','Timed out — broker may be waking up (30s). Try again shortly.');
+    },35000);
 
     coopPeer.on('open',()=>{
       clearTimeout(joinTimeout);
@@ -7761,6 +7767,14 @@ function startCampaign(){
     if(coopActive && coopIsHost && coopConns.length>0){
       coopBroadcast({type:'dungeon_invite', dungeonId:campaignId});
       addLog(`Sent dungeon invite to party.`,'sys');
+      // Save room code so we can rejoin after returning from dungeon
+      localStorage.setItem('realmCoopResume', JSON.stringify({
+        code:coopRoomCode, isHost:true, partySize:coopParty.length
+      }));
+    } else if(coopActive && !coopIsHost) {
+      localStorage.setItem('realmCoopResume', JSON.stringify({
+        code:coopRoomCode, isHost:false
+      }));
     }
     setTimeout(()=>{
       window.location.href = 'dungeons/dungeon-engine.html?dungeon='+campaignId;
@@ -9244,7 +9258,7 @@ console.log('%c Realm of Echoes v2.4 %c built ' + new Date().toISOString().slice
 // ── PeerJS broker config ──
 // Set PEER_HOST to your Render URL after deploying the broker.
 // Leave as null to fall back to the public peerjs.com broker.
-const PEER_HOST =  'realm-echoes-broker.onrender.com'
+const PEER_HOST = 'realm-echoes-broker.onrender.com';
 const PEER_CONFIG = PEER_HOST ? {
   host: PEER_HOST,
   port: 443,
@@ -9274,6 +9288,29 @@ buildCC();
         result==='escape'?'You escaped from '+dungeon+'!':'Returned from '+dungeon+' (floor '+floor+')';
       if(typeof toast==='function') toast(msg, result==='death'?'err':'');
       if(typeof addLog==='function') addLog(msg,'disc');
+      // Auto-rejoin co-op room if we were in one
+      const _resume=localStorage.getItem('realmCoopResume');
+      if(_resume){
+        try{
+          const _r=JSON.parse(_resume);
+          localStorage.removeItem('realmCoopResume');
+          setTimeout(()=>{
+            if(_r.isHost){
+              addLog('Resuming co-op room '+_r.code+'…','sys');
+              coopRoomCode=_r.code;
+              // Re-host on same code after a short delay
+              setTimeout(()=>{
+                document.getElementById('coop-join-input') && openCoopLobby();
+                addLog('Re-open co-op to reconnect party.','sys');
+                toast('Re-open Co-op to reconnect your party');
+              },1000);
+            } else {
+              addLog('Re-open co-op to rejoin room '+_r.code,'sys');
+              toast('Re-open Co-op to rejoin your party');
+            }
+          },1500);
+        }catch(e){}
+      }
     },1200);
   }
 })();
