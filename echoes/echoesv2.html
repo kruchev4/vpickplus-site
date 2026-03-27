@@ -5922,7 +5922,6 @@ function coopStartHost(){
   // Watch for peer offer
   roomRef.child('offer').on('value', async snap=>{
     const offer = snap.val();
-    console.log('[Host] offer snap received, sdp:', !!(snap.val()?.sdp));
     if(!offer||!offer.sdp) return;
 
     const pc = new RTCPeerConnection(RTC_CONFIG);
@@ -5957,12 +5956,10 @@ function coopStartHost(){
         const name = coopParty[conn._partyIdx]?.name||'Player';
         coopConns = coopConns.filter(x=>x!==conn);
         coopParty = coopParty.map((p,i)=>i===conn._partyIdx?null:p).filter(Boolean);
-      console.log('[Host] setRemoteDescription...');
         refreshPartyList();
         coopBroadcast({type:'party_update',party:coopParty});
         addLog(name+' left the party.','sys');
         updatePartyHUD();
-      console.log('[Host] answer written to Firebase');
       };
     };
 
@@ -5972,12 +5969,17 @@ function coopStartHost(){
 
     // Set remote desc THEN flush ICE
     try{
+      console.log('[Host] setRemoteDescription...');
       await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      console.log('[Host] createAnswer...');
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
+      console.log('[Host] writing answer to Firebase...');
       await roomRef.child('answer').set({sdp:answer.sdp, type:answer.type});
+      console.log('[Host] answer written, flushing ICE...');
       await flushIceQueue();
-    }catch(e){ console.warn('[Host] negotiation failed:', e); }
+      console.log('[Host] negotiation complete');
+    }catch(e){ console.error('[Host] negotiation FAILED:', e.name, e.message); }
 
     // Watch peer ICE — queue if not ready
     roomRef.child('peer_ice').on('value', snap=>{
@@ -6058,15 +6060,12 @@ async function coopJoin(){
   };
 
   // Create and send offer
-  console.log('[Peer] creating offer...');
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
   await roomRef.child('offer').set({sdp:offer.sdp, type:offer.type});
 
-  console.log('[Peer] offer written to Firebase, waiting for answer...');
   // Watch for host answer — set remote desc THEN flush ICE queue
   roomRef.child('answer').on('value', async snap=>{
-    console.log('[Peer] answer snap:', snap.val() ? 'has sdp='+!!(snap.val().sdp) : 'null', 'state:', pc.signalingState);
     const answer = snap.val();
     if(!answer||!answer.sdp) return;
     if(pc.signalingState !== 'have-local-offer') return;
