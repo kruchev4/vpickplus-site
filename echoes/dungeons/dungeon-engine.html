@@ -2935,6 +2935,16 @@ function drawBattlefieldBg(){
   c.fillStyle=sky;c.fillRect(0,0,cv.width,cv.height);
 }
 
+
+// ── Missing function stubs for dungeon engine ──
+function playSound(name){ /* no audio in dungeon yet */ }
+function getZoneLevel(){ return dgFloor+1; }
+function coopSendAction(a){ /* solo dungeon */ }
+function showRoom(r){ /* campaign rooms not used in dungeon */ }
+function render(){ renderDungeon(); }
+function saveGame(){ savePlayerToStorage(); }
+function addLog(msg,type){ dgLog(msg,type); }
+
 // Combat helper stubs (dungeon-specific)
 function applyMarkBonus(dmg){ return dmg; } // no mark mechanic in dungeon
 function executeCustomAction(action, e){ return {skip:true}; } // no custom actions
