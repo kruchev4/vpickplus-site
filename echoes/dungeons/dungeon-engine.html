@@ -2768,8 +2768,14 @@ function goToFloor(num,dir){
     const f=dgFloorMaps[num-1];dgMap=f.m;dgWidth=f.w;dgHeight=f.h;dgEntities=f.entities;
   } else {
     const fdDef=DUNGEON_DEF.floors[num-1]||DUNGEON_DEF.floors[DUNGEON_DEF.floors.length-1];
-    const {m,rooms,w,h,entities,ex,ey}=placeFeatures(generateFloor(fdDef.width,fdDef.height,fdDef),fdDef,num===1,num===DUNGEON_DEF.floors.length);
+    console.log('[Gen] Generating floor',num,'size:',fdDef.width,'x',fdDef.height);
+    const _gf=generateFloor(fdDef.width,fdDef.height,fdDef);
+    console.log('[Gen] generateFloor result:',{w:_gf.w,h:_gf.h,rooms:_gf.rooms?.length,mLen:_gf.m?.length});
+    const _pf=placeFeatures(_gf,fdDef,num===1,num===DUNGEON_DEF.floors.length);
+    console.log('[Gen] placeFeatures result:',{w:_pf.w,h:_pf.h,entities:_pf.entities?.length,ex:_pf.ex,ey:_pf.ey});
+    const {m,rooms,w,h,entities,ex,ey}=_pf;
     dgMap=m;dgWidth=w;dgHeight=h;dgEntities=entities;
+    console.log('[Gen] Assigned: dgWidth=',dgWidth,'dgHeight=',dgHeight);
     dgEntranceX=ex;dgEntranceY=ey;
     dgFloorMaps[num-1]={m,w,h,entities};
   }
