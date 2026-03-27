@@ -2471,20 +2471,41 @@ function placeFeatures(fd,cfg,isFirst,isLast){
 // ── Canvas ──
 function initDgCanvas(){
   dgCanvas=document.getElementById('dg-cv');
-  dgCtx=dgCanvas.getContext('2d');
-  window.addEventListener('resize',resizeDgCanvas);
-  resizeDgCanvas(); // size immediately — we use window dimensions so no layout dependency
+  resizeDgCanvas(); // set dimensions first
+  dgCtx=dgCanvas.getContext('2d'); // get context AFTER dimensions set
+  window.addEventListener('resize',()=>{
+    resizeDgCanvas();
+    dgCtx=dgCanvas.getContext('2d'); // re-acquire after resize
+  });
 }
 function resizeDgCanvas(){
+  if(!dgCanvas) return;
   const W=Math.max(400,window.innerWidth-180);
   const H=Math.max(300,window.innerHeight-108);
   dgCanvas.width=W; dgCanvas.height=H;
   dgVpW=W; dgVpH=H;
+  // Re-acquire context since setting width/height resets the canvas
+  if(dgCanvas) dgCtx=dgCanvas.getContext('2d');
 }
 
 // ── Render ──
 function renderDungeon(){
-  if(!dgMap||!dgMap.length||!dgCtx||!dgVpW||!dgVpH)return;
+  // Try to recover context if lost
+  if(!dgCtx && dgCanvas) dgCtx=dgCanvas.getContext('2d');
+  if(!dgMap||!dgMap.length||!dgCtx||!dgVpW||!dgVpH) return;
+  // Log first render only
+  if(!renderDungeon._logged){
+    renderDungeon._logged=true;
+    const exploredCount=dgExplored?Array.from(dgExplored).filter(Boolean).length:0;
+    const visibleCount=dgVisible?Array.from(dgVisible).filter(Boolean).length:0;
+    console.log('[Render] First render:',{
+      dgPx, dgPy, dgWidth, dgHeight,
+      dgVpW, dgVpH, TILE_SIZE,
+      canvasW:dgCanvas?.width, canvasH:dgCanvas?.height,
+      exploredTiles:exploredCount, visibleTiles:visibleCount,
+      mapType:dgMap?.constructor?.name,
+    });
+  }
   const camX=dgPx*TILE_SIZE-dgVpW/2+TILE_SIZE/2;
   const camY=dgPy*TILE_SIZE-dgVpH/2+TILE_SIZE/2;
   const stX=Math.floor(camX/TILE_SIZE),stY=Math.floor(camY/TILE_SIZE);
@@ -2705,6 +2726,13 @@ function goToFloor(num,dir){
   const ambs=DUNGEON_DEF?.floors[dgFloor-1]?.ambient||[];
   if(ambs.length)document.getElementById('dg-ambient').textContent=ambs[randInt(0,ambs.length-1)];
   startEnemyAI();
+  console.log('[Floor] goToFloor complete:',{
+    floor:dgFloor, px:dgPx, py:dgPy,
+    mapW:dgWidth, mapH:dgHeight,
+    entities:dgEntities.length,
+    vpW:dgVpW, vpH:dgVpH,
+    canvasW:dgCanvas?.width, canvasH:dgCanvas?.height,
+  });
   renderDungeon();
   dgLog('You are on floor '+dgFloor+'.','sys');
 }
@@ -2764,7 +2792,7 @@ function exitDungeon(reason='voluntary'){
   if(combat.animFrame){cancelAnimationFrame(combat.animFrame);combat.animFrame=null;}
   combat.active=false; G.inCombat=false;
   savePlayerToStorage();
-  const returnUrl = DUNGEON_DEF?.returnUrl || 'echoesv2.html';
+  const returnUrl = DUNGEON_DEF?.returnUrl || '../echoesv2.html';
   const params = new URLSearchParams({
     from_dungeon:'1',
     dungeon: DUNGEON_DEF?.id||'unknown',
@@ -2925,7 +2953,7 @@ function dgLoop(ts){
 // ── INIT ──
 if(!loadPlayerFromStorage()){
   document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Cinzel,serif;color:#c9a227;font-size:.9rem;letter-spacing:3px;">No character found — return to world first.</div>';
-  setTimeout(()=>window.location.href='echoesv2.html',3000);
+  setTimeout(()=>window.location.href='../echoesv2.html',3000);
 } else {
   recalcStats();
   initDgCanvas();
