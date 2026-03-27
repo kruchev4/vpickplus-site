@@ -9299,23 +9299,17 @@ function emergencyUnstick(){
 
 // ── Sync to cloud when player closes/leaves the tab ──
 window.addEventListener('beforeunload', ()=>{
-  // Use sendBeacon for reliable on-close sync
-  const raw = localStorage.getItem('realmSave');
-  if(!raw) return;
+  // Firebase sync on close — best effort
   try{
-    const payload  = JSON.parse(raw);
-    const token    = getPlayerToken();
-    const body     = JSON.stringify({
-      player_token: token,
-      char_name:    G.name||'Unknown',
-      data:         payload,
-      updated_at:   new Date().toISOString(),
-    });
-    // Supabase REST upsert via beacon (fire-and-forget, survives tab close)
-    navigator.sendBeacon(
-      SUPA_URL+'/rest/v1/player_saves?on_conflict=player_token',
-      new Blob([body],{type:'application/json'})
-    );
+    if(_db && G.name){
+      const tok = getPlayerToken();
+      _db.ref('saves/'+tok).set({
+        token: tok,
+        charName: G.name||'',
+        data: JSON.stringify(G),
+        updatedAt: Date.now()
+      });
+    }
   }catch(e){}
 });
 
