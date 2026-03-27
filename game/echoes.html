@@ -3596,7 +3596,7 @@ function resizeCanvas(){
       ctx.fillText(t.name,sx+TILE/2,sy-6);
       ctx.restore();
     }
-  }*/
+  }
   // Portal labels
   for(const p of PORTALS){
     const sx=(p.x-stX)*TILE+offX,sy=(p.y-stY)*TILE+offY;
@@ -3629,7 +3629,7 @@ function resizeCanvas(){
   // Draw co-op party members
   drawCoopPlayers(_stX2,_stY2,_offX2,_offY2);
   drawMinimap();
-}
+}*/
 
 function drawTile(tx,ty,sx,sy){
   if(tx<0||tx>=MAP_W||ty<0||ty>=MAP_H){
