@@ -5871,6 +5871,28 @@ const RTC_CONFIG = {
 
 function loadPeerJS(cb){ cb(); } // no-op — no PeerJS needed
 
+
+// ── Co-op Lobby UI ──
+function openCoopLobby(){
+  if(!G.cls||!G.name){ toast('Create your character first!','err'); return; }
+  document.getElementById('ov-coop').classList.add('active');
+  coopHidePanels();
+}
+function closeCoopLobby(){
+  document.getElementById('ov-coop').classList.remove('active');
+}
+function coopHidePanels(){
+  document.getElementById('coop-host-panel').classList.remove('open');
+  document.getElementById('coop-join-panel').classList.remove('open');
+}
+function coopShowJoin(){
+  document.getElementById('coop-host-panel').classList.remove('open');
+  document.getElementById('coop-join-panel').classList.add('open');
+}
+function coopShowHost(){
+  document.getElementById('coop-host-panel').classList.add('open');
+  document.getElementById('coop-join-panel').classList.remove('open');
+}
 // ── HOST: Create room ──
 function coopStartHost(){
   if(!G.cls||!G.name){ toast('Create your character first!','err'); return; }
@@ -8587,37 +8609,39 @@ async function csLoadAllSaves(){
     }
   }catch(e){ console.warn('[csLoadAllSaves] local parse error:', e); }
 
-  // Cloud save
-  try{
-    const tok = getPlayerToken();
-    const { data, error } = await Promise.race([
-    // [Firebase migrated] _supa.from('player_saves').select('char_name,updated_at,data').eq('player_token',tok).maybeSingle(),
-      new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),5000))
-    ]);
-    if(error){ console.warn('[csLoadAllSaves] cloud error:', error); }
-    else if(data?.data?.G?.name){
-      const g   = data.data.G;
-      const upd = new Date(data.updated_at).toLocaleString();
-      // If same character as local, merge info; otherwise add as separate entry
-      const dup = saves.find(s=>s.name===g.name);
-      if(dup){
-        dup.updated = '☁ '+upd;
-        dup.cloudData = data.data;
-      } else {
-        saves.push({
-          source:'cloud', data:data.data,
-          name:  g.name,
-          cls:   g.cls?.name||'?',
-          clsId: g.cls?.id||'fighter',
-          race:  g.race?.name||'?',
-          level: g.level||1,
-          hp:    g.hp||0, hpMax:g.hpMax||1,
-          gold:  g.gold||0,
-          updated: '☁ '+upd,
-        });
+  // Cloud save — Firebase
+  if(_db){
+    try{
+      const tok = getPlayerToken();
+      const cloudSave = await Promise.race([
+        fbGet('saves/'+tok),
+        new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),8000))
+      ]);
+      if(cloudSave?.data){
+        const g = JSON.parse(cloudSave.data);
+        const upd = cloudSave.updatedAt
+          ? new Date(cloudSave.updatedAt).toLocaleString()
+          : 'Cloud';
+        const dup = saves.find(s=>s.name===g.name);
+        if(dup){
+          dup.updated = '☁ '+upd;
+          dup.cloudData = {G:g};
+        } else {
+          saves.push({
+            source:'cloud', data:{G:g},
+            name:  g.name,
+            cls:   g.cls?.name||'?',
+            clsId: g.cls?.id||'fighter',
+            race:  g.race?.name||'?',
+            level: g.level||1,
+            hp:    g.hp||0, hpMax:g.hpMax||1,
+            gold:  g.gold||0,
+            updated: '☁ '+upd,
+          });
+        }
       }
-    }
-  }catch(e){ console.warn('[csLoadAllSaves] cloud fetch error:', e.message); }
+    }catch(e){ console.warn('[csLoadAllSaves] cloud fetch error:', e.message); }
+  }
 
   return saves;
 }
