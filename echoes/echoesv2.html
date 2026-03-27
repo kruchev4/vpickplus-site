@@ -8711,11 +8711,15 @@ function renderCharSlots(saves){
 
 function csLoadCharacter(idx){
   const save = window._csSaves?.[idx];
-  if(!save){ toast('Save not found','err'); return; }
-  // Prefer cloud data if available
+  if(!save){ toast('Save not found','err'); console.error('No save at idx',idx,'_csSaves:',window._csSaves); return; }
   const data = save.cloudData || save.data;
+  console.log('[Load] Loading save:', save.name, 'version:', data?.version, 'hasG:', !!data?.G);
   const ok = _applyRawSave(data);
-  if(!ok){ toast('Could not load character — save may be corrupted.','err'); return; }
+  if(!ok){ 
+    toast('Could not load — save corrupted.','err'); 
+    console.error('[Load] _applyRawSave failed. data:', data);
+    return; 
+  }
   try{ localStorage.setItem('realmSave', JSON.stringify(data)); }catch(e){}
   document.getElementById('screen-charselect').classList.remove('active');
   document.getElementById('screen-game').classList.add('active');
