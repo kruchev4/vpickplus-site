@@ -4,50 +4,7 @@
 </head>
 <body>Entering the Goblin Warrens…
 <script>
-// Store dungeon definition for the engine to pick up
-localStorage.setItem('realmCurrentDungeon', JSON.stringify({
-  id: 'goblin_warrens',
-  name: 'Goblin Warrens',
-  returnUrl: '../echoesv2.html',
-  floors: [
-    {
-      width:50, height:38, floorLevel:1,
-      rooms:{min:6,max:10,minW:4,maxW:9,minH:4,maxH:8},
-      enemies:{min:4,max:7,pool:[
-        {name:'Goblin Scout', icon:'👺',hd:4,lvlRange:[1,3],habitat:['DANGER'],xp:40,gold:[1,5],loot:['Rusty Dagger','Moldy Bread']},
-        {name:'Goblin Archer',icon:'🏹',hd:4,lvlRange:[1,3],habitat:['DANGER'],xp:50,gold:[2,6],loot:['Short Bow','Arrow Bundle']},
-        {name:'Goblin Shaman',icon:'🧿',hd:4,lvlRange:[2,4],habitat:['DANGER'],xp:65,gold:[3,8],loot:['Shaman Totem','Bone Necklace']},
-      ]},
-      chests:{min:1,max:2,loot:[
-        {name:'Health Potion',icon:'🧪',desc:'+30 HP',type:'potion',price:25,effect:{hp:30}},
-        {name:'Rusty Sword',  icon:'⚔️', desc:'+2 ATK', type:'weapon',price:15,effect:{atk:2}},
-        {name:'Leather Scraps',icon:'🛡️',desc:'+1 AC',  type:'armor', price:10,effect:{ac:1}},
-      ]},
-      traps:{min:1,max:3},secrets:{min:0,max:1},
-      ambient:['The stench of rotten meat fills your nostrils.','Distant chittering echoes through the tunnels.','Crude torches cast flickering shadows.','You hear the crunch of bones underfoot.']
-    },
-    {
-      width:55, height:42, floorLevel:2,
-      rooms:{min:5,max:8,minW:5,maxW:10,minH:4,maxH:9},
-      enemies:{min:5,max:9,pool:[
-        {name:'Goblin Warrior',icon:'👹',hd:6,lvlRange:[2,5],habitat:['DANGER'],xp:75,gold:[3,10],loot:['Iron Sword','Goblin Shield']},
-        {name:'Goblin Witch',  icon:'🔮',hd:5,lvlRange:[2,5],habitat:['DANGER'],xp:80,gold:[4,12],loot:['Hex Scroll','Cursed Trinket']},
-        {name:'Cave Spider',   icon:'🕷️',hd:6,lvlRange:[2,5],habitat:['DANGER'],xp:70,gold:[1,4], loot:['Spider Silk','Venom Gland']},
-      ]},
-      chests:{min:2,max:3,loot:[
-        {name:'Health Potion',    icon:'🧪',desc:'+30 HP',       type:'potion',price:25,effect:{hp:30}},
-        {name:'Mana Potion',      icon:'💧',desc:'+20 MP',       type:'potion',price:20,effect:{mp:20}},
-        {name:'Goblin King Crown',icon:'👑',desc:'+1 AC +1 ATK', type:'helmet',price:60,effect:{ac:1,atk:1}},
-        {name:'Goblin War Axe',   icon:'🪓',desc:'+3 ATK',       type:'weapon',price:55,effect:{atk:3}},
-      ]},
-      traps:{min:2,max:4},secrets:{min:1,max:2},
-      boss:{name:'Grak the Warchief',icon:'👑',hd:12,lvlRange:[3,6],habitat:['DANGER'],xp:800,gold:[25,60],loot:["Grak's Token","Warchief's Axe"]},
-      ambient:['War drums pound somewhere deep below.','The walls are covered in crude war-markings.','Something large moves in the shadows.','The chittering grows louder — they know you\'re here.']
-    }
-  ],
-  loot:{common:[{name:'Health Potion',icon:'🧪',desc:'+30 HP',type:'potion',price:25,effect:{hp:30}}]}
-}));
-// Hand off to engine
-window.location.href='dungeon-engine.html';
+// Navigate directly to engine with dungeon ID in URL — no localStorage race condition
+window.location.href = 'dungeon-engine.html?dungeon=goblin_warrens';
 </script>
 </body></html>
