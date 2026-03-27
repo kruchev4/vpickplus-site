@@ -5907,18 +5907,20 @@ function coopStartHost(){
   document.getElementById('coop-room-code').textContent = code;
   document.getElementById('coop-host-panel').classList.add('open');
   document.getElementById('coop-join-panel').classList.remove('open');
-  setCoopStatus('host','warn','Room open — share code: '+code);
+  setCoopStatus('host','warn','Room <strong>'+code+'</strong> open — share this code!');
   document.getElementById('coop-start-btn').disabled = false;
-
   coopParty = [buildMyPlayerData(0)];
   refreshPartyList();
 
-  // Listen for join requests in Firebase
   const roomRef = _db.ref('rooms/'+code);
-  // Clear any old room data
-  roomRef.remove();
+  _fbRoomRef = roomRef;
 
-  // Watch for peer offers
+  // Clear stale data then write host marker
+  roomRef.remove().then(()=>{
+    roomRef.child('host').set({name:G.name, ts:Date.now()});
+  });
+
+  // Watch for peer offers — fires when peer writes their offer
   roomRef.child('offer').on('value', async snap=>{
     const offer = snap.val();
     if(!offer||!offer.sdp) return;
@@ -5926,20 +5928,26 @@ function coopStartHost(){
     const pc = new RTCPeerConnection(RTC_CONFIG);
     const idx = coopParty.length;
 
-    // Set up data channel (host receives it)
     pc.ondatachannel = e=>{
       const ch = e.channel;
-      ch._partyIdx = idx;
+      // Wrap channel in conn-like object for coopHandleData compat
+      const conn = {
+        send: d => ch.readyState==='open' && ch.send(JSON.stringify(d)),
+        _partyIdx: idx,
+        peer: 'peer'+idx,
+      };
       ch.onopen = ()=>{
-        coopConns.push(ch);
-        setCoopStatus('host','ok','Party: '+coopParty.length+' player(s).');
+        coopConns.push(conn);
+        setCoopStatus('host','ok','Party: '+(coopParty.length)+' player(s). Connected!');
         startCoopBroadcastLoop();
       };
-      ch.onmessage = e=>coopHandleData(JSON.parse(e.data), ch);
+      ch.onmessage = e=>{
+        try{ coopHandleData(JSON.parse(e.data), conn); }catch(err){}
+      };
       ch.onclose = ()=>{
-        const name = coopParty[ch._partyIdx]?.name||'Player';
-        coopConns = coopConns.filter(x=>x!==ch);
-        coopParty = coopParty.map((p,i)=>i===ch._partyIdx?null:p).filter(Boolean);
+        const name = coopParty[conn._partyIdx]?.name||'Player';
+        coopConns = coopConns.filter(x=>x!==conn);
+        coopParty = coopParty.map((p,i)=>i===conn._partyIdx?null:p).filter(Boolean);
         refreshPartyList();
         coopBroadcast({type:'party_update',party:coopParty});
         addLog(name+' left the party.','sys');
@@ -5947,7 +5955,6 @@ function coopStartHost(){
       };
     };
 
-    // ICE candidates → Firebase
     pc.onicecandidate = e=>{
       if(e.candidate) roomRef.child('host_ice').push(e.candidate.toJSON());
     };
@@ -5957,46 +5964,56 @@ function coopStartHost(){
     await pc.setLocalDescription(answer);
     roomRef.child('answer').set({sdp:answer.sdp, type:answer.type});
 
-    // Watch for peer ICE candidates
+    // Watch for peer ICE
     roomRef.child('peer_ice').on('value', snap=>{
-      const candidates = snap.val();
-      if(!candidates) return;
-      Object.values(candidates).forEach(ic=>{
+      const cs = snap.val(); if(!cs) return;
+      Object.values(cs).forEach(ic=>{
         try{ pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
       });
     });
-
-    // Store pc for cleanup
     coopPeer = pc;
   });
 
-  _fbRoomRef = roomRef;
   addLog('Co-op room opened: '+code,'sys');
 }
 
 // ── PEER: Join room ──
-function coopJoin(){
+async function coopJoin(){
   const code = document.getElementById('coop-join-input').value.trim();
   if(!/^[0-9]{6}$/.test(code)){ setCoopStatus('join','err','Enter a 6-digit room code.'); return; }
   if(!_db){ toast('Not connected to Firebase — check config','err'); return; }
-  coopIsHost   = false;
+  coopIsHost = false;
   coopRoomCode = code;
-  setCoopStatus('join','warn','Connecting to room '+code+'…');
+  setCoopStatus('join','warn','Looking for room '+code+'…');
 
   const roomRef = _db.ref('rooms/'+code);
+  _fbRoomRef = roomRef;
+
+  // Verify room exists
+  const hostData = await roomRef.child('host').get().then(s=>s.val());
+  if(!hostData){ setCoopStatus('join','err','Room '+code+' not found. Check the code.'); return; }
+  setCoopStatus('join','warn','Found room — connecting…');
+
   const pc = new RTCPeerConnection(RTC_CONFIG);
   coopPeer = pc;
 
-  // Create data channel (peer creates it)
-  const ch = pc.createDataChannel('game', {reliable:true});
-  coopConns = [ch];
+  // Create data channel
+  const ch = pc.createDataChannel('game', {ordered:true});
+  const conn = {
+    send: d => ch.readyState==='open' && ch.send(JSON.stringify(d)),
+    _partyIdx: 0,
+    peer: 'host',
+  };
+  coopConns = [conn];
 
   ch.onopen = ()=>{
-    setCoopStatus('join','ok','Connected! Sending character…');
-    ch.send(JSON.stringify({type:'player_join', player:buildMyPlayerData(0)}));
+    setCoopStatus('join','ok','Connected! Joining party…');
+    conn.send({type:'player_join', player:buildMyPlayerData(0)});
     coopActive = true;
   };
-  ch.onmessage = e=>coopHandleData(JSON.parse(e.data), ch);
+  ch.onmessage = e=>{
+    try{ coopHandleData(JSON.parse(e.data), conn); }catch(err){}
+  };
   ch.onclose = ()=>{
     coopActive=false; coopConns=[];
     setCoopStatus('join','warn','Disconnected from host.');
@@ -6004,42 +6021,36 @@ function coopJoin(){
     addLog('Disconnected from party.','sys');
   };
 
-  // ICE candidates → Firebase
+  // ICE → Firebase
   pc.onicecandidate = e=>{
     if(e.candidate) roomRef.child('peer_ice').push(e.candidate.toJSON());
   };
 
-  // Create offer
-  pc.createOffer().then(offer=>{
-    return pc.setLocalDescription(offer).then(()=>{
-      roomRef.child('offer').set({sdp:offer.sdp, type:offer.type});
-    });
-  });
+  // Create and send offer
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  await roomRef.child('offer').set({sdp:offer.sdp, type:offer.type});
 
   // Watch for host answer
   roomRef.child('answer').on('value', async snap=>{
     const answer = snap.val();
-    if(!answer||!answer.sdp) return;
-    if(pc.signalingState==='have-local-offer'){
-      await pc.setRemoteDescription(new RTCSessionDescription(answer));
-    }
+    if(!answer||!answer.sdp||pc.signalingState!=='have-local-offer') return;
+    await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    roomRef.child('answer').off();
   });
 
-  // Watch for host ICE candidates
+  // Watch for host ICE
   roomRef.child('host_ice').on('value', snap=>{
-    const candidates = snap.val();
-    if(!candidates) return;
-    Object.values(candidates).forEach(ic=>{
+    const cs = snap.val(); if(!cs) return;
+    Object.values(cs).forEach(ic=>{
       try{ pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
     });
   });
 
-  _fbRoomRef = roomRef;
-
   // Timeout
   setTimeout(()=>{
-    if(!coopActive) setCoopStatus('join','err','Timed out. Check the code and try again.');
-  }, 20000);
+    if(!coopActive) setCoopStatus('join','err','Timed out. Make sure host has the room open.');
+  }, 30000);
 }
 
 
