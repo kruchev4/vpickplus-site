@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <title>Realm of Echoes v2.4</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@400;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap');
@@ -5661,42 +5663,50 @@ let worldBosses = [
 // Load boss state from Supabase and subscribe to realtime updates
 async function initWorldBosses(){
   if(_isLocal){
-    console.log('[Bosses] Local mode — Supabase sync skipped, movement active');
-    startBossMovement(); // movement works locally without Supabase
+    console.log('[Bosses] Local mode — movement active');
+    startBossMovement();
     return;
   }
+
+  // Default boss positions (home coords)
+  const BOSS_DEFAULTS = [
+    {id:'boss_nw', name:'The Pale Warden',  icon:'💀', x:12,  y:12,  hp:50000, hp_max:50000, alive:true},
+    {id:'boss_ne', name:'Ashkar the Burned',icon:'🔥', x:228, y:12,  hp:50000, hp_max:50000, alive:true},
+    {id:'boss_sw', name:'The Drowned One',  icon:'🌊', x:12,  y:168, hp:50000, hp_max:50000, alive:true},
+    {id:'boss_se', name:'Vex the Undying',  icon:'👁️', x:228, y:168, hp:50000, hp_max:50000, alive:true},
+  ];
+
   try{
-    const {data,error}=await _supa.from('world_bosses').select('*');
-    if(!error&&data&&data.length){
-      data.forEach(row=>{
-        const b=worldBosses.find(b=>b.id===row.id);
-        if(b){
-          b.x=row.x; b.y=row.y; b.hp=row.hp; b.hp_max=row.hp_max;
-          b.alive=row.alive;
-          b.killedBy=row.killed_by; b.respawnAt=row.respawn_at;
-        }
+    // Load boss state from Firebase
+    const data = await fbGet('world_bosses');
+    if(data){
+      worldBosses = BOSS_DEFAULTS.map(def => {
+        const saved = data[def.id];
+        return saved ? {...def, ...saved} : {...def};
       });
+    } else {
+      // First run — initialise bosses in Firebase
+      worldBosses = BOSS_DEFAULTS.map(b => ({...b, homeX:b.x, homeY:b.y}));
+      const init = {};
+      worldBosses.forEach(b => init[b.id] = {x:b.x, y:b.y, hp:b.hp, hp_max:b.hp_max, alive:b.alive});
+      await fbSet('world_bosses', init);
     }
-    // Subscribe to realtime changes
-    _supa.channel('world-bosses')
-      .on('postgres_changes',{event:'*',schema:'public',table:'world_bosses'},
-        payload=>{
-          const row=payload.new||payload.old;
-          if(!row) return;
-          const b=worldBosses.find(b=>b.id===row.id);
-          if(b){
-            b.x=row.x; b.y=row.y; b.hp=row.hp; b.alive=row.alive;
-            if(!b.alive&&row.killed_by){
-              addLog(`☠ ${row.killed_by} defeated ${b.name}!`,'disc');
-              toast(`World Boss ${b.name} has been slain by ${row.killed_by}!`);
-            }
-          }
-        })
-      .subscribe();
-  }catch(e){ console.warn('World boss init failed:', e.message); }
+    worldBosses.forEach(b => { b.homeX = BOSS_DEFAULTS.find(d=>d.id===b.id)?.x||b.x; b.homeY = BOSS_DEFAULTS.find(d=>d.id===b.id)?.y||b.y; });
+
+    // Listen for real-time boss updates from other players
+    fbOn('world_bosses', data => {
+      if(!data) return;
+      worldBosses.forEach(b => {
+        const row = data[b.id];
+        if(row){ b.x=row.x; b.y=row.y; b.hp=row.hp; b.alive=row.alive; }
+      });
+    });
+
+  }catch(e){ console.warn('[Bosses] Firebase init failed:', e); }
 
   startBossMovement();
 }
+
 
 function startBossMovement(){
   setInterval(()=>{
@@ -5752,13 +5762,13 @@ function startBossMovement(){
   // Supabase sync — only every 60s, host only, deployed only
   if(!_isLocal){
     setInterval(()=>{
-      if(coopActive&&!coopIsHost) return;
+      if(coopActive&&!coopIsHost||!_db) return;
+      const updates={};
       worldBosses.forEach(b=>{
         if(!b.alive) return;
-        _supa.from('world_bosses')
-          .update({x:b.x,y:b.y,updated_at:new Date().toISOString()})
-          .eq('id',b.id).then(()=>{});
+        updates[b.id]={x:b.x,y:b.y,hp:b.hp,alive:b.alive,updated_at:Date.now()};
       });
+      if(Object.keys(updates).length) fbUpd('world_bosses', updates);
     }, 60000);
   }
 }
@@ -5836,159 +5846,177 @@ function checkWorldBossCombat(tx, ty){
 //  • Host broadcasts: world_state (positions+hp), combat_state, chat
 //  • Peers render host's world_state — they see themselves + others
 
-const PEERJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js';
+// PeerJS replaced with Firebase WebRTC signaling
 
-let coopPeer      = null;
-let coopConns     = [];        // host: all peer connections; peer: single conn to host
+// ── CO-OP STATE ──
+let coopPeer      = null;  // local RTCPeerConnection
+let coopActive    = false;
 let coopIsHost    = false;
 let coopRoomCode  = null;
-let coopParty     = [];        // [{peerId,name,cls,race,level,hp,hpMax,mp,mpMax,x,y,color}]
-let coopReady     = false;
-let coopActive    = false;     // true once in shared game
-let _coopBroadcastTimer = null;
+let coopConns     = [];    // array of RTCDataChannels
+let coopParty     = [];
+let _fbRoomRef    = null;  // Firebase room reference listener
 
-// Colours for party members (index 0 = host/self)
-const PARTY_COLORS = ['#c9a227','#4fc3f7','#81c784','#f06292','#ffb74d'];
+// ── Firebase WebRTC Signaling ──
+// Uses Firebase Realtime Database as the signaling server
+// Data flows: Firebase → ICE/SDP exchange → direct WebRTC P2P data channel
+// The data channel sends the exact same messages as before (coopHandleData unchanged)
 
-// ── PeerJS loader ──
-function loadPeerJS(cb){
-  if(window.Peer){ cb(); return; }
-  const s=document.createElement('script');
-  s.src=PEERJS_CDN;
-  s.onload=()=>{
-    // If using self-hosted broker, ping health check to wake Render from cold start
-    if(PEER_HOST){
-      fetch('https://'+PEER_HOST+'/', {mode:'no-cors'})
-        .then(()=>setTimeout(cb,400))
-        .catch(()=>cb());
-    } else {
-      cb();
-    }
-  };
-  s.onerror=()=>setCoopStatus('host','err','Could not load PeerJS. Check your connection.');
-  document.head.appendChild(s);
-}
+const RTC_CONFIG = {
+  iceServers: [
+    {urls:'stun:stun.l.google.com:19302'},
+    {urls:'stun:stun1.l.google.com:19302'},
+  ]
+};
 
-// ── Lobby UI ──
-function openCoopLobby(){
-  // Warn if no character created yet
-  if(!G.cls || !G.name){
-    toast('Create your character first, then join a party!','err');
-    return;
-  }
-  document.getElementById('ov-coop').classList.add('active');
-  coopHidePanels();
-}
-function closeCoopLobby(){
-  document.getElementById('ov-coop').classList.remove('active');
-}
-function coopHidePanels(){
-  document.getElementById('coop-host-panel').classList.remove('open');
-  document.getElementById('coop-join-panel').classList.remove('open');
-}
-function coopShowJoin(){
-  document.getElementById('coop-host-panel').classList.remove('open');
-  document.getElementById('coop-join-panel').classList.add('open');
-}
+function loadPeerJS(cb){ cb(); } // no-op — no PeerJS needed
 
 // ── HOST: Create room ──
 function coopStartHost(){
-  loadPeerJS(()=>{
-    coopIsHost = true;
-    const code = Array.from({length:6},()=>Math.floor(Math.random()*10)).join('');
-    coopRoomCode = code;
-    document.getElementById('coop-room-code').textContent = code;
-    document.getElementById('coop-host-panel').classList.add('open');
-    document.getElementById('coop-join-panel').classList.remove('open');
-    const brokerLabel = PEER_HOST ? PEER_HOST : 'peerjs.com (public)';
-    setCoopStatus('host','warn','Connecting to broker: '+brokerLabel+'… (may take 30s if inactive)');
+  if(!G.cls||!G.name){ toast('Create your character first!','err'); return; }
+  if(!_db){ toast('Not connected to Firebase — check config','err'); return; }
+  coopIsHost = true;
+  const code = Array.from({length:6},()=>Math.floor(Math.random()*10)).join('');
+  coopRoomCode = code;
+  document.getElementById('coop-room-code').textContent = code;
+  document.getElementById('coop-host-panel').classList.add('open');
+  document.getElementById('coop-join-panel').classList.remove('open');
+  setCoopStatus('host','warn','Room open — share code: '+code);
+  document.getElementById('coop-start-btn').disabled = false;
 
-    coopPeer = new Peer('realm-'+code, PEER_CONFIG);
+  coopParty = [buildMyPlayerData(0)];
+  refreshPartyList();
 
-    const hostTimeout = setTimeout(()=>{
-      if(!coopPeer||coopPeer.disconnected)
-        setCoopStatus('host','err','Broker waking up — this can take 30s on first connect. Try again.');
-    },35000);
+  // Listen for join requests in Firebase
+  const roomRef = _db.ref('rooms/'+code);
+  // Clear any old room data
+  roomRef.remove();
 
-    coopPeer.on('open',()=>{
-      clearTimeout(hostTimeout);
-      setCoopStatus('host','ok','Room open — code: <strong>'+code+'</strong>. Waiting for party…');
-      coopParty = [buildMyPlayerData(0)];
-      refreshPartyList();
-      document.getElementById('coop-start-btn').disabled = false;
-    });
+  // Watch for peer offers
+  roomRef.child('offer').on('value', async snap=>{
+    const offer = snap.val();
+    if(!offer||!offer.sdp) return;
 
-    coopPeer.on('connection', conn=>{
-      conn.on('open',()=>{
-        startCoopBroadcastLoop(); // start broadcasting world state
-        // Assign party slot — welcome is sent after we receive player_join
-        conn._partyIdx = null; // set when player_join arrives
-        coopConns.push(conn);
-        setCoopStatus('host','ok','New connection — waiting for character data…');
-      });
-      conn.on('data', d=>coopHandleData(d, conn));
-      conn.on('close',()=>{
-        const name = coopParty[conn._partyIdx]?.name||'Player';
-        coopConns  = coopConns.filter(x=>x!==conn);
-        coopParty  = coopParty.map((p,i)=>i===conn._partyIdx?null:p).filter(Boolean);
+    const pc = new RTCPeerConnection(RTC_CONFIG);
+    const idx = coopParty.length;
+
+    // Set up data channel (host receives it)
+    pc.ondatachannel = e=>{
+      const ch = e.channel;
+      ch._partyIdx = idx;
+      ch.onopen = ()=>{
+        coopConns.push(ch);
+        setCoopStatus('host','ok','Party: '+coopParty.length+' player(s).');
+        startCoopBroadcastLoop();
+      };
+      ch.onmessage = e=>coopHandleData(JSON.parse(e.data), ch);
+      ch.onclose = ()=>{
+        const name = coopParty[ch._partyIdx]?.name||'Player';
+        coopConns = coopConns.filter(x=>x!==ch);
+        coopParty = coopParty.map((p,i)=>i===ch._partyIdx?null:p).filter(Boolean);
         refreshPartyList();
-        coopBroadcast({type:'party_update', party:coopParty});
-        addLog(`${name} left the party.`,'sys');
+        coopBroadcast({type:'party_update',party:coopParty});
+        addLog(name+' left the party.','sys');
         updatePartyHUD();
+      };
+    };
+
+    // ICE candidates → Firebase
+    pc.onicecandidate = e=>{
+      if(e.candidate) roomRef.child('host_ice').push(e.candidate.toJSON());
+    };
+
+    await pc.setRemoteDescription(new RTCSessionDescription(offer));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    roomRef.child('answer').set({sdp:answer.sdp, type:answer.type});
+
+    // Watch for peer ICE candidates
+    roomRef.child('peer_ice').on('value', snap=>{
+      const candidates = snap.val();
+      if(!candidates) return;
+      Object.values(candidates).forEach(ic=>{
+        try{ pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
       });
     });
-    coopPeer.on('error',e=>{
-      const msg = e.type==='peer-unavailable' ? 'Room not found.' :
-                  e.type==='network' ? 'Network error — check connection.' :
-                  e.type==='server-error' ? 'Broker error — may be waking up, try again in 30s.' :
-                  'Error: '+e.type;
-      setCoopStatus('host','err', msg);
-    });
+
+    // Store pc for cleanup
+    coopPeer = pc;
   });
+
+  _fbRoomRef = roomRef;
+  addLog('Co-op room opened: '+code,'sys');
 }
 
 // ── PEER: Join room ──
 function coopJoin(){
   const code = document.getElementById('coop-join-input').value.trim();
   if(!/^[0-9]{6}$/.test(code)){ setCoopStatus('join','err','Enter a 6-digit room code.'); return; }
-  loadPeerJS(()=>{
-    coopIsHost   = false;
-    coopRoomCode = code;
-    setCoopStatus('join','warn','Connecting to room '+code+'…');
+  if(!_db){ toast('Not connected to Firebase — check config','err'); return; }
+  coopIsHost   = false;
+  coopRoomCode = code;
+  setCoopStatus('join','warn','Connecting to room '+code+'…');
 
-    const myId = 'realm-peer-'+Math.random().toString(36).slice(2,10);
-    coopPeer = new Peer(myId, PEER_CONFIG);
+  const roomRef = _db.ref('rooms/'+code);
+  const pc = new RTCPeerConnection(RTC_CONFIG);
+  coopPeer = pc;
 
-    const joinTimeout = setTimeout(()=>{
-      setCoopStatus('join','err','Timed out — broker may be waking up (30s). Try again shortly.');
-    },35000);
+  // Create data channel (peer creates it)
+  const ch = pc.createDataChannel('game', {reliable:true});
+  coopConns = [ch];
 
-    coopPeer.on('open',()=>{
-      clearTimeout(joinTimeout);
-      const conn = coopPeer.connect('realm-'+code, {reliable:true, serialization:'json'});
-      coopConns = [conn];
-      conn.on('open',()=>{
-        setCoopStatus('join','ok','Connected! Sending character…');
-        conn.send({type:'player_join', player:buildMyPlayerData(0)});
-      });
-      conn.on('data', d=>coopHandleData(d, conn));
-      conn.on('close',()=>{
-        coopActive=false; coopConns=[];
-        setCoopStatus('join','warn','Disconnected from host.');
-        updatePartyHUD();
-        addLog('Disconnected from party.','sys');
-      });
-    });
-    coopPeer.on('error',e=>{
-      clearTimeout(joinTimeout);
-      const msgs={'peer-unavailable':'Room '+code+' not found.',
-        'network':'Network error.','server-error':'Broker error — try again.'};
-      setCoopStatus('join','err', msgs[e.type]||'Error: '+e.type);
+  ch.onopen = ()=>{
+    setCoopStatus('join','ok','Connected! Sending character…');
+    ch.send(JSON.stringify({type:'player_join', player:buildMyPlayerData(0)}));
+    coopActive = true;
+  };
+  ch.onmessage = e=>coopHandleData(JSON.parse(e.data), ch);
+  ch.onclose = ()=>{
+    coopActive=false; coopConns=[];
+    setCoopStatus('join','warn','Disconnected from host.');
+    updatePartyHUD();
+    addLog('Disconnected from party.','sys');
+  };
+
+  // ICE candidates → Firebase
+  pc.onicecandidate = e=>{
+    if(e.candidate) roomRef.child('peer_ice').push(e.candidate.toJSON());
+  };
+
+  // Create offer
+  pc.createOffer().then(offer=>{
+    return pc.setLocalDescription(offer).then(()=>{
+      roomRef.child('offer').set({sdp:offer.sdp, type:offer.type});
     });
   });
+
+  // Watch for host answer
+  roomRef.child('answer').on('value', async snap=>{
+    const answer = snap.val();
+    if(!answer||!answer.sdp) return;
+    if(pc.signalingState==='have-local-offer'){
+      await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    }
+  });
+
+  // Watch for host ICE candidates
+  roomRef.child('host_ice').on('value', snap=>{
+    const candidates = snap.val();
+    if(!candidates) return;
+    Object.values(candidates).forEach(ic=>{
+      try{ pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
+    });
+  });
+
+  _fbRoomRef = roomRef;
+
+  // Timeout
+  setTimeout(()=>{
+    if(!coopActive) setCoopStatus('join','err','Timed out. Check the code and try again.');
+  }, 20000);
 }
 
-// ── MESSAGE DISPATCH ──
+
 function coopHandleData(data, fromConn){
   switch(data.type){
 
@@ -6564,7 +6592,9 @@ function startCoopBroadcastLoop(){
 
 function coopDisconnect(){
   if(_coopBroadcastTimer){ clearInterval(_coopBroadcastTimer); _coopBroadcastTimer=null; }
-  if(coopPeer){ coopPeer.destroy(); coopPeer=null; }
+  if(coopPeer){ try{ coopPeer.close(); }catch(e){} coopPeer=null; }
+  if(_fbRoomRef){ _fbRoomRef.off(); _fbRoomRef=null; }
+  if(coopRoomCode&&_db) _db.ref('rooms/'+coopRoomCode).remove();
   coopConns=[]; coopParty=[]; coopIsHost=false; coopRoomCode=null; coopActive=false;
   coopHidePanels();
   setCoopStatus('host','warn','Disconnected.');
@@ -8289,13 +8319,43 @@ function newChar(){
 }
 
 // ╔══════════════════════════════════════════════════════╗
-// ║           SUPABASE SAVE / LOAD SYSTEM               ║
+// ║           FIREBASE SAVE / LOAD / REALTIME SYSTEM     ║
 // ╚══════════════════════════════════════════════════════╝
-const SUPA_URL  = 'https://xywtayrqgonlphrdkfdw.supabase.co';
-const SUPA_KEY  = 'sb_publishable_rzDA6NFkloRbYo00hruUiA_qQOYFoLd';
-const _isLocal  = location.protocol === 'file:';
-const _supa     = _isLocal ? null : supabase.createClient(SUPA_URL, SUPA_KEY);
-if(_isLocal) console.log('[Realm] Running locally — cloud features disabled. Deploy to Vercel for full features.');
+// Create project at https://console.firebase.google.com
+// Enable Realtime Database, set rules to allow authenticated reads/writes
+// Replace the values below with your Firebase project config
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDoQGGu_wNOR5kxlD7PpPPNYhVAYlMEXf8",
+  authDomain:        "realm-of-echoes.firebaseapp.com",
+  databaseURL:       "https://realm-of-echoes-default-rtdb.firebaseio.com",
+  projectId:         "realm-of-echoes",
+  storageBucket:     "realm-of-echoes.firebasestorage.app",
+  messagingSenderId: "861899034358",
+  appId:             "1:861899034358:web:3f9b4bf656a5ec5051e6d7"
+};
+const _isLocal = location.protocol === 'file:';
+let _db = null; // Firebase Realtime Database reference
+
+function initFirebase(){
+  if(_isLocal){ console.log('[Firebase] Local mode — cloud disabled'); return; }
+  try{
+    if(!firebase.apps?.length) firebase.initializeApp(FIREBASE_CONFIG);
+    _db = firebase.database();
+    console.log('[Firebase] Connected');
+  }catch(e){ console.warn('[Firebase] Init failed:', e.message); }
+}
+
+// Helpers
+const fbRef  = path => _db?.ref(path);
+const fbSet  = (path,val) => _db?.ref(path).set(val);
+const fbUpd  = (path,val) => _db?.ref(path).update(val);
+const fbGet  = path => _db?.ref(path).get().then(s=>s.val());
+const fbRem  = path => _db?.ref(path).remove();
+const fbOn   = (path,cb) => _db?.ref(path).on('value',s=>cb(s.val()));
+const fbOff  = path => _db?.ref(path).off();
+const fbPush = (path,val) => _db?.ref(path).push(val);
+if(_isLocal) console.log('[Realm] Running locally — cloud features disabled.');
+
 
 function getPlayerToken(){
   let tok = localStorage.getItem('realmPlayerToken');
@@ -8339,119 +8399,94 @@ function _scheduleCloudSync(){
 
 // ── cloudSyncNow: explicit cloud save — called by menu Save button ──
 async function cloudSyncNow(silent=false){
-  if(_isLocal){ if(!silent) toast('Local mode — deploy to Vercel for cloud saves'); return; }
-  if(!silent) toast('Saving to cloud…');
+  if(_isLocal||!_db){ if(!silent) toast('Local mode — deploy for cloud saves'); return; }
   try{
-    const raw = localStorage.getItem('realmSave');
-    if(!raw) return;
-    const payload  = JSON.parse(raw);
-    const token    = getPlayerToken();
-    const charName = G.name || 'Unknown';
-    const { error } = await _supa.from('player_saves').upsert({
-      player_token: token,
-      char_name:    charName,
-      data:         payload,
-      updated_at:   new Date().toISOString(),
-    }, { onConflict: 'player_token' });
-    _lastCloudSync = Date.now();
-    if(error) throw error;
-    if(!silent) toast('☁ Saved to cloud!');
+    const tok = getPlayerToken();
+    const saveData = {
+      token: tok,
+      charName: G.name||'',
+      data: JSON.stringify(G),
+      updatedAt: Date.now()
+    };
+    await fbSet('saves/'+tok, saveData);
+    if(!silent) toast('Saved to cloud ✓');
+    console.log('[Firebase] Saved');
   }catch(e){
-    console.warn('Cloud save failed:', e);
-    if(!silent) toast('Cloud save failed — local save kept.', 'err');
+    console.warn('[Firebase] Save failed:',e);
+    if(!silent) toast('Save failed','err');
   }
 }
 
-// ── Load: try cloud first, fall back to local cache ──
 async function loadGameAsync(){
-  if(_isLocal) return { ok:false };
-  const token = getPlayerToken();
-
-  // Try cloud first
+  if(_isLocal||!_db) return loadGameLocal();
   try{
-    const { data, error } = await _supa
-      .from('player_saves')
-      .select('data, char_name, updated_at')
-      .eq('player_token', token)
-      .single();
-
-    if(!error && data?.data){
-      const ok = _applyRawSave(data.data);
-      if(ok){
-        // Also update local cache with cloud data
-        try{ localStorage.setItem('realmSave', JSON.stringify(data.data)); }catch(e){}
-        return { ok:true, source:'cloud', name:data.char_name,
-          updated: new Date(data.updated_at).toLocaleString() };
-      }
+    const tok = getPlayerToken();
+    const data = await fbGet('saves/'+tok);
+    if(data && data.data){
+      const saved = JSON.parse(data.data);
+      Object.assign(G, saved);
+      console.log('[Firebase] Loaded save for', G.name);
+      return true;
     }
-  }catch(e){ console.warn('Cloud load failed, trying local:', e); }
-
-  // Fall back to localStorage
-  return loadGameLocal();
+    return loadGameLocal();
+  }catch(e){
+    console.warn('[Firebase] Load failed:',e);
+    return loadGameLocal();
+  }
 }
 
 function loadGameLocal(){
   try{
-    const raw = localStorage.getItem('realmSave');
+    const raw=localStorage.getItem('realmSave');
     if(!raw) return { ok:false };
-    const save = JSON.parse(raw);
-    const ok = _applyRawSave(save);
+    const ok=_applyRawSave(JSON.parse(raw));
     return { ok, source:'local' };
   }catch(e){ return { ok:false }; }
 }
 
-// Synchronous load for instant startup (local only — cloud load happens after)
-function loadGame(){
-  return loadGameLocal().ok;
-}
+function loadGame(){ return loadGameLocal().ok; }
 
 function _applyRawSave(save){
-  if(!save || (save.version||0) < 2) return false;
-  Object.assign(G, save.G);
-  G.race = RACES.find(r=>r.id===G.race?.id) || G.race;
-  G.cls  = CLASSES.find(c=>c.id===G.cls?.id) || G.cls;
-  if(!G.race || !G.cls) return false;
+  if(!save||(save.version||0)<2) return false;
+  Object.assign(G, save.G||save);
+  G.race=RACES.find(r=>r.id===G.race?.id)||G.race;
+  G.cls =CLASSES.find(c=>c.id===G.cls?.id)||G.cls;
+  if(!G.race||!G.cls) return false;
   return true;
 }
 
-// ── List all saves for this token (future: slot system) ──
 async function listCloudSaves(){
-  const token = getPlayerToken();
-  const { data, error } = await _supa
-    .from('player_saves')
-    .select('char_name, updated_at, data')
-    .eq('player_token', token);
-  if(error) return [];
-  return data || [];
+  if(!_db) return [];
+  try{
+    const tok=getPlayerToken();
+    const snap=await fbGet('saves/'+tok);
+    if(!snap) return [];
+    return [{ char_name:snap.char_name, updated_at:snap.updated_at, data:snap.data }];
+  }catch(e){ return []; }
 }
 
-// ── Export/import player token for cross-device sync ──
 function exportPlayerToken(){
-  const tok = getPlayerToken();
-  navigator.clipboard?.writeText(tok).then(()=>toast('Player ID copied to clipboard!'))
+  const tok=getPlayerToken();
+  navigator.clipboard?.writeText(tok).then(()=>toast('Player ID copied!'))
     .catch(()=>toast('Your ID: '+tok.slice(0,8)+'…'));
   return tok;
 }
 
 function importPlayerToken(tok){
-  if(!tok || tok.length < 20){ toast('Invalid token','err'); return; }
+  if(!tok||tok.length<20){ toast('Invalid token','err'); return; }
   localStorage.setItem('realmPlayerToken', tok.trim());
   toast('Token imported — reloading…');
   setTimeout(()=>location.reload(), 800);
 }
 
-// ── Delete cloud save ──
 async function deleteCloudSave(){
   if(!confirm('Delete your cloud save? Local save kept.')) return;
-  const { error } = await _supa
-    .from('player_saves')
-    .delete()
-    .eq('player_token', getPlayerToken());
-  if(!error) toast('Cloud save deleted.');
-  else toast('Delete failed','err');
+  if(!_db){ toast('Not connected','err'); return; }
+  try{
+    await fbRem('saves/'+getPlayerToken());
+    toast('Cloud save deleted.');
+  }catch(e){ toast('Delete failed','err'); }
 }
-
-
 
 
 function showEscapeOption(){
@@ -8556,7 +8591,7 @@ async function csLoadAllSaves(){
   try{
     const tok = getPlayerToken();
     const { data, error } = await Promise.race([
-      _supa.from('player_saves').select('char_name,updated_at,data').eq('player_token',tok).maybeSingle(),
+    // [Firebase migrated] _supa.from('player_saves').select('char_name,updated_at,data').eq('player_token',tok).maybeSingle(),
       new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),5000))
     ]);
     if(error){ console.warn('[csLoadAllSaves] cloud error:', error); }
@@ -8663,7 +8698,7 @@ async function csDeleteSave(idx, btn){
   btn.closest('.char-slot').style.opacity='0.3';
   if(save.source==='local'||save.cloudData) localStorage.removeItem('realmSave');
   try{
-    await _supa.from('player_saves').delete().eq('player_token',getPlayerToken());
+    // [Firebase migrated] await _supa.from('player_saves').delete().eq('player_token',getPlayerToken());
   }catch(e){}
   toast(`${save.name} deleted.`);
   showCharSelect();
@@ -8691,16 +8726,13 @@ window.debugGame = {
   testSave: async ()=>{
     const tok=getPlayerToken();
     console.log('Testing save with token:', tok.slice(0,8)+'…');
-    const {data,error}=await _supa.from('player_saves')
-      .upsert({player_token:tok,char_name:'__test__',data:{},updated_at:new Date().toISOString()},
-        {onConflict:'player_token'});
-    if(error){console.error('FAILED:',error);return false;}
-    console.log('Save OK!');return true;
+    try{ await fbSet('saves/'+tok+'_test',{char_name:'__test__',data:{},updated_at:Date.now()}); console.log('Save OK!'); return true; }
+    catch(e){ console.error('FAILED:',e); return false; }
   },
   testLoad: async ()=>{
     const tok=getPlayerToken();
-    const {data,error}=await _supa.from('player_saves').select('*').eq('player_token',tok).maybeSingle();
-    if(error){console.error('FAILED:',error);return null;}
+    const data = await fbGet('saves/'+tok).catch(e=>{console.error('FAILED:',e);return null;});
+    if(!data){console.warn('No save found');return null;}
     console.log('Load OK:',data?.char_name,data);return data;
   },
   forceSave: ()=>{ saveGame(); cloudSyncNow(false); },
@@ -9262,7 +9294,7 @@ const PEER_HOST = 'realm-echoes-broker.onrender.com';
 const PEER_CONFIG = PEER_HOST ? {
   host: PEER_HOST,
   port: 443,
-  path: '/',
+  path: '/peerjs',
   secure: true,
   debug: 0,
   config: {
@@ -9274,6 +9306,7 @@ const PEER_CONFIG = PEER_HOST ? {
 } : {debug: 0};
 
 buildCC();
+initFirebase();
 
 // Check if returning from a dungeon
 (()=>{
