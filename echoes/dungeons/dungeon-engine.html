@@ -2763,8 +2763,12 @@ function engageDgEnemy(en){
 
 // ── Floor transitions ──
 function goToFloor(num,dir){
-  dgFloorMaps[dgFloor-1]={m:dgMap,w:dgWidth,h:dgHeight,entities:dgEntities};
-  if(dgFloorMaps[num-1]){
+  // Only cache current floor if it was actually generated
+  if(dgWidth>0&&dgHeight>0){
+    dgFloorMaps[dgFloor-1]={m:dgMap,w:dgWidth,h:dgHeight,entities:dgEntities};
+  }
+  // Only restore cached floor if it has valid dimensions
+  if(dgFloorMaps[num-1]&&dgFloorMaps[num-1].w>0){
     const f=dgFloorMaps[num-1];dgMap=f.m;dgWidth=f.w;dgHeight=f.h;dgEntities=f.entities;
   } else {
     const fdDef=DUNGEON_DEF.floors[num-1]||DUNGEON_DEF.floors[DUNGEON_DEF.floors.length-1];
