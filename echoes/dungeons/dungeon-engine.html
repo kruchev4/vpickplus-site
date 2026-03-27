@@ -2954,8 +2954,8 @@ function drawBattlefieldBg(){
 
 // ── Missing function stubs for dungeon engine ──
 let _audioCtx=null, _soundEnabled=true;
-function _getAudioCtx(){
-  if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+function getAudioCtx(){
+  try{if(!_audioCtx)_audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}
   return _audioCtx;
 }
 function playSound(type){
