@@ -6009,6 +6009,17 @@ function coopHandleData(data, fromConn){
       break;
     }
 
+    case 'dungeon_invite':{
+      // Party member received dungeon invite from host
+      const _dId=data.dungeonId;
+      addLog(`⚔ Party is entering ${_dId.replace(/_/g,' ')}…`,'disc');
+      toast('Following party into dungeon…');
+      saveGame();
+      setTimeout(()=>{
+        window.location.href='dungeons/dungeon-engine.html?dungeon='+_dId;
+      },800);
+      break;}
+
     case 'welcome':
       coopParty = data.party;
       coopActive = true;
@@ -7746,8 +7757,11 @@ function startCampaign(){
     saveGame();
     addLog(`Entering ${campaignId.replace(/_/g,' ')}…`,'disc');
     toast('Entering dungeon…');
-    // Navigate with dungeon ID in URL — engine reads it from registry
-    // Use the file path but append ?dungeon=id so engine knows what to load
+    // Broadcast dungeon invite to co-op party members
+    if(coopActive && coopIsHost && coopConns.length>0){
+      coopBroadcast({type:'dungeon_invite', dungeonId:campaignId});
+      addLog(`Sent dungeon invite to party.`,'sys');
+    }
     setTimeout(()=>{
       window.location.href = 'dungeons/dungeon-engine.html?dungeon='+campaignId;
     }, 600);
