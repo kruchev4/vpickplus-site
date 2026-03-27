@@ -3029,28 +3029,32 @@ if(!loadPlayerFromStorage()){
     if(result&&!G.inCombat){setTimeout(()=>{renderDungeon();updateHUD();},400);}
     return result;
   };
-  // Load dungeon definition — try 3 sources in order:
-  // 1. URL param ?dungeon=id (most reliable)
-  // 2. localStorage (redirect handoff)
-  // 3. Built-in registry
+  // Load dungeon definition — try URL param then localStorage then registry
+  console.log('[Dungeon] URL:', window.location.href);
+  console.log('[Dungeon] Search:', window.location.search);
   try{
     const _urlParams=new URLSearchParams(window.location.search);
     const _urlDungeon=_urlParams.get('dungeon');
+    console.log('[Dungeon] URL dungeon param:', _urlDungeon);
+    console.log('[Dungeon] Registry keys:', Object.keys(DUNGEON_REGISTRY));
+    
     if(_urlDungeon && DUNGEON_REGISTRY[_urlDungeon]){
       DUNGEON_DEF=DUNGEON_REGISTRY[_urlDungeon];
       console.log('[Dungeon] Loaded from URL param:',DUNGEON_DEF.name);
     } else {
       const _dgRaw=localStorage.getItem('realmCurrentDungeon');
+      console.log('[Dungeon] localStorage raw:', _dgRaw ? 'found ('+_dgRaw.length+' chars)' : 'empty');
       if(_dgRaw){
         DUNGEON_DEF=JSON.parse(_dgRaw);
         localStorage.removeItem('realmCurrentDungeon');
         console.log('[Dungeon] Loaded from localStorage:',DUNGEON_DEF.name);
       } else if(_urlDungeon){
         DUNGEON_DEF=DUNGEON_REGISTRY[_urlDungeon]||null;
-        if(DUNGEON_DEF) console.log('[Dungeon] Loaded from registry:',DUNGEON_DEF.name);
+        console.log('[Dungeon] Registry lookup for',_urlDungeon,':',DUNGEON_DEF?'found':'NOT FOUND');
       }
     }
   }catch(e){console.warn('[Dungeon] Failed to load definition:',e);}
+  console.log('[Dungeon] DUNGEON_DEF after loading:', DUNGEON_DEF?.name || 'NULL');
   if(DUNGEON_DEF){
     // Double-RAF ensures flex layout has computed before we size and render
     resizeDgCanvas();
