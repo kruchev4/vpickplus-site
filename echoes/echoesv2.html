@@ -5900,7 +5900,7 @@ function coopShowHost(){
 // ── HOST: Create room ──
 function coopStartHost(){
   if(!G.cls||!G.name){ toast('Create your character first!','err'); return; }
-  if(!_db){ toast('Not connected to Firebase — check config','err'); return; }
+  if(!_db){ toast('Not connected to Firebase','err'); return; }
   coopIsHost = true;
   const code = Array.from({length:6},()=>Math.floor(Math.random()*10)).join('');
   coopRoomCode = code;
@@ -5915,12 +5915,11 @@ function coopStartHost(){
   const roomRef = _db.ref('rooms/'+code);
   _fbRoomRef = roomRef;
 
-  // Clear stale data then write host marker
   roomRef.remove().then(()=>{
     roomRef.child('host').set({name:G.name, ts:Date.now()});
   });
 
-  // Watch for peer offers — fires when peer writes their offer
+  // Watch for peer offer
   roomRef.child('offer').on('value', async snap=>{
     const offer = snap.val();
     if(!offer||!offer.sdp) return;
@@ -5928,9 +5927,20 @@ function coopStartHost(){
     const pc = new RTCPeerConnection(RTC_CONFIG);
     const idx = coopParty.length;
 
+    // ICE buffer for this peer
+    const iceQueue = [];
+    let remoteReady = false;
+
+    async function flushIceQueue(){
+      remoteReady = true;
+      for(const ic of iceQueue){
+        try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
+      }
+      iceQueue.length = 0;
+    }
+
     pc.ondatachannel = e=>{
       const ch = e.channel;
-      // Wrap channel in conn-like object for coopHandleData compat
       const conn = {
         send: d => ch.readyState==='open' && ch.send(JSON.stringify(d)),
         _partyIdx: idx,
@@ -5938,12 +5948,10 @@ function coopStartHost(){
       };
       ch.onopen = ()=>{
         coopConns.push(conn);
-        setCoopStatus('host','ok','Party: '+(coopParty.length)+' player(s). Connected!');
+        setCoopStatus('host','ok','Party: '+(idx+1)+' player(s). Connected!');
         startCoopBroadcastLoop();
       };
-      ch.onmessage = e=>{
-        try{ coopHandleData(JSON.parse(e.data), conn); }catch(err){}
-      };
+      ch.onmessage = e=>{ try{ coopHandleData(JSON.parse(e.data), conn); }catch(err){} };
       ch.onclose = ()=>{
         const name = coopParty[conn._partyIdx]?.name||'Player';
         coopConns = coopConns.filter(x=>x!==conn);
@@ -5959,29 +5967,39 @@ function coopStartHost(){
       if(e.candidate) roomRef.child('host_ice').push(e.candidate.toJSON());
     };
 
-    await pc.setRemoteDescription(new RTCSessionDescription(offer));
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    roomRef.child('answer').set({sdp:answer.sdp, type:answer.type});
+    // Set remote desc THEN flush ICE
+    try{
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await roomRef.child('answer').set({sdp:answer.sdp, type:answer.type});
+      await flushIceQueue();
+    }catch(e){ console.warn('[Host] negotiation failed:', e); }
 
-    // Watch for peer ICE
+    // Watch peer ICE — queue if not ready
     roomRef.child('peer_ice').on('value', snap=>{
       const cs = snap.val(); if(!cs) return;
-      Object.values(cs).forEach(ic=>{
-        try{ pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
+      Object.values(cs).forEach(async ic=>{
+        if(remoteReady){
+          try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
+        } else {
+          iceQueue.push(ic);
+        }
       });
     });
+
     coopPeer = pc;
   });
 
   addLog('Co-op room opened: '+code,'sys');
 }
 
+
 // ── PEER: Join room ──
 async function coopJoin(){
   const code = document.getElementById('coop-join-input').value.trim();
   if(!/^[0-9]{6}$/.test(code)){ setCoopStatus('join','err','Enter a 6-digit room code.'); return; }
-  if(!_db){ toast('Not connected to Firebase — check config','err'); return; }
+  if(!_db){ toast('Not connected to Firebase','err'); return; }
   coopIsHost = false;
   coopRoomCode = code;
   setCoopStatus('join','warn','Looking for room '+code+'…');
@@ -5991,11 +6009,23 @@ async function coopJoin(){
 
   // Verify room exists
   const hostData = await roomRef.child('host').get().then(s=>s.val());
-  if(!hostData){ setCoopStatus('join','err','Room '+code+' not found. Check the code.'); return; }
+  if(!hostData){ setCoopStatus('join','err','Room '+code+' not found.'); return; }
   setCoopStatus('join','warn','Found room — connecting…');
 
   const pc = new RTCPeerConnection(RTC_CONFIG);
   coopPeer = pc;
+
+  // ICE candidate buffer — holds candidates until remote desc is set
+  const iceQueue = [];
+  let remoteReady = false;
+
+  async function flushIceQueue(){
+    remoteReady = true;
+    for(const ic of iceQueue){
+      try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
+    }
+    iceQueue.length = 0;
+  }
 
   // Create data channel
   const ch = pc.createDataChannel('game', {ordered:true});
@@ -6011,9 +6041,7 @@ async function coopJoin(){
     conn.send({type:'player_join', player:buildMyPlayerData(0)});
     coopActive = true;
   };
-  ch.onmessage = e=>{
-    try{ coopHandleData(JSON.parse(e.data), conn); }catch(err){}
-  };
+  ch.onmessage = e=>{ try{ coopHandleData(JSON.parse(e.data), conn); }catch(err){} };
   ch.onclose = ()=>{
     coopActive=false; coopConns=[];
     setCoopStatus('join','warn','Disconnected from host.');
@@ -6021,7 +6049,7 @@ async function coopJoin(){
     addLog('Disconnected from party.','sys');
   };
 
-  // ICE → Firebase
+  // Send our ICE candidates to Firebase
   pc.onicecandidate = e=>{
     if(e.candidate) roomRef.child('peer_ice').push(e.candidate.toJSON());
   };
@@ -6031,25 +6059,32 @@ async function coopJoin(){
   await pc.setLocalDescription(offer);
   await roomRef.child('offer').set({sdp:offer.sdp, type:offer.type});
 
-  // Watch for host answer
+  // Watch for host answer — set remote desc THEN flush ICE queue
   roomRef.child('answer').on('value', async snap=>{
     const answer = snap.val();
-    if(!answer||!answer.sdp||pc.signalingState!=='have-local-offer') return;
-    await pc.setRemoteDescription(new RTCSessionDescription(answer));
-    roomRef.child('answer').off();
+    if(!answer||!answer.sdp) return;
+    if(pc.signalingState !== 'have-local-offer') return;
+    try{
+      await pc.setRemoteDescription(new RTCSessionDescription(answer));
+      roomRef.child('answer').off();
+      await flushIceQueue(); // now safe to add ICE
+    }catch(e){ console.warn('[Peer] setRemoteDescription failed:', e); }
   });
 
-  // Watch for host ICE
+  // Watch for host ICE candidates — queue if remote not ready yet
   roomRef.child('host_ice').on('value', snap=>{
     const cs = snap.val(); if(!cs) return;
-    Object.values(cs).forEach(ic=>{
-      try{ pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
+    Object.values(cs).forEach(async ic=>{
+      if(remoteReady){
+        try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
+      } else {
+        iceQueue.push(ic);
+      }
     });
   });
 
-  // Timeout
   setTimeout(()=>{
-    if(!coopActive) setCoopStatus('join','err','Timed out. Make sure host has the room open.');
+    if(!coopActive) setCoopStatus('join','err','Timed out. Make sure host has room open.');
   }, 30000);
 }
 
