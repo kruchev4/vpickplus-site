@@ -5963,8 +5963,17 @@ function coopStartHost(){
       };
     };
 
+    pc.onconnectionstatechange = ()=>console.log('[Host] connectionState:', pc.connectionState);
+    pc.oniceconnectionstatechange = ()=>console.log('[Host] iceConnectionState:', pc.iceConnectionState);
+    pc.onicegatheringstatechange = ()=>console.log('[Host] iceGatheringState:', pc.iceGatheringState);
+
     pc.onicecandidate = e=>{
-      if(e.candidate) roomRef.child('host_ice').push(e.candidate.toJSON());
+      if(e.candidate){
+        console.log('[Host] sending ICE candidate');
+        roomRef.child('host_ice').push(e.candidate.toJSON());
+      } else {
+        console.log('[Host] ICE gathering complete');
+      }
     };
 
     // Set remote desc THEN flush ICE
@@ -6054,9 +6063,19 @@ async function coopJoin(){
     addLog('Disconnected from party.','sys');
   };
 
+  // Log connection state changes
+  pc.onconnectionstatechange = ()=>console.log('[Peer] connectionState:', pc.connectionState);
+  pc.oniceconnectionstatechange = ()=>console.log('[Peer] iceConnectionState:', pc.iceConnectionState);
+  pc.onicegatheringstatechange = ()=>console.log('[Peer] iceGatheringState:', pc.iceGatheringState);
+
   // Send our ICE candidates to Firebase
   pc.onicecandidate = e=>{
-    if(e.candidate) roomRef.child('peer_ice').push(e.candidate.toJSON());
+    if(e.candidate){
+      console.log('[Peer] sending ICE candidate');
+      roomRef.child('peer_ice').push(e.candidate.toJSON());
+    } else {
+      console.log('[Peer] ICE gathering complete');
+    }
   };
 
   // Create and send offer
