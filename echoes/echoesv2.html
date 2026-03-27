@@ -5850,6 +5850,7 @@ function checkWorldBossCombat(tx, ty){
 
 // ── CO-OP STATE ──
 let coopPeer      = null;  // local RTCPeerConnection
+let _coopBroadcastTimer = null;
 const PARTY_COLORS = ['#c9a227','#4a9eff','#ff6b6b','#6bff6b'];
 let coopActive    = false;
 let coopIsHost    = false;
