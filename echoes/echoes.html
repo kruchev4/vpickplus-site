@@ -9258,7 +9258,8 @@ console.log('%c Realm of Echoes v2.4 %c built ' + new Date().toISOString().slice
 // ── PeerJS broker config ──
 // Set PEER_HOST to your Render URL after deploying the broker.
 // Leave as null to fall back to the public peerjs.com broker.
-const PEER_HOST = 'realm-echoes-broker.onrender.com';
+//const PEER_HOST = null; // temporarily using public broker to test
+const PEER_HOST = 'realm-echoes-broker.onrender.com'; // re-enable after fixing Render WS
 const PEER_CONFIG = PEER_HOST ? {
   host: PEER_HOST,
   port: 443,
