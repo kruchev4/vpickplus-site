@@ -8484,8 +8484,16 @@ function loadGameLocal(){
 function loadGame(){ return loadGameLocal().ok; }
 
 function _applyRawSave(save){
-  if(!save||(save.version||0)<2) return false;
-  Object.assign(G, save.G||save);
+  if(!save) return false;
+  // Handle multiple save formats:
+  // {version:3, G:{...}} — standard local save
+  // {G:{...}}            — cloud save wrapper
+  // {...name, cls...}    — raw G object
+  const gData = save.G || (save.name && save.cls ? save : null);
+  if(!gData) return false;
+  // Version check — only enforce on versioned saves
+  if(save.version !== undefined && save.version < 2) return false;
+  Object.assign(G, gData);
   G.race=RACES.find(r=>r.id===G.race?.id)||G.race;
   G.cls =CLASSES.find(c=>c.id===G.cls?.id)||G.cls;
   if(!G.race||!G.cls) return false;
