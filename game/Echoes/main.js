@@ -44,6 +44,13 @@ function setupInput() {
 }
 
 function gameLoop() {
+  console.log(
+  "[CAMERA]",
+  GameState.camera.x,
+  GameState.camera.y,
+  GameState.camera.w,
+  GameState.camera.h
+);
   
 
   updateCamera();
