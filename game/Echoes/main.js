@@ -193,6 +193,9 @@ function setupInput() {
     if (e.key === "ArrowLeft") tryMove(-1, 0);
     if (e.key === "ArrowRight") tryMove(1, 0);
   });
+   // main.js – last lines
+window.__ENGINE_READY__ = true;
+window.dispatchEvent(new Event("engine-ready"));
 }
 
 /* ===============================
