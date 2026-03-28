@@ -114,3 +114,8 @@
 .pcp-queued-badge{font-size:.55rem;padding:2px 5px;border:1px solid var(--gold);
   color:var(--gold-b);white-space:nowrap;}
 .pcp-fallen{font-size:.58rem;color:#c47b7b;padding:2px 0;}
+
+/* upgraded death screen */
+.death-penalty{font-size:.72rem;color:#c47b7b;margin-bottom:12px;line-height:1.7;
+  border:1px solid rgba(139,26,26,.4);padding:8px 12px;background:rgba(139,26,26,.06);}
+.death-penalty span{color:#e07070;font-family:'Cinzel',serif;}
