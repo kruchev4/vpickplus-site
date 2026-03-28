@@ -968,18 +968,28 @@ function checkStep1(){
   document.getElementById('bn1').disabled=!(CC.name.length>=2&&CC.race);
 }
 
-function gotoStep(n){
-  [1,2,3,4].forEach(i=>{
-    document.getElementById('cc'+i).style.display=i===n?'block':'none';
-    const dot=document.getElementById('d'+(i-1));
-    dot.classList.toggle('active',i===n);
-    dot.classList.toggle('done',i<n);
+function gotoStep(n) {
+  [1,2,3,4].forEach(i => {
+    document.getElementById('cc'+i).style.display = i === n ? 'block' : 'none';
+    const dot = document.getElementById('d'+(i-1));
+    dot?.classList.toggle('active', i === n);
+    dot?.classList.toggle('done', i < n);
   });
-  CC.step=n;
-  if(n===4)buildConfirm();
-  document.getElementById('screen-create').scrollTop=0;
-  window.gotoStep = gotoStep;
+
+  CC.step = n;
+
+  // ✅ STEP‑1 INITIALIZATION LIVES HERE
+  if (n === 1) {
+    populateRaceGrid();
+  }
+
+  if (n === 4) buildConfirm();
+
+  document.getElementById('screen-create').scrollTop = 0;
 }
+
+// ✅ ensure global access
+window.gotoStep = gotoStep;
 
 function buildStatsGrid(){
   const g=document.getElementById('stats-grid');
