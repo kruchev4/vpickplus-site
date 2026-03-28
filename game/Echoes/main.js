@@ -16,11 +16,17 @@ import {
 import { CLASS_ABILITIES } from "./engine/data/abilities/classAbilities.js";
 import { TOWNS } from "./engine/data/world/towns.js";
 import { CRAFT_RECIPES } from "./engine/data/crafting/recipes.js";
-import { openCharSheet, closeCharSheet } from "./ui/characterSheet.js";
+import {
+  openCharSheet,
+  closeCharSheet,
+  populateCharSheet
+} from "./ui/characterSheet.js";
 
-// TEMP legacy bridge
+// Temporary legacy bridge
 window.openCharSheet = openCharSheet;
 window.closeCharSheet = closeCharSheet;
+window.populateCharSheet = populateCharSheet;
+
 
 // Temporary legacy bridge
 window.CRAFT_RECIPES = CRAFT_RECIPES;
