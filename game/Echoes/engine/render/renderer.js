@@ -6,6 +6,13 @@ import { TILE_COLORS, TILE, PASSABLE } from "../world/constants.js";
  * Draw one tile from a GameMap at screen coords.
  * Replaces your old drawTile() completely.
  */
+console.log(
+  "[renderMap]",
+  map.width,
+  map.height,
+  camera.x,
+  camera.y
+);
 export function drawTile(ctx, map, tx, ty, sx, sy) {
   ctx.fillStyle = "red";
 ctx.fillRect(sx, sy, 32, 32);
