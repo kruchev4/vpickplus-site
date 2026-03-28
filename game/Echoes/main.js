@@ -14,6 +14,10 @@ import {
   UNCOMMON_ITEMS
 } from "./engine/data/loot.js";
 import { CLASS_ABILITIES } from "./engine/data/abilities/classAbilities.js";
+import { TOWNS } from "./engine/data/world/towns.js";
+
+// Temporary legacy bridge
+window.TOWNS = TOWNS;
 
 window.CLASS_ABILITIES = CLASS_ABILITIES;
 
