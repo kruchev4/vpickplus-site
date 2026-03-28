@@ -1042,21 +1042,35 @@ window.populateClassGrid = populateClassGrid;
 window.populateRaceGrid = populateRaceGrid;
 
 function gotoStep(n) {
-  [1,2,3,4].forEach(i => {
-    document.getElementById('cc'+i).style.display = i === n ? 'block' : 'none';
-    const dot = document.getElementById('d'+(i-1));
-    dot?.classList.toggle('active', i === n);
-    dot?.classList.toggle('done', i < n);
+  [1, 2, 3, 4].forEach(i => {
+    const pane = document.getElementById("cc" + i);
+    if (pane) pane.style.display = i === n ? "block" : "none";
+
+    const dot = document.getElementById("d" + (i - 1));
+    dot?.classList.toggle("active", i === n);
+    dot?.classList.toggle("done", i < n);
   });
 
   CC.step = n;
 
-  if (n === 1) window.populateRaceGrid();
-  if (n === 2) window.populateClassGrid();
-  if (n === 4) buildConfirm();
+  // ✅ STEP INITIALIZATION: RUN ONLY ONCE
+  if (n === 1 && !CC._raceBuilt) {
+    window.populateRaceGrid();
+    CC._raceBuilt = true;
+  }
 
-  document.getElementById('screen-create').scrollTop = 0;
+  if (n === 2 && !CC._classBuilt) {
+    window.populateClassGrid();
+    CC._classBuilt = true;
+  }
+
+  if (n === 4) {
+    buildConfirm();
+  }
+
+  document.getElementById("screen-create").scrollTop = 0;
 }
+
 window.gotoStep = gotoStep;
 
 
