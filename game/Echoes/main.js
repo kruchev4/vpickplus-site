@@ -15,6 +15,11 @@ import {
 } from "./engine/data/loot.js";
 import { CLASS_ABILITIES } from "./engine/data/abilities/classAbilities.js";
 import { TOWNS } from "./engine/data/world/towns.js";
+import { CRAFT_RECIPES } from "./engine/data/crafting/recipes.js";
+
+// Temporary legacy bridge
+window.CRAFT_RECIPES = CRAFT_RECIPES;
+
 
 // Temporary legacy bridge
 window.TOWNS = TOWNS;
