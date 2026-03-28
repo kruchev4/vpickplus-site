@@ -912,17 +912,7 @@ const CC={
 
 
 
-// ╔══════════════════════════════════════════════════════╗
-// ║            CHARACTER CREATION                       ║
-// ╚══════════════════════════════════════════════════════╝
 function buildCC(){
-  
-if (!window.engineReady) {
-  
-  setTimeout(buildCC, 50);
-  return;
-}
-
   // Race grid
   const rg=document.getElementById('race-grid');
   rg.innerHTML=RACES.map(r=>`
@@ -953,130 +943,32 @@ if (!window.engineReady) {
   document.getElementById('inp-name').addEventListener('input',checkStep1);
 }
 
-/* ===============================
-   CHARACTER CREATION – CLEAN
-   =============================== */
-
-/* ---- Selection helpers ---- */
-
-function selRace(id) {
-  CC.race = id;
-
-  document
-    .querySelectorAll(".rcard")
-    .forEach(c => c.classList.toggle("sel", c.dataset.id === id));
-
+function selRace(id){
+  CC.race=id;
+  document.querySelectorAll('.rcard').forEach(c=>c.classList.toggle('sel',c.dataset.id===id));
   checkStep1();
 }
-
-function selClass(id) {
-  CC.cls = id;
-
-  document
-    .querySelectorAll(".clcard")
-    .forEach(c => c.classList.toggle("sel", c.dataset.id === id));
-
-  document.getElementById("bn2").disabled = false;
+function selClass(id){
+  CC.cls=id;
+  document.querySelectorAll('.clcard').forEach(c=>c.classList.toggle('sel',c.dataset.id===id));
+  document.getElementById('bn2').disabled=false;
+}
+function checkStep1(){
+  CC.name=document.getElementById('inp-name').value.trim();
+  document.getElementById('bn1').disabled=!(CC.name.length>=2&&CC.race);
 }
 
-function checkStep1() {
-  CC.name = document.getElementById("inp-name").value.trim();
-  document.getElementById("bn1").disabled =
-    !(CC.name.length >= 2 && CC.race);
-}
-
-/* ---- STEP 1: RACES ---- */
-
-function populateRaceGrid() {
-  const grid = document.querySelector("#cc1 .race-grid");
-  if (!grid) return;
-  if (!window.RACES || window.RACES.length === 0) return;
-
-  grid.innerHTML = "";
-
-  for (const race of window.RACES) {
-    const card = document.createElement("div");
-    card.className = "rcard";
-    card.dataset.id = race.id;
-
-    card.innerHTML = `
-      <div class="rice">${race.icon || "❓"}</div>
-      <div class="rname">${race.name}</div>
-      <div class="rbonus">${race.bonus || ""}</div>
-    `;
-
-    card.onclick = () => selRace(race.id);
-    grid.appendChild(card);
-  }
-}
-
-window.populateRaceGrid = populateRaceGrid;
-
-/* ---- STEP 2: CLASSES ---- */
-
-function populateClassGrid() {
-  const grid = document.querySelector("#cc2 .class-grid");
-  if (!grid) return;
-  if (!window.CLASSES || window.CLASSES.length === 0) return;
-
-  grid.innerHTML = "";
-
-  for (const cls of window.CLASSES) {
-    const card = document.createElement("div");
-    card.className = "clcard";
-    card.dataset.id = cls.id;
-
-    card.innerHTML = `
-      <div class="cl-hd">
-        <div class="cl-ic">${cls.icon || "❓"}</div>
-        <div class="cl-nm">${cls.name}</div>
-      </div>
-      <div class="cl-role">${cls.role || ""}</div>
-      <div class="cl-desc">${cls.desc || ""}</div>
-    `;
-
-    card.onclick = () => selClass(cls.id);
-    grid.appendChild(card);
-  }
-}
-
-window.populateClassGrid = populateClassGrid;
-
-/* ---- STEP CONTROLLER ---- */
-
-function gotoStep(n) {
-  [1, 2, 3, 4].forEach(i => {
-    const pane = document.getElementById("cc" + i);
-    if (pane) pane.style.display = i === n ? "block" : "none";
-
-    const dot = document.getElementById("d" + (i - 1));
-    dot?.classList.toggle("active", i === n);
-    dot?.classList.toggle("done", i < n);
+function gotoStep(n){
+  [1,2,3,4].forEach(i=>{
+    document.getElementById('cc'+i).style.display=i===n?'block':'none';
+    const dot=document.getElementById('d'+(i-1));
+    dot.classList.toggle('active',i===n);
+    dot.classList.toggle('done',i<n);
   });
-
-  CC.step = n;
-
-  /* one-time builders only */
-  if (n === 1 && !CC._raceBuilt) {
-    populateRaceGrid();
-    CC._raceBuilt = true;
-  }
-
-  if (n === 2 && !CC._classBuilt) {
-    populateClassGrid();
-    CC._classBuilt = true;
-  }
-
-  if (n === 4) {
-    buildConfirm();
-  }
-
-  document.getElementById("screen-create")?.scrollTo(0, 0);
+  CC.step=n;
+  if(n===4)buildConfirm();
+  document.getElementById('screen-create').scrollTop=0;
 }
-
-window.gotoStep = gotoStep;
-
-
 
 function buildStatsGrid(){
   const g=document.getElementById('stats-grid');
