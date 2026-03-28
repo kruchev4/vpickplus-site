@@ -1,14 +1,15 @@
-// game/engine/camera/camera.js
-
-import { GameState } from "../state/GameState.js";
-
 export function updateCamera() {
   const cam = GameState.camera;
   const p = GameState.player;
+  const map = GameState.activeMap;
+  const TILE = GameState.TILE_SIZE;
 
-  cam.x = p.x * GameState.TILE - cam.w / 2 + GameState.TILE / 2;
-  cam.y = p.y * GameState.TILE - cam.h / 2 + GameState.TILE / 2;
+  cam.x = Math.floor(p.x * TILE - cam.w / 2);
+  cam.y = Math.floor(p.y * TILE - cam.h / 2);
 
-  if (cam.x < 0) cam.x = 0;
-  if (cam.y < 0) cam.y = 0;
+  const maxX = map.width * TILE - cam.w;
+  const maxY = map.height * TILE - cam.h;
+
+  cam.x = Math.max(0, Math.min(cam.x, maxX));
+  cam.y = Math.max(0, Math.min(cam.y, maxY));
 }
