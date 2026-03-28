@@ -33,7 +33,14 @@ export const GameState = {
 
   // Interactive systems
   clickPath: [],
-  camera: { x: 0, y: 0, w: 800, h: 600 },
+ 
+camera: {
+    x: 0,
+    y: 0,
+    w: 960,
+    h: 720,
+  },
+activeMap: null,
   
   // Dungeon progression
   dungeonState: null,
