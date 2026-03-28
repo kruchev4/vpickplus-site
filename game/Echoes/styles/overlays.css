@@ -37,3 +37,36 @@
   #left-panel,#right-panel{display:none;}
   .stats-grid,.confirm-lay{grid-template-columns:1fr;}
 }
+/* ═══ GAME MENU ═══ */
+#ov-menu.active{display:flex !important;}
+.menu-box{
+  background:linear-gradient(160deg,#1a1006,#0d0802);
+  border:1px solid var(--border-b);max-width:340px;width:90%;
+  box-shadow:0 0 60px rgba(0,0,0,.8),0 0 20px rgba(201,146,42,.1);
+  animation:csIn .2s ease both;
+}
+.menu-header{
+  padding:16px 20px 10px;border-bottom:1px solid var(--border);text-align:center;
+}
+.menu-title{
+  font-family:'Cinzel Decorative',serif;font-size:1rem;color:var(--gold-b);
+  letter-spacing:4px;text-shadow:0 0 14px var(--gold-glow);
+}
+.menu-sub{font-size:.65rem;color:var(--parch-dk);letter-spacing:2px;margin-top:3px;}
+.menu-body{padding:14px 18px;}
+.menu-status{
+  font-size:.72rem;color:var(--parch-dk);font-style:italic;
+  text-align:center;margin-bottom:10px;min-height:18px;line-height:1.5;
+}
+.menu-btn{
+  display:block;width:100%;text-align:left;
+  font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:2px;
+  padding:11px 16px;border:1px solid var(--border);color:var(--parch-dk);
+  background:transparent;cursor:pointer;transition:all .18s;margin-bottom:5px;
+}
+.menu-btn:hover{border-color:var(--border-b);color:var(--parch);background:rgba(255,255,255,.03);}
+.menu-btn-primary{border-color:var(--gold);color:var(--gold-b);}
+.menu-btn-primary:hover{background:rgba(201,162,39,.1);border-color:var(--gold-b);}
+.menu-btn-danger{border-color:#3a1010;color:#c47b7b;}
+.menu-btn-danger:hover{border-color:var(--blood-b);color:#e07070;background:rgba(139,26,26,.08);}
+.menu-divider{border:none;border-top:1px solid var(--border);margin:8px 0;}
