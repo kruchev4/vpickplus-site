@@ -7134,25 +7134,37 @@ function _applyRawSave(save) {
 
     Object.assign(window.G, gData);
 
-    // Re-link race and class from canonical data tables
+    // Normalize legacy race formats
+    if (typeof window.G.race === "string") {
+      window.G.race = window.RACES.find(r => r.id === window.G.race);
+    } else if (window.G.race && !window.G.race.id && window.G.race.name) {
+      window.G.race = window.RACES.find(r => r.name === window.G.race.name);
+    }
+
+    // Normalize legacy class formats
+    if (typeof window.G.cls === "string") {
+      window.G.cls = window.CLASSES.find(c => c.id === window.G.cls);
+    } else if (window.G.cls && !window.G.cls.id && window.G.cls.name) {
+      window.G.cls = window.CLASSES.find(c => c.name === window.G.cls.name);
+    }
+
+    // Final re-link (in case of partial objects)
     window.G.race =
-      window.RACES?.find(r => r.id === window.G.race?.id) || window.G.race;
+      window.RACES.find(r => r.id === window.G.race?.id) || window.G.race;
 
     window.G.cls =
-      window.CLASSES?.find(c => c.id === window.G.cls?.id) || window.G.cls;
-    
+      window.CLASSES.find(c => c.id === window.G.cls?.id) || window.G.cls;
 
-if (!window.G.race || !window.G.cls) {
-  console.error("[Load] Invalid race/class after restore", {
-    race: window.G.race,
-    cls: window.G.cls,
-    races: window.RACES?.map(r => r.id),
-    classes: window.CLASSES?.map(c => c.id)
-  });
-
-
-
-    if (!window.G.race || !window.G.cls) return false;
+    // Validation
+    if (!window.G.race || !window.G.cls) {
+      console.error("[Load] Invalid race/class after restore", {
+        race: window.G.race,
+        cls: window.G.cls,
+        races: window.RACES.map(r => r.id),
+        classes: window.CLASSES.map(c => c.id)
+      });
+      return false;
+    }
 
     return true;
 
