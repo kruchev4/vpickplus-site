@@ -33,13 +33,22 @@ function setupInput() {
 }
 
 function gameLoop() {
-  updateCamera();
-  renderMap(ctx, GameState.activeMap, GameState.camera);
+  console.log("[DEBUG] gameLoop tick");
 
-  if (GameState.clickPath.length > 0) {
-    const [nx, ny] = GameState.clickPath.shift();
-    tryMove(nx - GameState.player.x, ny - GameState.player.y);
-  }
+  updateCamera();
+
+  renderMap(
+    ctx,
+    GameState.activeMap,
+    GameState.camera,
+    [
+      {
+        x: GameState.player.x,
+        y: GameState.player.y,
+        color: "#ff00ff" // HOT PINK for visibility
+      }
+    ]
+  );
 
   requestAnimationFrame(gameLoop);
 }
