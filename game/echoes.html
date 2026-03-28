@@ -5969,6 +5969,8 @@ async function showCharSelect(){
   if(loading) loading.style.display='none';
   if(slots)   slots.style.display='flex';
   renderCharSlots(saves);
+   buildCC();
+  gotoStep(1);
 }
 
 async function csLoadAllSaves(){
