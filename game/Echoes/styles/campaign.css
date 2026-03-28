@@ -92,3 +92,69 @@
 .dinv-btn.join:hover{background:rgba(80,32,160,.2);}
 .dinv-btn.decline{border-color:var(--border-b);color:var(--parch-dk);}
 .dinv-btn.decline:hover{border-color:var(--parch-dk);color:var(--parch);}
+
+/* ═══════════════════════════════════════════════════
+   DUNGEON / CAMPAIGN INTERFACE
+═══════════════════════════════════════════════════ */
+#ov-campaign{background:#060308;padding:0 !important;}
+
+.dng-shell{
+  display:flex;flex-direction:column;width:100%;height:100%;
+  background:linear-gradient(160deg,#0a0612 0%,#060308 100%);
+  overflow:hidden;
+}
+
+/* ── TOP BAR ── */
+.dng-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px;
+  background:linear-gradient(90deg,#12061e,#0a0612);
+  border-bottom:1px solid #2a1040;
+  flex-shrink:0;gap:12px;
+}
+.dng-topbar-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
+.dng-camp-icon{font-size:1.6rem;flex-shrink:0;}
+.dng-camp-name{font-family:'Cinzel Decorative',serif;font-size:.75rem;color:#c090ff;
+  letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dng-act-label{font-size:.55rem;letter-spacing:3px;text-transform:uppercase;color:#6040a0;margin-top:1px;}
+.dng-room-title{font-family:'Cinzel',serif;font-size:.9rem;color:#d0a0ff;
+  letter-spacing:2px;text-align:center;flex:2;padding:0 12px;}
+.dng-topbar-right{display:flex;align-items:center;gap:10px;flex:1;justify-content:flex-end;}
+.dng-progress{font-size:.58rem;letter-spacing:1px;color:#6040a0;white-space:nowrap;}
+.dng-exit-btn{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:1px;
+  padding:4px 10px;border:1px solid #3a1060;color:#6040a0;background:transparent;
+  cursor:pointer;transition:all .2s;}
+.dng-exit-btn:hover{border-color:#8040cc;color:#c090ff;}
+
+/* ── PARTY TOP STRIP ── */
+.dng-party-bar{
+  display:flex;gap:0;border-bottom:1px solid #2a1040;
+  background:rgba(10,6,18,.8);flex-shrink:0;min-height:54px;overflow-x:auto;
+}
+.dpb-member{
+  display:flex;align-items:center;gap:8px;padding:6px 14px;
+  border-right:1px solid #1a0830;flex-shrink:0;min-width:150px;
+  position:relative;
+}
+.dpb-member.is-me{background:rgba(120,40,200,.08);}
+.dpb-member::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--member-color,#c090ff);
+}
+.dpb-icon{font-size:1.4rem;flex-shrink:0;}
+.dpb-info{flex:1;min-width:0;}
+.dpb-name{font-family:'Cinzel',serif;font-size:.62rem;
+  color:var(--member-color,#c090ff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dpb-cls{font-size:.52rem;color:#6040a0;margin-bottom:3px;}
+.dpb-bar-row{display:flex;align-items:center;gap:3px;}
+.dpb-bar{flex:1;height:4px;background:#1a0830;overflow:hidden;}
+.dpb-hp-fill{height:100%;background:linear-gradient(90deg,#8b1a1a,#c0392b);transition:width .4s;}
+.dpb-hp-fill.mid{background:linear-gradient(90deg,#8b6a1a,#c0a020);}
+.dpb-hp-fill.good{background:linear-gradient(90deg,#3a7b1a,#27ae60);}
+.dpb-mp-fill{height:100%;background:linear-gradient(90deg,#1a3a8b,#2980b9);}
+.dpb-num{font-size:.48rem;color:#6040a0;white-space:nowrap;}
+.dpb-heal-btn{font-size:.62rem;padding:3px 7px;border:1px solid #2a5a2a;
+  color:#80c080;background:rgba(30,80,30,.15);cursor:pointer;flex-shrink:0;
+  font-family:'Cinzel',serif;transition:all .2s;}
+.dpb-heal-btn:hover{border-color:#80c080;background:rgba(40,120,40,.3);}
+.dpb-dead{font-size:.55rem;color:#c47b7b;}
