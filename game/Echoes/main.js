@@ -44,7 +44,7 @@ function setupInput() {
 }
 
 function gameLoop() {
-  console.log("[DEBUG] gameLoop tick");
+  
 
   updateCamera();
 
