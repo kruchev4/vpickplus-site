@@ -1,4 +1,6 @@
 import { RACES } from "./engine/data/races.js";
+window.RACES = RACES;
+window.CLASSES = CLASSES;
 import { loadMap } from "./engine/supabase/mapLoader.js";
 import { GameState } from "./engine/state/GameState.js";
 import { renderMap } from "./engine/render/renderer.js";
