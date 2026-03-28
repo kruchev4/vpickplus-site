@@ -15,7 +15,7 @@ async function initGame() {
   GameState.camera.h = canvas.height;
 
   // Load overworld from Supabase
-  GameState.activeMap = await loadMap("overworld_01");
+  GameState.activeMap = await loadMap("overworld_generated");
 
   setupInput();
   gameLoop();
