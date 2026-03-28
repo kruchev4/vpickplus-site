@@ -5,6 +5,10 @@ import { updateCamera } from "./engine/camera/camera.js";
 import { tryMove } from "./engine/movement/movement.js";
 import { playSound, toggleSound } from "./engine/audio/SoundEngine.js";
 
+
+window.playSound = playSound;
+window.toggleSound = toggleSound;
+
 let ctx;
 
 async function initGame() {
