@@ -967,7 +967,7 @@ function checkStep1(){
   CC.name=document.getElementById('inp-name').value.trim();
   document.getElementById('bn1').disabled=!(CC.name.length>=2&&CC.race);
 }
-  function populateRaceGrid() {
+ /* function populateRaceGrid() {
   const grid = document.querySelector("#cc1 .race-grid");
   if (!grid) {
     console.warn("populateRaceGrid: .race-grid not found");
@@ -978,7 +978,7 @@ function checkStep1(){
   if (!grid) {
     console.warn("populateClassGrid: .class-grid not found");
     return;
-  }
+  }*/
 
   if (!window.CLASSES || window.CLASSES.length === 0) {
     console.warn("populateClassGrid: CLASSES not available");
@@ -1008,9 +1008,75 @@ function checkStep1(){
     grid.appendChild(card);
   }
 }
+function populateRaceGrid() {
+  const grid = document.querySelector("#cc1 .race-grid");
+  if (!grid) {
+    console.warn("populateRaceGrid: .race-grid not found");
+    return;
+  }
+
+  if (!window.RACES || window.RACES.length === 0) {
+    console.warn("populateRaceGrid: RACES not available");
+    return;
+  }
+
+  grid.innerHTML = "";
+
+  for (const race of window.RACES) {
+    const card = document.createElement("div");
+    card.className = "rcard";
+    card.dataset.id = race.id;
+
+    card.innerHTML = `
+      <div class="rice">${race.icon || "❓"}</div>
+      <div class="rname">${race.name}</div>
+      <div class="rbonus">${race.bonus || ""}</div>
+    `;
+
+    card.onclick = () => selRace(race.id);
+    grid.appendChild(card);
+  }
+}
+
+window.populateRaceGrid = populateRaceGrid;
+function populateClassGrid() {
+  const grid = document.querySelector("#cc2 .class-grid");
+  if (!grid) {
+    console.warn("populateClassGrid: .class-grid not found");
+    return;
+  }
+
+  if (!window.CLASSES || window.CLASSES.length === 0) {
+    console.warn("populateClassGrid: CLASSES not available");
+    return;
+  }
+
+  grid.innerHTML = "";
+
+  for (const cls of window.CLASSES) {
+    const card = document.createElement("div");
+    card.className = "clcard";
+    card.dataset.id = cls.id;
+
+    card.innerHTML = `
+      <div class="cl-hd">
+        <div class="cl-ic">${cls.icon || "❓"}</div>
+        <div class="cl-nm">${cls.name}</div>
+      </div>
+      <div class="cl-role">${cls.role || ""}</div>
+      <div class="cl-desc">${cls.desc || ""}</div>
+    `;
+
+    card.onclick = () => selClass(cls.id);
+    grid.appendChild(card);
+  }
+}
+
+window.populateClassGrid = populateClassGrid;
+  
 
 // expose to step system
-window.populateClassGrid = populateClassGrid;
+
 
   if (!window.RACES || window.RACES.length === 0) {
     console.warn("populateRaceGrid: RACES not available");
@@ -1038,11 +1104,10 @@ window.populateClassGrid = populateClassGrid;
   }
 }
 
-// ✅ REQUIRED: expose it for gotoStep
-window.populateRaceGrid = populateRaceGrid;
+
 
 function gotoStep(n) {
-  [1, 2, 3, 4].forEach(i => {
+  [1,2,3,4].forEach(i => {
     const pane = document.getElementById("cc" + i);
     if (pane) pane.style.display = i === n ? "block" : "none";
 
@@ -1053,20 +1118,17 @@ function gotoStep(n) {
 
   CC.step = n;
 
-  // ✅ STEP INITIALIZATION: RUN ONLY ONCE
   if (n === 1 && !CC._raceBuilt) {
-    window.populateRaceGrid();
+    populateRaceGrid();
     CC._raceBuilt = true;
   }
 
   if (n === 2 && !CC._classBuilt) {
-    window.populateClassGrid();
+    populateClassGrid();
     CC._classBuilt = true;
   }
 
-  if (n === 4) {
-    buildConfirm();
-  }
+  if (n === 4) buildConfirm();
 
   document.getElementById("screen-create").scrollTop = 0;
 }
