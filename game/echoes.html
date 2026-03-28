@@ -1318,11 +1318,11 @@ function addLog(msg,type=''){
   while(box.children.length>80)box.removeChild(box.firstChild);
   box.scrollTop=box.scrollHeight;
 }
- /*function showCharSelect() {
-  // HARD STOP if engine data is not ready yet
+ function showCharSelect() {
+  
   
 
-  // --- SAFE EXECUTION BELOW ---
+ 
 
   document.getElementById("screen-game")?.classList.remove("active");
   document.getElementById("screen-menu")?.classList.remove("active");
@@ -1332,7 +1332,7 @@ function addLog(msg,type=''){
   gotoStep(1);
 }
 
-window.showCharSelect = showCharSelect;*/
+window.showCharSelect = showCharSelect;
 
 const EQUIP_SLOTS = ['head','shoulders','chest','pants','boots','mainhand','offhand','ring1','ring2','necklace'];
 const EQUIP_SLOT_LABELS = {
@@ -5945,7 +5945,7 @@ function escapeCombat(){
 const CLS_ICONS_CS={fighter:'⚔️',wizard:'📖',rogue:'🗡️',cleric:'✝️',paladin:'🛡️',
   ranger:'🏹',barbarian:'🪓',bard:'🎸',druid:'🌙',sorcerer:'⚡',warlock:'👁️',monk:'☯️'};
 
-async function showCharSelect(){
+/*async function showCharSelect(){
   const el = document.getElementById('screen-charselect');
   if(!el) return;
   el.classList.add('active');
@@ -5971,7 +5971,7 @@ async function showCharSelect(){
   renderCharSlots(saves);
    buildCC();
   gotoStep(1);
-}
+}*/
 
 async function csLoadAllSaves(){
   const saves = [];
