@@ -938,7 +938,7 @@ const CC={
 
 function buildCC(){
   // Race grid
-  const rg=document.getElementById('race-grid');
+  const rg = document.querySelector('#cc1 .race-grid');
   rg.innerHTML=RACES.map(r=>`
     <div class="rcard" data-id="${r.id}" onclick="selRace('${r.id}')">
       <div class="rice">${r.icon}</div>
@@ -947,7 +947,7 @@ function buildCC(){
     </div>`).join('');
 
   // Class grid
-  const cg=document.getElementById('class-grid');
+  const cg = document.querySelector('#cc2 .class-grid');
   cg.innerHTML=CLASSES.map(c=>`
     <div class="clcard" data-id="${c.id}" onclick="selClass('${c.id}')">
       <div class="cl-hd"><div class="cl-ic">${c.icon}</div>
