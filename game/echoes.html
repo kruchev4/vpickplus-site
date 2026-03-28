@@ -3333,6 +3333,13 @@ initPts();requestAnimationFrame(animPts);
 // ║            CHARACTER CREATION                       ║
 // ╚══════════════════════════════════════════════════════╝
 function buildCC(){
+  
+if (!window.RACES) {
+    console.warn("buildCC called before engine ready — retrying");
+    setTimeout(buildCC, 0);
+    return;
+  }
+
   // Race grid
   const rg=document.getElementById('race-grid');
   rg.innerHTML=RACES.map(r=>`
