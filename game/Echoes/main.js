@@ -7,19 +7,30 @@ import { tryMove } from "./engine/movement/movement.js";
 let ctx;
 
 async function initGame() {
-  // get canvas & context
   const canvas = document.getElementById("world-cv");
+
+  if (!canvas) {
+    throw new Error("❌ NO CANVAS with id='world-cv' found");
+  }
+
   ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    throw new Error("❌ Failed to get 2D context");
+  }
+
+  console.log("[DEBUG] Canvas found:", canvas);
+  console.log("[DEBUG] Canvas size:", canvas.width, canvas.height);
 
   GameState.camera.w = canvas.width;
   GameState.camera.h = canvas.height;
 
-  // Load overworld from Supabase
   GameState.activeMap = await loadMap("overworld_generated");
 
   setupInput();
   gameLoop();
 }
+
 
 function setupInput() {
   window.addEventListener("keydown", (e) => {
