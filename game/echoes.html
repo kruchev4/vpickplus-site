@@ -3255,10 +3255,20 @@ function buildWorld(){
   for(const p of PORTALS) s(p.x,p.y,T.PORTAL);
 
   return m;
-}
+
 const worldMap=buildWorld();
 const tileVariant=new Uint8Array(MAP_W*MAP_H);
-for(let i=0;i<tileVariant.length;i++)tileVariant[i]=i%4;}
+for(let i=0;i<tileVariant.length;i++)tileVariant[i]=i%4;}}
+  let worldMap = null;
+let tileVariant = null;
+
+if (!window.NEW_ENGINE_ACTIVE) {
+  worldMap = buildWorld();
+  tileVariant = new Uint8Array(MAP_W * MAP_H);
+  for (let i = 0; i < tileVariant.length; i++) {
+    tileVariant[i] = i % 4;
+  }
+}
 
 // ╔══════════════════════════════════════════════════════╗
 // ║                  GAME STATE                         ║
