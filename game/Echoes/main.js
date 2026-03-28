@@ -6,6 +6,11 @@ import { tryMove } from "./engine/movement/movement.js";
 import { playSound, toggleSound } from "./engine/audio/SoundEngine.js";
 import { RACES } from "./engine/data/races.js";
 import { CLASSES } from "./engine/data/classes.js";
+import { STAT_DEFS } from "./engine/data/stats.js";
+import { MONSTERS } from "./engine/data/monsters.js";
+
+window.STAT_DEFS = STAT_DEFS;
+window.MONSTERS = MONSTERS;
 
 
 
