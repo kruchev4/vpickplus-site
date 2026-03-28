@@ -967,6 +967,41 @@ function checkStep1(){
   CC.name=document.getElementById('inp-name').value.trim();
   document.getElementById('bn1').disabled=!(CC.name.length>=2&&CC.race);
 }
+  function populateRaceGrid() {
+  const grid = document.querySelector("#cc1 .race-grid");
+  if (!grid) {
+    console.warn("populateRaceGrid: .race-grid not found");
+    return;
+  }
+
+  if (!window.RACES || window.RACES.length === 0) {
+    console.warn("populateRaceGrid: RACES not available");
+    return;
+  }
+
+  grid.innerHTML = "";
+
+  for (const race of window.RACES) {
+    const card = document.createElement("div");
+    card.className = "rcard";
+
+    card.innerHTML = `
+      <div class="rice">${race.icon ?? "❓"}</div>
+      <div class="rname">${race.name}</div>
+      <div class="rbonus">${race.bonus ?? ""}</div>
+    `;
+
+    card.onclick = () => {
+      CC.race = race;
+      gotoStep(2); // advance to class selection
+    };
+
+    grid.appendChild(card);
+  }
+}
+
+// ✅ REQUIRED: expose it for gotoStep
+window.populateRaceGrid = populateRaceGrid;
 
 function gotoStep(n) {
   [1,2,3,4].forEach(i => {
