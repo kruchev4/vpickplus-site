@@ -33,6 +33,9 @@ export function renderMap(ctx, map, camera, entities = []) {
       );
     }
   }
+  if (drawn > 0) {
+  console.log("[renderMap] tiles drawn this frame:", drawn);
+}
 
   // Draw entities (player for now)
   for (const e of entities) {
