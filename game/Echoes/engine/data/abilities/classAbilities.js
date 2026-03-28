@@ -39,3 +39,43 @@ export const CLASS_ABILITIES = {
 
   // continue copying each class unchanged
 };
+const DEFAULT_CLASS_ABILITIES = (id) => ([
+  {
+    id: `focus_${id}`,
+    name: "Focused Power",
+    icon: "✨",
+    tag: "passive",
+    desc:
+      "Passive: +2 ATK and +10 max MP. Your craft deepens.",
+    effect: { type: "passive", atk: 2, mpMax: 10 },
+    levels: [3, 5, 7, 10],
+  },
+  {
+    id: `burst_${id}`,
+    name: "Power Burst",
+    icon: "⚡",
+    tag: "new",
+    desc:
+      "New action: unleash raw power — 3d8 damage. 15 MP.",
+    effect: {
+      type: "new_action",
+      action: "Power Burst",
+      dice: "3d8",
+      mpCost: 15,
+    },
+    levels: [3, 5, 7],
+  },
+  {
+    id: `endure_${id}`,
+    name: "Resilience",
+    icon: "💪",
+    tag: "passive",
+    desc: "Passive: +12 max HP permanently.",
+    effect: { type: "passive", hpMax: 12 },
+    levels: [5, 7, 10],
+  },
+]);
+
+export function getClassAbilities(classId) {
+  return CLASS_ABILITIES[classId] ?? DEFAULT_CLASS_ABILITIES(classId);
+}
