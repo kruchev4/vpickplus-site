@@ -1,4 +1,11 @@
 
+/* ══════════════════════════════════════
+   OVERLAYS (combat, town, death, levelup)
+══════════════════════════════════════ */
+.overlay{display:none;position:absolute;inset:0;background:rgba(0,0,0,.88);align-items:center;justify-content:center;z-index:50;}
+#ov-combat{padding:0;background:#04020a;}
+#ov-combat.active{position:fixed;inset:0;z-index:100;display:flex;align-items:stretch;justify-content:stretch;}
+.overlay.active{display:flex;}
 /* ── LEVEL UP ── */
 .lvlup-box{background:linear-gradient(180deg,#1a1408,#0d0a02);border:2px solid var(--gold-b);max-width:440px;width:90%;padding:32px;text-align:center;box-shadow:0 0 50px var(--gold-glow),0 0 100px rgba(201,146,42,.15);animation:lvlIn .5s ease;}
 @keyframes lvlIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
