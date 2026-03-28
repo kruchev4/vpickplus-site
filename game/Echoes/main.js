@@ -5,7 +5,7 @@
 /* ---------- Engine Data ---------- */
 import { RACES } from "./engine/data/races.js";
 import { CLASSES } from "./engine/data/classes.js";
-consloe.log('races imported");
+consloe.log("races imported");
 
 window.RACES = RACES;
 window.CLASSES = CLASSES;
