@@ -5,6 +5,10 @@
 /* ---------- Engine Data ---------- */
 import { RACES } from "./engine/data/races.js";
 import { CLASSES } from "./engine/data/classes.js";
+
+window.RACES = RACES;
+window.CLASSES = CLASSES;
+
 import { STAT_DEFS } from "./engine/data/stats.js";
 import { MONSTERS } from "./engine/data/monsters.js";
 import {
