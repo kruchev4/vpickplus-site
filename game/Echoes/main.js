@@ -35,6 +35,8 @@ window.MONSTERS = MONSTERS;
 
 window.playSound = playSound;
 window.toggleSound = toggleSound;
+console.log("✅ main.js loaded");
+console.log("RACES in main.js:", RACES);
 
 let ctx;
 
