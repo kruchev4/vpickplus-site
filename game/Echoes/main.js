@@ -22,6 +22,30 @@ import {
   populateCharSheet
 } from "./ui/characterSheet.js";
 
+import {
+  openGameMenu,
+  closeGameMenu,
+  menuResume,
+  menuSave,
+  menuShowSyncInfo,
+  menuPauseCampaign,
+  menuExitCampaign,
+  menuReturnToWorld,
+  menuNewChar
+} from "./ui/gameMenu.js";
+
+Object.assign(window, {
+  openGameMenu,
+  closeGameMenu,
+  menuResume,
+  menuSave,
+  menuShowSyncInfo,
+  menuPauseCampaign,
+  menuExitCampaign,
+  menuReturnToWorld,
+  menuNewChar
+});
+
 // Temporary legacy bridge
 window.openCharSheet = openCharSheet;
 window.closeCharSheet = closeCharSheet;
