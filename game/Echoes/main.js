@@ -49,7 +49,7 @@ Object.assign(window, {
   menuNewChar
 });
 import { menuSave } from "./ui/gameMenu.js";
-import { renderMap } from "./engine/render/render.js";
+//import { renderMap } from "./engine/render/render.js";
 import { GameState } from "./engine/state/GameState.js";
 
 
