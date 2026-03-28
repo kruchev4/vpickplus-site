@@ -1706,6 +1706,20 @@ function bfsPath(sx, sy, tx, ty, maxSteps){
   }
   return null; // no path
 }
+  function startApp() {
+  // Decide initial screen ONCE
+  if (hasSavedCharacter()) {
+    showGameScreen();
+  } else {
+    showCharSelect();
+  }
+}
+
+window.startApp = startApp;
+
+function hasSavedCharacter() {
+  return !!localStorage.getItem("character");
+}
 
 function drawClickRipple(cx, cy){
   // Draw a small ripple at click point — fades out
