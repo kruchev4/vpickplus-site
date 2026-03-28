@@ -52,7 +52,7 @@ export function openGameMenu() {
   }
   parts.push(`💰 ${G.gold} gp · ${G.hp}/${G.hpMax} HP`);
 
-  document.getElementById("menu-status")?.innerHTML = parts.join("<br>");
+  document.getElementById("")?.innerHTML = parts.join("<br>");
 
   // Campaign buttons
   const inCamp = !!window.campState;
@@ -87,9 +87,11 @@ export function menuSave() {
     window.cloudSyncNow(false);
   }
 
-  document.getElementById("menu-status")!.innerHTML =
-    "✓ Saved at " + new Date().toLocaleTimeString();
+  const el = document.getElementById("menu-status");
+if (el) {
+  el.innerHTML = "✓ Saved at " + new Date().toLocaleTimeString();
 }
+
 
 export function menuShowSyncInfo() {
   closeGameMenu();
