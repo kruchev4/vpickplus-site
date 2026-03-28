@@ -4,6 +4,8 @@ import { GameState } from "../state/GameState.js";
 const TILE_SIZE = GameState.TILE_SIZE;
 
 export function renderMap(ctx, map, camera, entities = []) {
+  let drawn = 0;
+
   console.log("[renderMap] map:", map?.id, "tiles:", map?.tiles?.length);
   if (!map || !map.tiles) return;
 
@@ -15,6 +17,7 @@ export function renderMap(ctx, map, camera, entities = []) {
   for (let ty = startY; ty < endY; ty++) {
     for (let tx = startX; tx < endX; tx++) {
       if (tx < 0 || ty < 0 || tx >= map.width || ty >= map.height) continue;
+      drawn++;
 
       const idx = ty * map.width + tx;
       const tile = map.tiles[idx];
