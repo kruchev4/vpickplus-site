@@ -7125,6 +7125,10 @@ function loadGameLocal(){
 function loadGame(){ return loadGameLocal().ok; }
 
 function _applyRawSave(save){
+  
+try {
+    console.log("[Load] Applying raw save:", JSON.parse(JSON.stringify(data)));
+
   if(!save) return false;
   // Handle multiple save formats:
   // {version:3, G:{...}} — standard local save
@@ -7139,6 +7143,12 @@ function _applyRawSave(save){
   G.cls =CLASSES.find(c=>c.id===G.cls?.id)||G.cls;
   if(!G.race||!G.cls) return false;
   return true;
+  
+} catch (err) {
+    console.error("[Load] _applyRawSave failed:", err, data);
+    throw err;
+  }
+
 }
 
 async function listCloudSaves(){
