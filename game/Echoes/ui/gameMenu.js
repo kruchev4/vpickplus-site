@@ -13,6 +13,22 @@ let _menuOpen = false;
 
 // ---------- OPEN / CLOSE ----------
 
+export function menuSave() {
+  if (typeof window.saveGame === "function") {
+    window.saveGame();
+  }
+
+  if (typeof window.cloudSyncNow === "function") {
+    window.cloudSyncNow(false);
+  }
+
+  const el = document.getElementById("menu-status");
+  if (el) {
+    el.innerHTML = "✓ Saved at " + new Date().toLocaleTimeString();
+  }
+}
+
+
 export function openGameMenu() {
   const G = window.G;
   if (!G?.cls || !G?.name) return; // no character yet
