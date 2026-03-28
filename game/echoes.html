@@ -3828,6 +3828,50 @@ function addLog(msg,type=''){
 // ── EQUIP SYSTEM ──
 // G.equipped = {weapon:item|null, armor:item|null, accessory:item|null, boots:item|null}
 // Derived stats are recalculated from base + equipped every time something changes
+function exportWorldToJSON() {
+  const json = {
+    id: "overworld_legacy",
+    name: "Legacy Overworld",
+    type: "world",
+
+    width: MAP_W,
+    height: MAP_H,
+
+    tiles: Array.from(worldMap),
+    variants: Array.from(tileVariant),
+
+    towns: TOWNS.map(t => ({
+      id: t.name.toLowerCase().replace(/\s+/g, "_"),
+      x: t.x,
+      y: t.y,
+      name: t.name,
+      type: t.type,
+      description: t.desc,
+      services: t.services,
+      rumours: t.rumours,
+    })),
+
+    portals: PORTALS.map(p => ({
+      id: p.campaignId,
+      x: p.x,
+      y: p.y,
+      target_map: p.campaignId,   // dungeon map id later
+    })),
+
+    npcs: [],
+    entities: [],
+    encounters: [],
+
+    metadata: {
+      spawnX: 120,
+      spawnY: 90,
+      theme: "legacy"
+    }
+  };
+
+  console.log("COPY THIS JSON ↓");
+  console.log(JSON.stringify(json, null, 2));
+}
 
 const EQUIP_SLOTS = ['head','shoulders','chest','pants','boots','mainhand','offhand','ring1','ring2','necklace'];
 const EQUIP_SLOT_LABELS = {
