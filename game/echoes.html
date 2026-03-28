@@ -1210,7 +1210,7 @@ function startGame() {
   document.getElementById("screen-game")?.classList.add("active");
   
 console.log("about to start loop");
-requestAnimationFrame(gameLoop);
+window.startEngine();
 
   window.startEngine();
 
@@ -6673,7 +6673,7 @@ function emergencyUnstick(){
   // Restart game loop
   try{
     updateHUD(); render();
-    requestAnimationFrame(gameLoop);
+    window.startEngine();
     addLog('Emergency unstick applied.','sys');
     toast('Unstuck! If problems persist, use Menu → Return to World.');
   }catch(e){ console.error('Unstick failed:', e); }
