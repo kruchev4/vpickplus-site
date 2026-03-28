@@ -2635,13 +2635,13 @@ function startGame() {
     gold: 50,
 
     hpMax: cls.hd + modOf(CC.final.CON),
-    hp: null, // set below
+    hp: 0,
 
     mpMax: Math.max(
       0,
       10 + modOf(CC.final.INT) * 2 + (cls.spells.length > 0 ? 10 : 0)
     ),
-    mp: null,
+    mp: 0,
 
     ac: cls.baseAC + Math.max(0, modOf(CC.final.DEX)),
     atkBonus: 2 + modOf(CC.final[cls.pri]),
@@ -2651,8 +2651,39 @@ function startGame() {
     y: 90,
 
     inCombat: false,
-    inTown: false,
+    inTown: false
   };
+
+  GameState.player.hp = GameState.player.hpMax;
+  GameState.player.mp = GameState.player.mpMax;
+
+  // Engine inventory / equipment
+  GameState.inventory = [];
+  GameState.equipment = {
+    head: null,
+    shoulders: null,
+    chest: null,
+    pants: null,
+    boots: null,
+    mainhand: null,
+    offhand: null,
+    ring1: null,
+    ring2: null,
+    necklace: null
+  };
+
+  // TEMP legacy save compatibility (remove later)
+  window.G = GameState.player;
+  saveGame();
+
+  // Switch UI screens
+  document.getElementById("screen-create")?.classList.remove("active");
+  document.getElementById("screen-game")?.classList.add("active");
+
+  // Signal engine readiness
+  window.engineReady = true;
+  console.log("✅ Engine started with player:", GameState.player);
+}
 
   GameState.player.hp = GameState.player.hpMax;
   GameState.player.mp = GameState.player.mpMax;
@@ -2704,48 +2735,7 @@ function resizeCanvas(){
   return;
 }
 
-// === Migration compatibility shim ===
-// Old code expects a global render(), so we provide one
-// that delegates to the new engine.
 
-
-/*function drawMinimap(){
-  if(!mmImgData) return;
-  const MW=170,MH=128;
-
-  // Build terrain cache once
-  if(!_mmTerrainCache) buildMinimapTerrain();
-
-  // Restore terrain (fast — single putImageData)
-  mmCtx.putImageData(_mmTerrainCache,0,0);
-
-  // Draw moving dots: co-op party, bosses, player
-  if(coopActive){
-    coopParty.forEach((p,i)=>{
-      if(!p) return;
-      const isMe=(coopIsHost&&i===0)||(!coopIsHost&&i===G.partyIdx);
-      if(isMe) return;
-      const px2=Math.floor((p.x||120)/MAP_W*MW);
-      const py2=Math.floor((p.y||90)/MAP_H*MH);
-      mmCtx.fillStyle=p.color||PARTY_COLORS[i];
-      mmCtx.beginPath();mmCtx.arc(px2,py2,2,0,Math.PI*2);mmCtx.fill();
-    });
-  }
-  // Boss dots — no pulse animation (too expensive), just static red
-  if(typeof worldBosses!=='undefined'){
-    worldBosses.forEach(b=>{
-      if(!b.alive) return;
-      const bx=Math.floor(b.x/MAP_W*MW), by=Math.floor(b.y/MAP_H*MH);
-      mmCtx.fillStyle='#e03030';
-      mmCtx.beginPath();mmCtx.arc(bx,by,3,0,Math.PI*2);mmCtx.fill();
-    });
-  }
-  // Player
-  const mpx=Math.floor(G.x/MAP_W*MW),mpy=Math.floor(G.y/MAP_H*MH);
-  mmCtx.fillStyle='#e8c84a';
-  mmCtx.beginPath();mmCtx.arc(mpx,mpy,3,0,Math.PI*2);mmCtx.fill();
-  mmCtx.strokeStyle='#2c1810';mmCtx.lineWidth=1;mmCtx.stroke();
-}*/
 
 // ── HUD ──
 function updateHUD(){
