@@ -45,6 +45,10 @@ Object.assign(window, {
   menuReturnToWorld,
   menuNewChar
 });
+import { menuSave } from "./ui/gameMenu.js";
+
+// Legacy bridge (temporary)
+window.menuSave = menuSave;
 
 // Temporary legacy bridge
 window.openCharSheet = openCharSheet;
