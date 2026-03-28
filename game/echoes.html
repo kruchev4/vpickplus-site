@@ -978,6 +978,7 @@ function gotoStep(n){
   CC.step=n;
   if(n===4)buildConfirm();
   document.getElementById('screen-create').scrollTop=0;
+  window.gotoStep = gotoStep;
 }
 
 function buildStatsGrid(){
