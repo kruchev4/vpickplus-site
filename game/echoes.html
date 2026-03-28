@@ -2323,140 +2323,7 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 
 'use strict';
 
-// ╔══════════════════════════════════════════════════════╗
-// ║                  SOUND ENGINE                       ║
-// ╚══════════════════════════════════════════════════════╝
-/*let _audioCtx = null;
-let _soundEnabled = true;
 
-function getAudioCtx(){
-  if(!_audioCtx){
-    try{ _audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
-    catch(e){ return null; }
-  }
-  if(_audioCtx.state==='suspended') _audioCtx.resume();
-  return _audioCtx;
-}
-
-function playSound(type){
-  if(!_soundEnabled) return;
-  const ctx = getAudioCtx();
-  if(!ctx) return;
-  const t = ctx.currentTime;
-
-  // Helper builders
-  function osc(freq, type='sine', start=t, dur=0.15, vol=0.18){
-    const o=ctx.createOscillator(), g=ctx.createGain();
-    o.type=type; o.frequency.setValueAtTime(freq,start);
-    g.gain.setValueAtTime(vol,start);
-    g.gain.exponentialRampToValueAtTime(0.0001,start+dur);
-    o.connect(g); g.connect(ctx.destination);
-    o.start(start); o.stop(start+dur+0.05);
-  }
-  function sweep(f1,f2,type='sawtooth',start=t,dur=0.2,vol=0.12){
-    const o=ctx.createOscillator(), g=ctx.createGain();
-    o.type=type;
-    o.frequency.setValueAtTime(f1,start);
-    o.frequency.exponentialRampToValueAtTime(f2,start+dur);
-    g.gain.setValueAtTime(vol,start);
-    g.gain.exponentialRampToValueAtTime(0.0001,start+dur);
-    o.connect(g); g.connect(ctx.destination);
-    o.start(start); o.stop(start+dur+0.05);
-  }
-  function noise(start=t,dur=0.1,vol=0.06){
-    const buf=ctx.createBuffer(1,ctx.sampleRate*dur,ctx.sampleRate);
-    const d=buf.getChannelData(0);
-    for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
-    const src=ctx.createBufferSource(), g=ctx.createGain();
-    src.buffer=buf; g.gain.setValueAtTime(vol,start);
-    g.gain.exponentialRampToValueAtTime(0.0001,start+dur);
-    src.connect(g); g.connect(ctx.destination);
-    src.start(start); src.stop(start+dur+0.05);
-  }
-
-  switch(type){
-    case 'attack':   // Sword whoosh + impact
-      noise(t,0.04,0.1);
-      osc(200,'sawtooth',t+0.03,0.12,0.14);
-      osc(120,'square',t+0.05,0.08,0.10);
-      break;
-    case 'hit':      // Meaty thunk
-      noise(t,0.06,0.15);
-      osc(80,'square',t,0.18,0.20);
-      sweep(150,60,'square',t,0.15,0.12);
-      break;
-    case 'miss':     // Light whoosh
-      sweep(300,150,'sine',t,0.15,0.06);
-      break;
-    case 'spell':    // Magic shimmer — ascending sparkle
-      [0,0.04,0.08,0.12].forEach((dt,i)=>osc(400+i*200,'sine',t+dt,0.12,0.08));
-      sweep(300,800,'sine',t,0.25,0.10);
-      break;
-    case 'crit':     // Big crash
-      noise(t,0.08,0.20);
-      osc(100,'sawtooth',t,0.25,0.25);
-      osc(60,'square',t+0.05,0.20,0.20);
-      sweep(400,80,'sawtooth',t,0.25,0.15);
-      break;
-    case 'heal':     // Warm ascending chime
-      [0,0.08,0.16,0.24].forEach((dt,i)=>osc([523,659,784,1047][i],'sine',t+dt,0.2,0.10));
-      break;
-    case 'levelup':  // Triumphant fanfare
-      [[523,0],[659,0.12],[784,0.24],[1047,0.36],[1319,0.48]].forEach(([f,dt])=>osc(f,'sine',t+dt,0.25,0.18));
-      osc(523,'sine',t+0.6,0.5,0.15);
-      break;
-    case 'ability':  // Power chime — deeper and more resonant
-      [[261,0],[392,0.1],[523,0.2],[784,0.3]].forEach(([f,dt])=>osc(f,'triangle',t+dt,0.3,0.14));
-      sweep(200,600,'sine',t,0.4,0.08);
-      break;
-    case 'death':    // Descending doom
-      sweep(400,100,'sawtooth',t,0.8,0.18);
-      sweep(300,80,'square',t+0.1,0.7,0.12);
-      osc(60,'sine',t+0.5,0.6,0.15);
-      break;
-    case 'step':     // Subtle footstep
-      noise(t,0.04,0.03);
-      osc(120,'sine',t,0.04,0.04);
-      break;
-    case 'portal':   // Mysterious low hum with shimmer
-      osc(80,'sine',t,0.4,0.10);
-      sweep(600,1200,'sine',t,0.3,0.06);
-      sweep(1200,600,'sine',t+0.3,0.3,0.06);
-      break;
-    case 'gold':     // Coin clink
-      osc(1200,'sine',t,0.08,0.12);
-      osc(1600,'sine',t+0.03,0.06,0.10);
-      break;
-    case 'rest':     // Calm exhale — soft descending tone
-      sweep(400,200,'sine',t,0.4,0.07);
-      osc(200,'sine',t+0.2,0.4,0.06);
-      break;
-    case 'door':     // Heavy wooden creak
-      sweep(200,120,'sawtooth',t,0.3,0.10);
-      noise(t+0.1,0.2,0.05);
-      break;
-    case 'town':     // Welcoming bell
-      osc(880,'sine',t,0.4,0.14);
-      osc(1108,'sine',t+0.05,0.35,0.10);
-      osc(659,'sine',t+0.1,0.5,0.08);
-      break;
-    case 'victory':  // Short cheer
-      [[392,0],[523,0.15],[659,0.3],[784,0.45]].forEach(([f,dt])=>osc(f,'triangle',t+dt,0.2,0.14));
-      break;
-    case 'buy':      // Cash register ding
-      osc(1047,'sine',t,0.1,0.12);
-      osc(1319,'sine',t+0.08,0.1,0.10);
-      break;
-    case 'equip':    // Metallic click
-      noise(t,0.05,0.08);
-      osc(600,'square',t,0.06,0.08);
-      break;
-    case 'enemy_hit': // Enemy taking damage
-      sweep(180,80,'sawtooth',t,0.12,0.12);
-      noise(t,0.05,0.08);
-      break;
-  }
-}*/
 
 function toggleSound(){
   _soundEnabled=!_soundEnabled;
@@ -2464,92 +2331,7 @@ function toggleSound(){
   if(btn) btn.textContent=_soundEnabled?'🔊':'🔇';
   toast(_soundEnabled?'Sound on':'Sound off');
 }
-// ╔══════════════════════════════════════════════════════╗
-// ║                     DATA                            ║
-// ╚══════════════════════════════════════════════════════╝
-/*const RACES=[
-  {id:'human',   icon:'👤',name:'Human',    bonus:'+1 All',  mods:{STR:1,DEX:1,CON:1,INT:1,WIS:1,CHA:1},speed:30},
-  {id:'elf',     icon:'🌿',name:'Elf',      bonus:'+2 DEX',  mods:{DEX:2,INT:1},speed:35},
-  {id:'dwarf',   icon:'⛏', name:'Dwarf',    bonus:'+2 CON',  mods:{CON:2,STR:1},speed:25},
-  {id:'halfling',icon:'🍀',name:'Halfling', bonus:'+2 DEX',  mods:{DEX:2,CHA:1},speed:25},
-  {id:'halforc', icon:'💀',name:'Half-Orc', bonus:'+2 STR',  mods:{STR:2,CON:1},speed:30},
-  {id:'gnome',   icon:'🔮',name:'Gnome',    bonus:'+2 INT',  mods:{INT:2,WIS:1},speed:25},
-  {id:'tiefling',icon:'🔥',name:'Tiefling', bonus:'+2 CHA',  mods:{CHA:2,INT:1},speed:30},
-  {id:'dragonborn',icon:'🐉',name:'Dragonborn',bonus:'+2 STR',mods:{STR:2,CHA:1},speed:30},
-];
-const CLASSES=[
-  {id:'fighter', icon:'⚔️', name:'Fighter',  role:'Warrior',    hd:10,pri:'STR',baseAC:15,speed:30,align:'Lawful Neutral',
-   desc:'Master of martial combat, unrivalled on the battlefield.',
-   actions:['Attack','Heavy Strike','Defend','Second Wind'],
-   spells:[]},
-  {id:'wizard',  icon:'📖',name:'Wizard',   role:'Arcane',     hd:6, pri:'INT',baseAC:12,speed:30,align:'Neutral',
-   desc:'Bends reality through arcane study and powerful spells.',
-   actions:['Attack','Magic Missile','Fireball','Blink','Meditate'],
-   spells:['Magic Missile','Fireball','Blink']},
-  {id:'rogue',   icon:'🗡️',name:'Rogue',    role:'Skirmisher', hd:8, pri:'DEX',baseAC:14,speed:35,align:'Chaotic Neutral',
-   desc:'Cunning trickster who strikes from the shadows.',
-   actions:['Attack','Sneak Attack','Dodge','Poison Strike'],
-   spells:[]},
-  {id:'cleric',  icon:'✝️',name:'Cleric',   role:'Divine',     hd:8, pri:'WIS',baseAC:15,speed:30,align:'Lawful Good',
-   desc:'Channel divine power for healing and destruction.',
-   actions:['Attack','Sacred Flame','Heal','Turn Undead','Meditate'],
-   spells:['Sacred Flame','Heal','Turn Undead']},
-  {id:'paladin', icon:'🛡️',name:'Paladin',  role:'Holy Warrior',hd:10,pri:'STR',baseAC:18,speed:30,align:'Lawful Good',
-   desc:'Sworn champion armoured in faith and conviction.',
-   actions:['Attack','Divine Smite','Lay on Hands','Aura of Protection'],
-   spells:['Divine Smite','Lay on Hands']},
-  {id:'ranger',  icon:'🏹',name:'Ranger',   role:'Scout',      hd:10,pri:'DEX',baseAC:14,speed:35,align:'Neutral Good',
-   desc:'Hunter bonded with nature and beasts.',
-   actions:['Attack','Multishot','Hunter\'s Mark','Evade'],
-   spells:['Hunter\'s Mark']},
-  {id:'barbarian',icon:'🪓',name:'Barbarian',role:'Berserker', hd:12,pri:'STR',baseAC:13,speed:35,align:'Chaotic Neutral',
-   desc:'Primal warrior who channels raw rage.',
-   actions:['Attack','Rage Attack','Reckless Attack','Intimidate'],
-   spells:[]},
-  {id:'bard',    icon:'🎸',name:'Bard',     role:'Performer',  hd:8, pri:'CHA',baseAC:13,speed:30,align:'Chaotic Good',
-   desc:'Weave magic through music and story.',
-   actions:['Attack','Vicious Mockery','Inspiration','Charm','Meditate'],
-   spells:['Vicious Mockery','Inspiration','Charm']},
-  {id:'druid',   icon:'🌙',name:'Druid',    role:'Nature',     hd:8, pri:'WIS',baseAC:13,speed:30,align:'True Neutral',
-   desc:'Guardian wielding the raw power of the elements.',
-   actions:['Attack','Thorn Whip','Entangle','Wild Shape','Meditate'],
-   spells:['Thorn Whip','Entangle']},
-  {id:'sorcerer',icon:'⚡',name:'Sorcerer', role:'Wild Magic',  hd:6, pri:'CHA',baseAC:12,speed:30,align:'Chaotic Neutral',
-   desc:'Born with innate magical power.',
-   actions:['Attack','Chaos Bolt','Metamagic','Dragon Breath','Meditate'],
-   spells:['Chaos Bolt','Dragon Breath']},
-  {id:'warlock', icon:'👁️',name:'Warlock',  role:'Pact Magic', hd:8, pri:'CHA',baseAC:13,speed:30,align:'Neutral Evil',
-   desc:'Bound to an eldritch patron for forbidden power.',
-   actions:['Attack','Eldritch Blast','Hex','Dark One\'s Blessing','Meditate'],
-   spells:['Eldritch Blast','Hex']},
-  {id:'monk',    icon:'☯️',name:'Monk',     role:'Martial Arts',hd:8,pri:'DEX',baseAC:14,speed:40,align:'Lawful Neutral',
-   desc:'Disciplined master of ki and unarmed combat.',
-   actions:['Attack','Flurry of Blows','Stunning Strike','Patient Defense'],
-   spells:[]},
-];
-const STAT_DEFS=[
-  {key:'STR',name:'Strength'},
-  {key:'DEX',name:'Dexterity'},
-  {key:'CON',name:'Constitution'},
-  {key:'INT',name:'Intelligence'},
-  {key:'WIS',name:'Wisdom'},
-  {key:'CHA',name:'Charisma'},
-];
 
-// Monsters table — {name, icon, hd, level_range, habitat, xp, loot_table}
-const MONSTERS=[
-  {name:'Goblin',        icon:'👺',hd:6, lvlRange:[1,4], habitat:['DANGER','FOREST'], xp:50,  gold:[2,8],   loot:['Small Dagger','Moldy Bread']},
-  {name:'Dire Wolf',     icon:'🐺',hd:8, lvlRange:[1,5], habitat:['FOREST','DANGER','GRASS'], xp:100, gold:[0,5],   loot:['Wolf Pelt','Fang Necklace']},
-  {name:'Skeleton',      icon:'💀',hd:8, lvlRange:[1,4], habitat:['DANGER'],          xp:100, gold:[1,10],  loot:['Old Sword','Bone Fragment']},
-  {name:'Bandit',        icon:'🗡️',hd:8, lvlRange:[2,6], habitat:['GRASS','DANGER','SAND'], xp:125, gold:[5,20],  loot:['Leather Armor','Short Sword','Coin Purse']},
-  {name:'Giant Spider',  icon:'🕷️',hd:8, lvlRange:[2,5], habitat:['FOREST'],          xp:200, gold:[0,4],   loot:['Spider Silk','Venom Gland']},
-  {name:'Orc Warrior',   icon:'👹',hd:10,lvlRange:[3,7], habitat:['DANGER','MOUNTAIN'],xp:250,gold:[3,15],  loot:['Battle Axe','Orcish Shield']},
-  {name:'Cave Troll',    icon:'🧌',hd:12,lvlRange:[4,8], habitat:['MOUNTAIN','DANGER'],xp:450,gold:[10,30], loot:['Troll Hide','Club of Smashing']},
-  {name:'Shadow Wraith', icon:'👻',hd:8, lvlRange:[5,10],habitat:['DANGER'],           xp:500, gold:[5,25],  loot:['Shadow Essence','Soul Shard']},
-  {name:'Ogre',          icon:'👾',hd:12,lvlRange:[4,9], habitat:['MOUNTAIN','DANGER'],xp:400, gold:[8,24],  loot:['Giant Club','Hide Armor']},
-  {name:'Wyvern',        icon:'🐉',hd:12,lvlRange:[7,12],habitat:['MOUNTAIN','DANGER'],xp:900, gold:[20,60], loot:['Dragon Scale','Wyvern Talon']},
-  {name:'Lich',          icon:'🧟',hd:10,lvlRange:[8,15],habitat:['DANGER'],           xp:1500,gold:[30,80], loot:['Lich Phylactery','Spellbook','Death Robe']},
-];*/
 
 
 // ╔══════════════════════════════════════════════════════╗
@@ -2616,32 +2398,7 @@ const CC={
   rolled:false,rerolls:2,
 };
 
-// ╔══════════════════════════════════════════════════════╗
-// ║              BACKGROUND PARTICLES                   ║
-// ╚══════════════════════════════════════════════════════╝
-/*const bgCv=document.getElementById('bg-particles');
-const bgCtx=bgCv.getContext('2d');
-let pts=[];
-function initPts(){
-  bgCv.width=window.innerWidth;bgCv.height=window.innerHeight;pts=[];
-  for(let i=0;i<70;i++)pts.push({x:Math.random()*bgCv.width,y:Math.random()*bgCv.height,
-    r:Math.random()*1.4+.3,spd:Math.random()*.3+.08,op:Math.random()*.5+.1,dx:(Math.random()-.5)*.15});
-}
-function animPts(ts){
-  bgCtx.clearRect(0,0,bgCv.width,bgCv.height);
-  const g=bgCtx.createRadialGradient(bgCv.width/2,bgCv.height/2,80,bgCv.width/2,bgCv.height/2,bgCv.width*.8);
-  g.addColorStop(0,'rgba(24,12,2,.3)');g.addColorStop(1,'rgba(3,1,0,.9)');
-  bgCtx.fillStyle=g;bgCtx.fillRect(0,0,bgCv.width,bgCv.height);
-  for(const p of pts){
-    p.y-=p.spd;p.x+=p.dx;
-    if(p.y<-4){p.y=bgCv.height+4;p.x=Math.random()*bgCv.width;}
-    bgCtx.beginPath();bgCtx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    bgCtx.fillStyle=`rgba(201,146,42,${p.op})`;bgCtx.fill();
-  }
-  requestAnimationFrame(animPts);
-}
-window.addEventListener('resize',initPts);
-initPts();requestAnimationFrame(animPts);*/
+
 
 // ╔══════════════════════════════════════════════════════╗
 // ║            CHARACTER CREATION                       ║
@@ -2927,194 +2684,21 @@ if (window.IS_NEW_ENGINE) {
   document.addEventListener('keydown',onKey);
   document.addEventListener('keyup',e=>{keys[e.key]=false;});
   canvas.addEventListener('click', onCanvasClick);
-  requestAnimationFrame(gameLoop);
+  //requestAnimationFrame(gameLoop);
 }
 
+
 function resizeCanvas(){
-  if (window.IS_NEW_ENGINE) return;
-  const wrap=document.getElementById('canvas-wrap');
-  canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
-  vpW=canvas.width;vpH=canvas.height;
-  mmImgData=mmCtx.createImageData(170,128);
-  _mmTerrainCache = null; // invalidate cache on resize
-  render();
+  // legacy NO-OP
+  return;
 }
+
 // === Migration compatibility shim ===
 // Old code expects a global render(), so we provide one
 // that delegates to the new engine.
 
-function render() {
-  if (window.GameState && GameState.activeMap && window.ctx) {
-    renderMap(ctx, GameState.activeMap, GameState.camera, [
-      {
-        x: GameState.player.x,
-        y: GameState.player.y,
-        color: "#ffd700"
-      }
-    ]);
-  }
-}
-// ── RENDER ──
-/*function render(){
-  const camX=G.x*TILE-vpW/2+TILE/2;
-  const camY=G.y*TILE-vpH/2+TILE/2;
-  const stX=Math.floor(camX/TILE),stY=Math.floor(camY/TILE);
-  const offX=-(camX%TILE),offY=-(camY%TILE);
-  const twW=Math.ceil(vpW/TILE)+2,twH=Math.ceil(vpH/TILE)+2;
 
-  ctx.clearRect(0,0,vpW,vpH);
-  for(let ty=0;ty<twH;ty++)for(let tx=0;tx<twW;tx++)
-    drawTile(stX+tx,stY+ty,tx*TILE+offX,ty*TILE+offY);
-
-  // Grid lines
-  ctx.strokeStyle='rgba(0,0,0,.08)';ctx.lineWidth=.5;
-  for(let tx=0;tx<twW;tx++){ctx.beginPath();ctx.moveTo(tx*TILE+offX,0);ctx.lineTo(tx*TILE+offX,vpH);ctx.stroke();}
-  for(let ty=0;ty<twH;ty++){ctx.beginPath();ctx.moveTo(0,ty*TILE+offY);ctx.lineTo(vpW,ty*TILE+offY);ctx.stroke();}
-
-  // Town labels and icons
-  for(const t of TOWNS){
-    const sx=(t.x-stX)*TILE+offX,sy=(t.y-stY)*TILE+offY;
-    if(sx>-100&&sx<vpW+100&&sy>-40&&sy<vpH+40){
-      ctx.save();
-      // Town glow
-      const g=ctx.createRadialGradient(sx+TILE/2,sy+TILE/2,2,sx+TILE/2,sy+TILE/2,20);
-      g.addColorStop(0,'rgba(201,162,39,.25)');g.addColorStop(1,'rgba(201,162,39,0)');
-      ctx.fillStyle=g;ctx.fillRect(sx-12,sy-12,TILE+24,TILE+24);
-      // Label
-      ctx.font="bold 9px 'Cinzel',serif";ctx.fillStyle='#e8c84a';
-      ctx.shadowColor='rgba(0,0,0,.95)';ctx.shadowBlur=5;ctx.textAlign='center';
-      ctx.fillText(t.name,sx+TILE/2,sy-6);
-      ctx.restore();
-    }
-  }
-  // Portal labels
-  for(const p of PORTALS){
-    const sx=(p.x-stX)*TILE+offX,sy=(p.y-stY)*TILE+offY;
-    if(sx>-40&&sx<vpW+40&&sy>-20&&sy<vpH+20){
-      ctx.save();ctx.font="7px 'Cinzel',serif";ctx.fillStyle='rgba(180,100,255,.8)';
-      ctx.textAlign='center';ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=3;
-      const camp=CAMPAIGNS[p.campaignId];
-      if(camp) ctx.fillText(camp.name,sx+TILE/2,sy-5);
-      ctx.restore();
-    }
-  }
-
-  // Player
-  const px=vpW/2,py=vpH/2;
-  ctx.save();
-  ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.ellipse(px+TILE/2,py+TILE-5,8,4,0,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#c9a227';ctx.beginPath();ctx.arc(px+TILE/2,py+TILE/2-2,10,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#8b1a1a';ctx.fillRect(px+TILE/2-5,py+TILE/2+6,10,10);
-  ctx.strokeStyle='#2c1810';ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.arc(px+TILE/2,py+TILE/2-2,10,0,Math.PI*2);ctx.stroke();
-  ctx.strokeRect(px+TILE/2-5,py+TILE/2+6,10,10);
-  ctx.fillStyle='#2c1810';ctx.beginPath();ctx.arc(px+TILE/2,py+TILE/2-5,3,0,Math.PI*2);ctx.fill();
-  ctx.restore();
-
-  // Draw world bosses
-  const _camX2=G.x*TILE-vpW/2+TILE/2,_camY2=G.y*TILE-vpH/2+TILE/2;
-  const _stX2=Math.floor(_camX2/TILE),_stY2=Math.floor(_camY2/TILE);
-  const _offX2=-(_camX2%TILE),_offY2=-(_camY2%TILE);
-  drawWorldBosses(_stX2,_stY2,_offX2,_offY2);
-  // Draw co-op party members
-  drawCoopPlayers(_stX2,_stY2,_offX2,_offY2);
-  drawMinimap();
-}*/
-
-/*function drawTile(tx,ty,sx,sy){
-  if(tx<0||tx>=MAP_W||ty<0||ty>=MAP_H){
-    // Endless ocean beyond the map edge — animated deep water
-    const wx=(tx+1000)*TILE, wy=(ty+1000)*TILE;
-    const wv=(wx*7+wy*13)%4;
-    const oceanCols=['#0d2a4a','#0f3055','#0b2440','#102e52'];
-    ctx.fillStyle=oceanCols[wv]; ctx.fillRect(sx,sy,TILE,TILE);
-    // Wave shimmer
-    const t=Date.now()/1800;
-    const woff=((wx*0.03+wy*0.05+t)%(TILE));
-    ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(sx,sy+woff); ctx.lineTo(sx+TILE,sy+woff); ctx.stroke();
-    // Distance fog — tiles far from map edge get progressively darker
-    const distX=Math.min(0,tx)*-1 + Math.max(0,tx-(MAP_W-1));
-    const distY=Math.min(0,ty)*-1 + Math.max(0,ty-(MAP_H-1));
-    const dist=Math.max(distX,distY);
-    if(dist>1){
-      const fog=Math.min(0.7,(dist-1)*0.12);
-      ctx.fillStyle=`rgba(0,0,0,${fog})`; ctx.fillRect(sx,sy,TILE,TILE);
-    }
-    return;
-  }
-  const idx=ty*MAP_W+tx,type=worldMap[idx];
-  const cols=TILE_COLORS[type]||TILE_COLORS[T.GRASS];
-  ctx.fillStyle=cols[tileVariant[idx]%cols.length];
-  ctx.fillRect(sx,sy,TILE,TILE);
-  // At TILE=8px, sub-tile detail is invisible — skip for perf
-  // Only draw portal animation (larger than one tile)
-  ctx.save();
-  if(type===T.PORTAL){
-    const t2=Date.now()/700;
-    const pulse=0.5+Math.sin(t2)*0.35;
-    const pulse2=0.5+Math.sin(t2+1.5)*0.35;
-    // Outer glow halo
-    const grad=ctx.createRadialGradient(sx+TILE/2,sy+TILE/2,4,sx+TILE/2,sy+TILE/2,TILE);
-    grad.addColorStop(0,`rgba(120,40,255,${pulse*0.6})`);
-    grad.addColorStop(1,'rgba(80,20,160,0)');
-    ctx.fillStyle=grad; ctx.fillRect(sx-TILE/2,sy-TILE/2,TILE*2,TILE*2);
-    // Inner stone
-    ctx.fillStyle=`rgba(60,15,130,${0.7+pulse*0.3})`; ctx.fillRect(sx+3,sy+3,TILE-6,TILE-6);
-    // Border
-    ctx.strokeStyle=`rgba(180,100,255,${0.5+pulse2*0.4})`; ctx.lineWidth=2;
-    ctx.strokeRect(sx+3,sy+3,TILE-6,TILE-6);
-    // Diamond rune
-    ctx.fillStyle=`rgba(220,170,255,${0.6+pulse*0.3})`;
-    ctx.font='16px serif'; ctx.textAlign='center';
-    ctx.fillText('⬟',sx+TILE/2,sy+TILE/2+6);
-    // Beacon dot pulsing upward
-    const beaconY=sy-(Math.sin(t2*0.7)*8+8);
-    ctx.fillStyle=`rgba(200,140,255,${0.3+pulse*0.4})`;
-    ctx.beginPath(); ctx.arc(sx+TILE/2,beaconY,3,0,Math.PI*2); ctx.fill();
-  }
-  ctx.restore();
-}
-
-const MM_COLS={
-  [T.GRASS]:'#3a6b30',[T.FOREST]:'#1e4a1a',[T.MOUNTAIN]:'#5a4e3a',
-  [T.DEEP_WATER]:'#1a3f6b',[T.SHALLOW]:'#2a6080',[T.TOWN]:'#c9a227',
-  [T.DANGER]:'#6b1a1a',[T.SAND]:'#c4a96a',[T.PORTAL]:'#8040cc',
-};
-function buildMinimapTerrain(){
-  // Bake the static terrain layer once — never changes
-  if(!mmImgData) return;
-  const MW=170,MH=128,data=mmImgData.data;
-  const scX=MAP_W/MW,scY=MAP_H/MH;
-  for(let py=0;py<MH;py++){
-    for(let px2=0;px2<MW;px2++){
-      const wx=Math.floor(px2*scX), wy=Math.floor(py*scY);
-      const t=worldMap[wy*MAP_W+wx];
-      const hex=MM_COLS[t]||'#3a6b30';
-      let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-      // Distance tint — computed once, baked in
-      const dist=Math.sqrt((wx-120)**2+(wy-90)**2);
-      if(dist>80 && t!==T.DEEP_WATER && t!==T.SHALLOW){
-        const danger=Math.min(.5,(dist-80)/80);
-        r=Math.min(255,r+(danger*80)|0);
-        g=Math.max(0,g-(danger*30)|0);
-        b=Math.max(0,b-(danger*20)|0);
-      }
-      const i=(py*MW+px2)*4;
-      data[i]=r;data[i+1]=g;data[i+2]=b;data[i+3]=255;
-    }
-  }
-  // Bake towns into terrain cache too (they never move)
-  mmCtx.putImageData(mmImgData,0,0);
-  TOWNS.forEach(t=>{
-    const tx2=Math.floor(t.x/MAP_W*MW), ty2=Math.floor(t.y/MAP_H*MH);
-    mmCtx.fillStyle='#e8c84a'; mmCtx.fillRect(tx2-1,ty2-1,3,3);
-  });
-  // Save as ImageData cache
-  _mmTerrainCache = mmCtx.getImageData(0,0,MW,MH);
-}
-*/
-function drawMinimap(){
+/*function drawMinimap(){
   if(!mmImgData) return;
   const MW=170,MH=128;
 
@@ -3150,7 +2734,7 @@ function drawMinimap(){
   mmCtx.fillStyle='#e8c84a';
   mmCtx.beginPath();mmCtx.arc(mpx,mpy,3,0,Math.PI*2);mmCtx.fill();
   mmCtx.strokeStyle='#2c1810';mmCtx.lineWidth=1;mmCtx.stroke();
-}
+}*/
 
 // ── HUD ──
 function updateHUD(){
@@ -3204,54 +2788,7 @@ function addLog(msg,type=''){
   box.scrollTop=box.scrollHeight;
 }
 
-// ── INVENTORY ──
-// ── EQUIP SYSTEM ──
-// G.equipped = {weapon:item|null, armor:item|null, accessory:item|null, boots:item|null}
-// Derived stats are recalculated from base + equipped every time something changes
-function exportWorldToJSON() {
-  const json = {
-    id: "overworld_legacy",
-    name: "Legacy Overworld",
-    type: "world",
 
-    width: MAP_W,
-    height: MAP_H,
-
-    tiles: Array.from(worldMap),
-    variants: Array.from(tileVariant),
-
-    towns: TOWNS.map(t => ({
-      id: t.name.toLowerCase().replace(/\s+/g, "_"),
-      x: t.x,
-      y: t.y,
-      name: t.name,
-      type: t.type,
-      description: t.desc,
-      services: t.services,
-      rumours: t.rumours,
-    })),
-
-    portals: PORTALS.map(p => ({
-      id: p.campaignId,
-      x: p.x,
-      y: p.y,
-      target_map: p.campaignId,   // dungeon map id later
-    })),
-
-    npcs: [],
-    entities: [],
-    encounters: [],
-
-    metadata: {
-      spawnX: 120,
-      spawnY: 90,
-      theme: "legacy"
-    }
-  };
-
-  console.log("COPY THIS JSON ↓");
-  console.log(JSON.stringify(json, null, 2));
-}
 
 const EQUIP_SLOTS = ['head','shoulders','chest','pants','boots','mainhand','offhand','ring1','ring2','necklace'];
 const EQUIP_SLOT_LABELS = {
