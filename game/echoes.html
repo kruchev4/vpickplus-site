@@ -3572,6 +3572,7 @@ if (window.IS_NEW_ENGINE) {
 }
 
 function resizeCanvas(){
+  if (window.IS_NEW_ENGINE) return;
   const wrap=document.getElementById('canvas-wrap');
   canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
   vpW=canvas.width;vpH=canvas.height;
