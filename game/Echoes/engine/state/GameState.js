@@ -45,3 +45,5 @@ activeMap: null,
   // Dungeon progression
   dungeonState: null,
 };
+// Temporary global bridge for legacy code
+window.GameState = GameState;
