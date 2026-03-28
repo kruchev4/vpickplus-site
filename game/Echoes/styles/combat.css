@@ -78,3 +78,39 @@
 .htb-hp-num{font-size:.62rem;color:var(--parch-dk);white-space:nowrap;margin-left:4px;}
 .htb-badge{font-size:.52rem;padding:1px 5px;border:1px solid #8b3a3a;
   color:#e07070;margin-left:4px;}
+
+/* ══ PARTY COMBAT PANEL (bottom of combat overlay) ══ */
+.party-combat-panel{border-top:1px solid var(--border);margin-top:12px;padding-top:10px;}
+.pcp-title{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:3px;
+  text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+.pcp-members{display:flex;flex-direction:column;gap:6px;}
+.pcp-member{display:flex;align-items:center;gap:8px;padding:7px 10px;
+  border:1px solid var(--border);background:rgba(0,0,0,.2);position:relative;}
+.pcp-member.active-turn{border-color:var(--gold);animation:activePulse 1s ease infinite;}
+.pcp-member.is-me{background:rgba(201,162,39,.05);}
+.pcp-icon{font-size:1.1rem;flex-shrink:0;}
+.pcp-info{flex:1;min-width:0;}
+.pcp-name{font-family:'Cinzel',serif;font-size:.68rem;color:var(--parch);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pcp-status{font-size:.58rem;color:var(--parch-dk);margin-top:1px;}
+.pcp-hp-row{display:flex;align-items:center;gap:4px;margin-top:3px;}
+.pcp-hp-bar{flex:1;height:5px;background:#1a0e06;border:1px solid #2a1a08;overflow:hidden;}
+.pcp-hp-fill{height:100%;background:linear-gradient(90deg,#8b1a1a,#c0392b);transition:width .4s;}
+.pcp-hp-fill.mid{background:linear-gradient(90deg,#8b6a1a,#c0a020);}
+.pcp-hp-fill.good{background:linear-gradient(90deg,#3a7b1a,#27ae60);}
+.pcp-hp-num{font-size:.58rem;color:var(--parch-dk);white-space:nowrap;width:40px;text-align:right;}
+.pcp-timer-row{display:flex;align-items:center;gap:4px;margin-top:3px;}
+.pcp-timer-lbl{font-size:.55rem;color:var(--parch-dk);width:22px;}
+.pcp-timer-bar{flex:1;height:4px;background:#1a0e06;overflow:hidden;}
+.pcp-timer-fill{height:100%;transition:width .1s linear;}
+.pcp-timer-fill.my-timer{background:linear-gradient(90deg,#1a6b3a,#27ae60);}
+.pcp-timer-fill.waiting{background:linear-gradient(90deg,#3a3a6b,#5555aa);opacity:.5;}
+.pcp-timer-fill.urgent{animation:timerFlash .3s ease infinite alternate;}
+.pcp-actions-inline{flex-shrink:0;}
+.pcp-heal-btn{font-family:'Cinzel',serif;font-size:.58rem;padding:3px 8px;
+  border:1px solid #3a5a3a;color:#90c080;background:rgba(40,100,40,.1);
+  cursor:pointer;transition:all .2s;}
+.pcp-heal-btn:hover{border-color:#80c080;background:rgba(40,100,40,.25);}
+.pcp-queued-badge{font-size:.55rem;padding:2px 5px;border:1px solid var(--gold);
+  color:var(--gold-b);white-space:nowrap;}
+.pcp-fallen{font-size:.58rem;color:#c47b7b;padding:2px 0;}
