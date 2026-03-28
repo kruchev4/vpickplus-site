@@ -6,7 +6,7 @@ const TILE_SIZE = GameState.TILE_SIZE;
 export function renderMap(ctx, map, camera, entities = []) {
   let drawn = 0;
 
-  console.log("[renderMap] map:", map?.id, "tiles:", map?.tiles?.length);
+  
   if (!map || !map.tiles) return;
 
   const startX = Math.floor(camera.x / TILE_SIZE);
@@ -34,7 +34,7 @@ export function renderMap(ctx, map, camera, entities = []) {
     }
   }
   if (drawn > 0) {
-  console.log("[renderMap] tiles drawn this frame:", drawn);
+  
 }
 
   // Draw entities (player for now)
