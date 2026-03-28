@@ -8,6 +8,15 @@ import { RACES } from "./engine/data/races.js";
 import { CLASSES } from "./engine/data/classes.js";
 import { STAT_DEFS } from "./engine/data/stats.js";
 import { MONSTERS } from "./engine/data/monsters.js";
+import {
+  LEGENDARY_ITEMS,
+  RARE_ITEMS,
+  UNCOMMON_ITEMS
+} from "./engine/data/loot.js";
+
+window.LEGENDARY_ITEMS = LEGENDARY_ITEMS;
+window.RARE_ITEMS = RARE_ITEMS;
+window.UNCOMMON_LOOT = UNCOMMON_ITEMS;
 
 window.STAT_DEFS = STAT_DEFS;
 window.MONSTERS = MONSTERS;
