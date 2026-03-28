@@ -5,7 +5,7 @@
 /* ---------- Engine Data ---------- */
 import { RACES } from "./engine/data/races.js";
 import { CLASSES } from "./engine/data/classes.js";
-console.log("races imported no way!");
+console.log("races imported");
 
 window.RACES = RACES;
 window.CLASSES = CLASSES;
