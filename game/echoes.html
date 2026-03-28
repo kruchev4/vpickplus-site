@@ -982,6 +982,7 @@ function checkStep1(){
 }
 
 function gotoStep(n){
+  console.log("ABOUT TO DEFINE gotoStep");
   [1,2,3,4].forEach(i=>{
     document.getElementById('cc'+i).style.display=i===n?'block':'none';
     const dot=document.getElementById('d'+(i-1));
