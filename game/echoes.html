@@ -3563,7 +3563,21 @@ function resizeCanvas(){
   _mmTerrainCache = null; // invalidate cache on resize
   render();
 }
+// === Migration compatibility shim ===
+// Old code expects a global render(), so we provide one
+// that delegates to the new engine.
 
+function render() {
+  if (window.GameState && GameState.activeMap && window.ctx) {
+    renderMap(ctx, GameState.activeMap, GameState.camera, [
+      {
+        x: GameState.player.x,
+        y: GameState.player.y,
+        color: "#ffd700"
+      }
+    ]);
+  }
+}
 // ── RENDER ──
 /*function render(){
   const camX=G.x*TILE-vpW/2+TILE/2;
