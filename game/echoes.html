@@ -1481,7 +1481,10 @@ let lastFrame = performance.now();
 // Engine guard
 let engineRunning = false;
 
-const worldCtx = worldCanvas.getContext("2d
+
+const worldCanvas = document.getElementById("world-cv");
+const worldCtx = worldCanvas.getContext("2d");
+
 
 function resizeCanvasToDisplaySize(canvas) {
   const rect = canvas.getBoundingClientRect();
