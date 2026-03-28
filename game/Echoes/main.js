@@ -13,6 +13,9 @@ import {
   RARE_ITEMS,
   UNCOMMON_ITEMS
 } from "./engine/data/loot.js";
+import { CLASS_ABILITIES } from "./engine/data/abilities/classAbilities.js";
+
+window.CLASS_ABILITIES = CLASS_ABILITIES;
 
 window.LEGENDARY_ITEMS = LEGENDARY_ITEMS;
 window.RARE_ITEMS = RARE_ITEMS;
