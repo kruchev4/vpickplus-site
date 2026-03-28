@@ -1304,6 +1304,18 @@ function addLog(msg,type=''){
   while(box.children.length>80)box.removeChild(box.firstChild);
   box.scrollTop=box.scrollHeight;
 }
+ function showCharSelect() {
+  // Hide other screens
+  document.getElementById("screen-game")?.classList.remove("active");
+  document.getElementById("screen-menu")?.classList.remove("active");
+
+  // Show character creation screen
+  const create = document.getElementById("screen-create");
+  create?.classList.add("active");
+
+  // ✅ Enter step 1 (race selection)
+  gotoStep(1);
+}
 
 
 
