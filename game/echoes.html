@@ -3541,6 +3541,12 @@ let vpW,vpH,mmImgData;
 let _mmTerrainCache = null; // pre-rendered terrain, never changes
 
 function initGame(){
+  
+if (window.IS_NEW_ENGINE) {
+    console.warn("Legacy initGame skipped — new engine active");
+    return;
+  }
+
   if(!G.equipped||!G.equipped.mainhand) G.equipped={
     head:null,shoulders:null,chest:null,pants:null,boots:null,
     mainhand:null,offhand:null,ring1:null,ring2:null,necklace:null
