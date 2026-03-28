@@ -1844,6 +1844,10 @@ function startGame() {
   // Switch UI screens
   document.getElementById("screen-create")?.classList.remove("active");
   document.getElementById("screen-game")?.classList.add("active");
+  
+console.log("about to start loop");
+requestAnimationFrame(gameLoop);
+
   startGameLoop();
 
   // Signal engine readiness
