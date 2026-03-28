@@ -1320,15 +1320,7 @@ function addLog(msg,type=''){
 }
  function showCharSelect() {
   // HARD STOP if engine data is not ready yet
-  if (!window.__ENGINE_READY__) {
-    console.warn("showCharSelect delayed until engine is ready");
-    window.addEventListener(
-      "engine-ready",
-      () => showCharSelect(),
-      { once: true }
-    );
-    return;
-  }
+  
 
   // --- SAFE EXECUTION BELOW ---
 
