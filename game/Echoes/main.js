@@ -17,6 +17,9 @@ import {
 window.LEGENDARY_ITEMS = LEGENDARY_ITEMS;
 window.RARE_ITEMS = RARE_ITEMS;
 window.UNCOMMON_LOOT = UNCOMMON_ITEMS;
+// Legacy bridge — REMOVE later when UI is migrated
+window.RACES = RACES;
+window.CLASSES = CLASSES;
 
 window.STAT_DEFS = STAT_DEFS;
 window.MONSTERS = MONSTERS;
