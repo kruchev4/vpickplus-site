@@ -2616,35 +2616,46 @@ function drawPortrait(race,cls){
   ctx.letterSpacing='3px';ctx.fillText('REALM OF ECHOES',W/2,32);
 }
 
-function startGame(){
-  const race=RACES.find(r=>r.id===CC.race);
-  const cls=CLASSES.find(c=>c.id===CC.cls);
-  // Copy CC into G
-  G.name=CC.name;G.race=race;G.cls=cls;
-  G.stats={...CC.final};G.baseStats={...CC.base};
-  G.level=1;G.xp=0;G.xpNext=200;G.gold=50;
-  G.hpMax=cls.hd+modOf(G.stats.CON);G.hp=G.hpMax;
-  G.mpMax=Math.max(0,10+modOf(G.stats.INT)*2+(cls.spells.length>0?10:0));G.mp=G.mpMax;
-  G.ac=cls.baseAC+Math.max(0,modOf(G.stats.DEX));
-  G.atkBonus=2+modOf(G.stats[cls.pri]);
-  G.dmgBonus=modOf(G.stats.STR);
-  // recalcStats called after equip init
-  G.inventory=[];
-  G.activeSlots=[null,null,null,null,null,null];
-  G.equipped={
-    head:null, shoulders:null, chest:null, pants:null, boots:null,
-    mainhand:null, offhand:null, ring1:null, ring2:null, necklace:null
+function startGame() {
+  const race = RACES.find(r => r.id === CC.race);
+  const cls  = CLASSES.find(c => c.id === CC.cls);
+
+  // Initialize ENGINE player state
+  GameState.player = {
+    name: CC.name,
+    race,
+    cls,
+
+    stats: { ...CC.final },
+    baseStats: { ...CC.base },
+
+    level: 1,
+    xp: 0,
+    xpNext: 200,
+    gold: 50,
+
+    hpMax: cls.hd + modOf(CC.final.CON),
+    hp: null, // set below
+
+    mpMax: Math.max(
+      0,
+      10 + modOf(CC.final.INT) * 2 + (cls.spells.length > 0 ? 10 : 0)
+    ),
+    mp: null,
+
+    ac: cls.baseAC + Math.max(0, modOf(CC.final.DEX)),
+    atkBonus: 2 + modOf(CC.final[cls.pri]),
+    dmgBonus: modOf(CC.final.STR),
+
+    x: 120,
+    y: 90,
+
+    inCombat: false,
+    inTown: false,
   };
-  G.x=120;G.y=90;G.prevX=30;G.prevY=22;
-  G.inCombat=false;G.inTown=false;
-  G.encounterCooldown=0;G.justEnteredTown=false;
-  // Save
-  saveGame();
-  // Switch screen
-  document.getElementById('screen-create').classList.remove('active');
-  document.getElementById('screen-game').classList.add('active');
-  initGame();
-}
+
+  GameState.player.hp = GameState.player.hpMax;
+  GameState.player.mp = GameState.player.mpMax;
 
 // ╔══════════════════════════════════════════════════════╗
 // ║                   GAME ENGINE                       ║
