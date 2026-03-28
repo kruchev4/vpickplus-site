@@ -3,15 +3,15 @@
 // ╚══════════════════════════════════════════════════════╝
 //
 // IMPORTANT:
-// - This module is UI / DOM ONLY
-// - It must NOT control rendering or animation frames
-// - It must NOT call render(), updateHUD(), or RAF
-// - It may READ game state, but must not OWN it
+// - UI / DOM ONLY
+// - NO rendering
+// - NO RAF
+// - NO updateHUD / render calls
 //
 
 let _menuOpen = false;
 
-// ---------- OPEN / CLOSE ----------
+// ---------- SAVE ----------
 
 export function menuSave() {
   if (typeof window.saveGame === "function") {
@@ -28,33 +28,42 @@ export function menuSave() {
   }
 }
 
+// ---------- OPEN / CLOSE ----------
 
 export function openGameMenu() {
   const G = window.G;
-  if (!G?.cls || !G?.name) return; // no character yet
+  if (!G || !G.cls || !G.name) return;
 
   _menuOpen = true;
 
-  // Header line
-  document.getElementById("menu-char-line")?.textContent =
-    `${G.name} · ${G.race?.name || "?"} ${G.cls?.name || "?"} · Level ${G.level}`;
+  const header = document.getElementById("menu-char-line");
+  if (header) {
+    header.textContent =
+      `${G.name} · ${G.race?.name || "?"} ${G.cls?.name || "?"} · Level ${G.level}`;
+  }
 
-  // Status line
   const parts = [];
   if (G.inCombat) parts.push("⚔ In combat");
+
   if (window.campState) {
     const c = window.campState;
-    parts.push(`📜 Campaign: ${c.camp.name} (Room ${c.prog.roomIdx + 1}/${c.camp.rooms.length})`);
+    parts.push(
+      `📜 Campaign: ${c.camp.name} (Room ${c.prog.roomIdx + 1}/${c.camp.rooms.length})`
+    );
   }
+
   if (window.coopActive) {
     const count = (window.coopParty || []).filter(Boolean).length;
     parts.push(`👥 Party: ${count} members`);
   }
+
   parts.push(`💰 ${G.gold} gp · ${G.hp}/${G.hpMax} HP`);
 
-  document.getElementById("")?.innerHTML = parts.join("<br>");
+  const status = document.getElementById("menu-status");
+  if (status) {
+    status.innerHTML = parts.join("<br>");
+  }
 
-  // Campaign buttons
   const inCamp = !!window.campState;
   const canPause = inCamp && !G.inCombat;
 
@@ -78,21 +87,6 @@ export function menuResume() {
   closeGameMenu();
 }
 
-export function menuSave() {
-  if (typeof window.saveGame === "function") {
-    window.saveGame();
-  }
-
-  if (typeof window.cloudSyncNow === "function") {
-    window.cloudSyncNow(false);
-  }
-
-  const el = document.getElementById("menu-status");
-if (el) {
-  el.innerHTML = "✓ Saved at " + new Date().toLocaleTimeString();
-}
-
-
 export function menuShowSyncInfo() {
   closeGameMenu();
 
@@ -110,17 +104,69 @@ export function menuShowSyncInfo() {
 
   if (confirm(msg)) {
     navigator.clipboard?.writeText(tok)
-      .then(() => window.toast?.("Player ID copied!"))
-      .catch(() => window.toast?.("ID: " + short));
+      .then(() => window.toast && window.toast("Player ID copied!"))
+      .catch(() => window.toast && window.toast("ID: " + short));
   }
 }
 
 // ---------- CAMPAIGN CONTROLS ----------
-// NOTE: These NO LONGER control rendering or RAF.
-// They ONLY toggle state + UI.
 
 export function menuPauseCampaign() {
   closeGameMenu();
 
   const G = window.G;
   const camp = window.campState;
+  if (!G || !camp) return;
+
+  camp.prog.sessionCount = (camp.prog.sessionCount || 0) + 1;
+
+  if (window.saveGame) window.saveGame();
+
+  document.getElementById("ov-campaign")?.classList.remove("active");
+  document.getElementById("ov-combat")?.classList.remove("active");
+
+  G.inTown = false;
+  G.inCombat = false;
+}
+
+export function menuExitCampaign() {
+  closeGameMenu();
+
+  window.campState = null;
+
+  const G = window.G;
+  if (G) {
+    G.inTown = false;
+    G.inCombat = false;
+  }
+
+  if (window.saveGame) window.saveGame();
+}
+
+export function menuReturnToWorld() {
+  closeGameMenu();
+
+  const overlays = [
+    "ov-campaign","ov-combat","ov-town","ov-portal",
+    "ov-session-pause","ov-levelup","ov-item","ov-charsheet",
+    "ov-menu","ov-inventory"
+  ];
+
+  overlays.forEach(id => {
+    document.getElementById(id)?.classList.remove("active");
+  });
+
+  if (window.G) {
+    window.G.inTown = false;
+    window.G.inCombat = false;
+  }
+
+  window.campState = null;
+  if (window.saveGame) window.saveGame();
+}
+
+export function menuNewChar() {
+  closeGameMenu();
+  document.getElementById("screen-game")?.classList.remove("active");
+  window.showCharSelect?.();
+}
