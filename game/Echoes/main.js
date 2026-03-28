@@ -3,6 +3,7 @@ import { GameState } from "./engine/state/GameState.js";
 import { renderMap } from "./engine/render/renderer.js";
 import { updateCamera } from "./engine/camera/camera.js";
 import { tryMove } from "./engine/movement/movement.js";
+import { playSound, toggleSound } from "./engine/audio/SoundEngine.js";
 
 let ctx;
 
