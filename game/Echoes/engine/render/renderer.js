@@ -7,6 +7,9 @@ import { TILE_COLORS, TILE, PASSABLE } from "../world/constants.js";
  * Replaces your old drawTile() completely.
  */
 export function drawTile(ctx, map, tx, ty, sx, sy) {
+  ctx.fillStyle = "red";
+ctx.fillRect(sx, sy, 32, 32);
+
   const { width, height } = map;
 
   // Out-of-bounds = infinite ocean (your existing effect)
