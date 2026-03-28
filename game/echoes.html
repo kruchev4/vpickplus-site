@@ -16,8 +16,8 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>">
 <!-- Firebase SDKs -->
 <script type="module" src="./Echoes/main.js"></script>
-<!--<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-//<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>-->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>-->
 <title>Realm of Echoes v2.4</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@400;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap');
@@ -1296,6 +1296,7 @@ function addLog(msg,type=''){
   box.scrollTop=box.scrollHeight;
 }
  function showCharSelect() {
+   
   // Hide other screens
   document.getElementById("screen-game")?.classList.remove("active");
   document.getElementById("screen-menu")?.classList.remove("active");
@@ -1307,7 +1308,7 @@ function addLog(msg,type=''){
   // ✅ RESET step state (important if returning here)
   CC._raceBuilt = false;
   CC._classBuilt = false;
-
+  buildCC();
   // ✅ ENTER STEP 1
   gotoStep(1);
 }
@@ -6666,7 +6667,7 @@ console.log('%c Realm of Echoes v2.4 %c built ' + new Date().toISOString().slice
 
 // PeerJS broker removed — using Firebase WebRTC signaling (no broker needed)
 
-buildCC();
+//buildCC();
 initFirebase();
 
 // Check if returning from a dungeon
