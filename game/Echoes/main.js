@@ -102,6 +102,9 @@ function gameLoop() {
       }
     ]
   );
+  // main.js
+window.engineReady = true;
+console.log("✅ Engine ready");
 
  
   requestAnimationFrame(gameLoop);
