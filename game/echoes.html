@@ -3154,6 +3154,10 @@ function drawMinimap(){
 
 // ── HUD ──
 function updateHUD(){
+  
+if (!window.engineReady) return;
+  if (!window.MAP_W || !window.MAP_H) return;
+
   document.getElementById('hud-name').textContent=G.name;
   document.getElementById('hud-class').textContent=`${G.cls.name} · Lv.${G.level}`;
   const hpPct=Math.max(0,G.hp/G.hpMax*100);
