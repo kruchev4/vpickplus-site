@@ -1,0 +1,69 @@
+/* ── CAMPAIGN / PORTAL ── */
+.portal-box{background:linear-gradient(180deg,#0d0820,#060310);border:2px solid #5020a0;max-width:580px;width:95%;max-height:88vh;overflow-y:auto;box-shadow:0 0 50px rgba(100,30,200,.4);}
+.portal-header{padding:18px 20px 12px;border-bottom:1px solid #3a1870;display:flex;align-items:center;gap:14px;}
+.portal-icon{font-size:2.4rem;}
+.portal-name{font-family:'Cinzel Decorative',serif;font-size:1.2rem;color:#c090ff;text-shadow:0 0 14px rgba(160,80,255,.5);}
+.portal-meta{font-size:.65rem;letter-spacing:3px;color:#8060b0;text-transform:uppercase;margin-top:2px;}
+.portal-badges{display:flex;gap:6px;flex-wrap:wrap;padding:10px 20px;}
+.pbadge{font-size:.62rem;padding:3px 8px;border:1px solid;letter-spacing:1px;text-transform:uppercase;}
+.pbadge.lair{border-color:#6b4020;color:#c08040;background:rgba(107,64,32,.15);}
+.pbadge.campaign{border-color:#5020a0;color:#c090ff;background:rgba(80,32,160,.15);}
+.pbadge.sessions{border-color:#3a5a3a;color:#80c080;}
+.pbadge.players{border-color:#3a4a6b;color:#80a0c0;}
+.pbadge.levels{border-color:#6b6020;color:#c0b040;}
+.portal-desc{padding:0 20px 10px;font-size:.88rem;color:var(--parch-dk);font-style:italic;line-height:1.6;border-bottom:1px solid #2a1040;}
+.portal-long{padding:12px 20px;font-size:.78rem;color:#9070b0;line-height:1.7;white-space:pre-line;display:none;}
+.portal-actions{padding:16px 20px;display:flex;gap:10px;justify-content:center;}
+
+/* Campaign room box */
+.camp-box{background:linear-gradient(180deg,#0e0a18,#080610);border:2px solid #3a1870;max-width:640px;width:96%;max-height:92vh;overflow-y:auto;box-shadow:0 0 40px rgba(80,20,160,.4);}
+.camp-header{background:linear-gradient(90deg,#1a0a30,#0e0618);padding:14px 20px;border-bottom:1px solid #3a1870;}
+.camp-act{font-size:.58rem;letter-spacing:4px;text-transform:uppercase;color:#8060b0;margin-bottom:4px;}
+.camp-title{font-family:'Cinzel',serif;font-size:1.1rem;color:#d0a0ff;letter-spacing:2px;}
+.camp-prog{font-size:.6rem;color:#6040a0;margin-top:4px;letter-spacing:1px;}
+.camp-body{padding:20px;}
+
+/* narrative room */
+.camp-text{font-size:.92rem;color:var(--parch);line-height:1.8;margin-bottom:16px;font-style:italic;}
+.camp-note{font-size:.75rem;color:var(--parch-dk);padding:8px 12px;border-left:2px solid #5020a0;margin-bottom:14px;font-style:normal;}
+.camp-btn{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:2px;text-transform:uppercase;padding:11px 22px;border:1px solid #5020a0;color:#c090ff;background:transparent;cursor:pointer;transition:all .25s;display:block;width:100%;text-align:center;margin-bottom:6px;}
+.camp-btn:hover{background:rgba(80,32,160,.2);box-shadow:0 0 14px rgba(80,32,160,.3);}
+
+/* choice room */
+.choice-grid{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
+.choice-btn{font-family:'Cinzel',serif;font-size:.75rem;padding:14px 16px;border:1px solid #3a1870;color:var(--parch);background:rgba(255,255,255,.02);cursor:pointer;transition:all .2s;text-align:left;display:flex;align-items:center;gap:10px;}
+.choice-btn:hover{border-color:#8040cc;background:rgba(80,32,160,.12);color:#d0a0ff;}
+.choice-icon{font-size:1.2rem;flex-shrink:0;}
+.choice-locked{opacity:.4;cursor:not-allowed;}
+
+/* loot room */
+.loot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin:12px 0;}
+.loot-card{border:1px solid;padding:10px;text-align:center;}
+.loot-card.common{border-color:#4a3520;}.loot-card.uncommon{border-color:#3a5a3a;}.loot-card.rare{border-color:#3a4a8b;}.loot-card.legendary{border-color:#8b6a10;box-shadow:0 0 12px rgba(200,160,30,.3);animation:legendaryPulse 2s ease infinite;}
+@keyframes legendaryPulse{0%,100%{box-shadow:0 0 8px rgba(200,160,30,.2)}50%{box-shadow:0 0 20px rgba(200,160,30,.5)}}
+.loot-tier{font-size:.55rem;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;}
+.loot-tier.common{color:var(--parch-dk);}.loot-tier.uncommon{color:#80c080;}.loot-tier.rare{color:#80a0e0;}.loot-tier.legendary{color:#e8c84a;}
+.loot-icon{font-size:1.8rem;margin:4px 0;}
+.loot-name{font-family:'Cinzel',serif;font-size:.7rem;color:var(--parch);margin-bottom:3px;}
+.loot-desc{font-size:.62rem;color:var(--parch-dk);font-style:italic;line-height:1.4;}
+.loot-flavour{font-size:.6rem;color:#8060b0;font-style:italic;margin-top:4px;border-top:1px solid rgba(80,32,160,.3);padding-top:4px;}
+
+/* boss room */
+.boss-warning{text-align:center;padding:8px;margin-bottom:12px;border:1px solid var(--blood);background:rgba(139,26,26,.1);font-family:'Cinzel',serif;font-size:.7rem;color:var(--blood-b);letter-spacing:2px;}
+.boss-special{font-size:.72rem;color:#e8b84a;padding:6px 10px;border-left:2px solid var(--gold);margin:8px 0;font-style:italic;}
+
+/* rest room */
+.rest-camp{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;}
+.rest-camp-btn{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:1px;padding:10px 18px;border:1px solid;cursor:pointer;transition:all .2s;background:transparent;}
+.rest-full{border-color:var(--gold);color:var(--gold-b);}
+.rest-full:hover{background:rgba(201,162,39,.12);}
+.rest-skip{border-color:var(--border-b);color:var(--parch-dk);}
+
+/* pause box */
+.pause-box{background:linear-gradient(180deg,#0a0818,#050610);border:2px solid #3a1870;max-width:420px;width:90%;padding:30px;text-align:center;box-shadow:0 0 30px rgba(80,20,160,.4);}
+.pause-title{font-family:'Cinzel Decorative',serif;font-size:1.4rem;color:#c090ff;margin-bottom:8px;}
+.pause-desc{font-size:.88rem;color:var(--parch-dk);font-style:italic;margin-bottom:14px;line-height:1.6;}
+.pause-info{font-size:.75rem;color:#8060b0;line-height:1.7;}
+
+/* Legendary item glow in world log */
+.log.legendary{border-color:#e8c84a;color:#f0d060;font-weight:bold;}
