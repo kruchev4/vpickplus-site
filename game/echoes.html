@@ -1327,7 +1327,7 @@ function addLog(msg,type=''){
   document.getElementById("screen-game")?.classList.remove("active");
   document.getElementById("screen-menu")?.classList.remove("active");
   document.getElementById("screen-create")?.classList.add("active");
-
+  console.log("about to build");
   buildCC();
   gotoStep(1);
 }
