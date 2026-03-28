@@ -86,13 +86,7 @@ function setupInput() {
 }
 
 function gameLoop() {
-  console.log(
-  "[CAMERA]",
-  GameState.camera.x,
-  GameState.camera.y,
-  GameState.camera.w,
-  GameState.camera.h
-);
+  
   
 
   updateCamera();
@@ -112,7 +106,7 @@ function gameLoop() {
   );
   // main.js
 window.engineReady = true;
-console.log("✅ Engine ready");
+//console.log("✅ Engine ready");
 
  
   requestAnimationFrame(gameLoop);
