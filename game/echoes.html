@@ -1411,7 +1411,11 @@ function addLog(msg,type=''){
   const create = document.getElementById("screen-create");
   create?.classList.add("active");
 
-  // ✅ THIS IS THE KEY LINE
+  // ✅ RESET step state (important if returning here)
+  CC._raceBuilt = false;
+  CC._classBuilt = false;
+
+  // ✅ ENTER STEP 1
   gotoStep(1);
 }
 
