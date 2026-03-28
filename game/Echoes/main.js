@@ -37,6 +37,14 @@ window.playSound = playSound;
 window.toggleSound = toggleSound;
 console.log("✅ main.js loaded");
 console.log("RACES in main.js:", RACES);
+// Legacy compatibility stub — REMOVE once HUD is migrated
+window.worldMap = {
+  width: GameState.activeMap?.width ?? 0,
+  height: GameState.activeMap?.height ?? 0,
+  getTile(x, y) {
+    return null; // legacy HUD should not depend on tile data anymore
+  },
+};
 
 let ctx;
 
