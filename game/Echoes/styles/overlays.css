@@ -70,3 +70,50 @@
 .menu-btn-danger{border-color:#3a1010;color:#c47b7b;}
 .menu-btn-danger:hover{border-color:var(--blood-b);color:#e07070;background:rgba(139,26,26,.08);}
 .menu-divider{border:none;border-top:1px solid var(--border);margin:8px 0;}
+
+/* ══ CO-OP LOBBY ══ */
+#ov-coop{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;
+  align-items:center;justify-content:center;z-index:195;padding:16px;}
+#ov-coop.active{display:flex;}
+.coop-box{background:linear-gradient(160deg,#0a1018,#060a10);border:1px solid #204060;
+  max-width:560px;width:100%;box-shadow:0 0 50px rgba(30,80,160,.3);animation:csIn .3s ease both;}
+.coop-header{padding:14px 20px;border-bottom:1px solid #204060;text-align:center;}
+.coop-title{font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:#80c0ff;
+  text-shadow:0 0 14px rgba(80,160,255,.4);}
+.coop-sub{font-size:.6rem;letter-spacing:4px;text-transform:uppercase;color:#406080;margin-top:2px;}
+.coop-body{padding:18px 22px;}
+.coop-mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.coop-mode-btn{border:1px solid #204060;padding:16px;cursor:pointer;text-align:center;
+  background:rgba(30,80,160,.05);transition:all .25s;}
+.coop-mode-btn:hover{border-color:#4080c0;background:rgba(30,80,160,.12);}
+.coop-mode-icon{font-size:1.6rem;margin-bottom:6px;}
+.coop-mode-name{font-family:'Cinzel',serif;font-size:.75rem;color:#a0d0ff;letter-spacing:1px;}
+.coop-mode-desc{font-size:.62rem;color:#406080;margin-top:3px;line-height:1.4;}
+.coop-panel{display:none;padding-top:14px;border-top:1px solid #204060;}
+.coop-panel.open{display:block;}
+.coop-section-title{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:3px;
+  text-transform:uppercase;color:#4080c0;margin-bottom:10px;}
+.coop-code-display{font-family:'Courier New',monospace;font-size:1.8rem;
+  letter-spacing:12px;color:#80c0ff;text-align:center;padding:12px;
+  border:1px solid #204060;background:rgba(0,0,0,.3);margin-bottom:10px;}
+.coop-input{width:100%;background:rgba(0,0,0,.4);border:1px solid #204060;
+  padding:10px 14px;font-family:'Courier New',monospace;font-size:1.2rem;
+  letter-spacing:8px;color:#80c0ff;outline:none;text-align:center;margin-bottom:10px;}
+.coop-input:focus{border-color:#4080c0;}
+.coop-input::placeholder{color:#204060;font-size:.8rem;letter-spacing:2px;}
+.coop-btn{font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;
+  padding:10px 22px;border:1px solid;cursor:pointer;background:transparent;transition:all .2s;}
+.coop-btn.primary{border-color:#4080c0;color:#80c0ff;}
+.coop-btn.primary:hover{background:rgba(30,80,160,.2);}
+.coop-btn.close{border-color:#204060;color:#406080;}
+.coop-btn.close:hover{border-color:#406080;color:#a0c0e0;}
+.coop-status{font-size:.75rem;line-height:1.7;color:#406080;margin-top:10px;}
+.coop-status .ok{color:#60c080;}.coop-status .warn{color:#c0a060;}.coop-status .err{color:#c06060;}
+.player-list{margin-top:12px;}
+.player-row{display:flex;align-items:center;gap:8px;padding:6px 8px;
+  border:1px solid #1a3050;margin-bottom:4px;font-size:.75rem;}
+.player-dot{width:8px;height:8px;border-radius:50%;background:#60c080;flex-shrink:0;}
+.player-dot.waiting{background:#c0a060;animation:dotPulse 1s ease infinite;}
+@keyframes dotPulse{0%,100%{opacity:.4}50%{opacity:1}}
+.player-name-display{color:#a0d0ff;font-family:'Cinzel',serif;font-size:.7rem;}
+.player-class-display{color:#406080;font-size:.65rem;margin-left:auto;}
