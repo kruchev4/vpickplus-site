@@ -953,72 +953,44 @@ if (!window.engineReady) {
   document.getElementById('inp-name').addEventListener('input',checkStep1);
 }
 
-function selRace(id){
-  CC.race=id;
-  document.querySelectorAll('.rcard').forEach(c=>c.classList.toggle('sel',c.dataset.id===id));
+/* ===============================
+   CHARACTER CREATION – CLEAN
+   =============================== */
+
+/* ---- Selection helpers ---- */
+
+function selRace(id) {
+  CC.race = id;
+
+  document
+    .querySelectorAll(".rcard")
+    .forEach(c => c.classList.toggle("sel", c.dataset.id === id));
+
   checkStep1();
 }
-function selClass(id){
-  CC.cls=id;
-  document.querySelectorAll('.clcard').forEach(c=>c.classList.toggle('sel',c.dataset.id===id));
-  document.getElementById('bn2').disabled=false;
+
+function selClass(id) {
+  CC.cls = id;
+
+  document
+    .querySelectorAll(".clcard")
+    .forEach(c => c.classList.toggle("sel", c.dataset.id === id));
+
+  document.getElementById("bn2").disabled = false;
 }
-function checkStep1(){
-  CC.name=document.getElementById('inp-name').value.trim();
-  document.getElementById('bn1').disabled=!(CC.name.length>=2&&CC.race);
+
+function checkStep1() {
+  CC.name = document.getElementById("inp-name").value.trim();
+  document.getElementById("bn1").disabled =
+    !(CC.name.length >= 2 && CC.race);
 }
- /* function populateRaceGrid() {
-  const grid = document.querySelector("#cc1 .race-grid");
-  if (!grid) {
-    console.warn("populateRaceGrid: .race-grid not found");
-    return;
-  }
-    function populateClassGrid() {
-  const grid = document.querySelector("#cc2 .class-grid");
-  if (!grid) {
-    console.warn("populateClassGrid: .class-grid not found");
-    return;
-  }*/
 
-  if (!window.CLASSES || window.CLASSES.length === 0) {
-    console.warn("populateClassGrid: CLASSES not available");
-    return;
-  }
+/* ---- STEP 1: RACES ---- */
 
-  grid.innerHTML = "";
-
-  for (const cls of window.CLASSES) {
-    const card = document.createElement("div");
-    card.className = "clcard";
-
-    card.innerHTML = `
-      <div class="cl-hd">
-        <div class="cl-ic">${cls.icon ?? "❓"}</div>
-        <div class="cl-nm">${cls.name}</div>
-      </div>
-      <div class="cl-role">${cls.role ?? ""}</div>
-      <div class="cl-desc">${cls.desc ?? ""}</div>
-    `;
-
-    card.onclick = () => {
-      CC.cls = cls;
-      gotoStep(3); // advance to stats
-    };
-
-    grid.appendChild(card);
-  }
-}
 function populateRaceGrid() {
   const grid = document.querySelector("#cc1 .race-grid");
-  if (!grid) {
-    console.warn("populateRaceGrid: .race-grid not found");
-    return;
-  }
-
-  if (!window.RACES || window.RACES.length === 0) {
-    console.warn("populateRaceGrid: RACES not available");
-    return;
-  }
+  if (!grid) return;
+  if (!window.RACES || window.RACES.length === 0) return;
 
   grid.innerHTML = "";
 
@@ -1039,17 +1011,13 @@ function populateRaceGrid() {
 }
 
 window.populateRaceGrid = populateRaceGrid;
+
+/* ---- STEP 2: CLASSES ---- */
+
 function populateClassGrid() {
   const grid = document.querySelector("#cc2 .class-grid");
-  if (!grid) {
-    console.warn("populateClassGrid: .class-grid not found");
-    return;
-  }
-
-  if (!window.CLASSES || window.CLASSES.length === 0) {
-    console.warn("populateClassGrid: CLASSES not available");
-    return;
-  }
+  if (!grid) return;
+  if (!window.CLASSES || window.CLASSES.length === 0) return;
 
   grid.innerHTML = "";
 
@@ -1073,41 +1041,11 @@ function populateClassGrid() {
 }
 
 window.populateClassGrid = populateClassGrid;
-  
 
-// expose to step system
-
-
-  if (!window.RACES || window.RACES.length === 0) {
-    console.warn("populateRaceGrid: RACES not available");
-    return;
-  }
-
-  grid.innerHTML = "";
-
-  for (const race of window.RACES) {
-    const card = document.createElement("div");
-    card.className = "rcard";
-
-    card.innerHTML = `
-      <div class="rice">${race.icon ?? "❓"}</div>
-      <div class="rname">${race.name}</div>
-      <div class="rbonus">${race.bonus ?? ""}</div>
-    `;
-
-    card.onclick = () => {
-      CC.race = race;
-      gotoStep(2); // advance to class selection
-    };
-
-    grid.appendChild(card);
-  }
-}
-
-
+/* ---- STEP CONTROLLER ---- */
 
 function gotoStep(n) {
-  [1,2,3,4].forEach(i => {
+  [1, 2, 3, 4].forEach(i => {
     const pane = document.getElementById("cc" + i);
     if (pane) pane.style.display = i === n ? "block" : "none";
 
@@ -1118,6 +1056,7 @@ function gotoStep(n) {
 
   CC.step = n;
 
+  /* one-time builders only */
   if (n === 1 && !CC._raceBuilt) {
     populateRaceGrid();
     CC._raceBuilt = true;
@@ -1128,9 +1067,11 @@ function gotoStep(n) {
     CC._classBuilt = true;
   }
 
-  if (n === 4) buildConfirm();
+  if (n === 4) {
+    buildConfirm();
+  }
 
-  document.getElementById("screen-create").scrollTop = 0;
+  document.getElementById("screen-create")?.scrollTo(0, 0);
 }
 
 window.gotoStep = gotoStep;
