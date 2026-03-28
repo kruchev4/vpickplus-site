@@ -67,3 +67,28 @@
 
 /* Legendary item glow in world log */
 .log.legendary{border-color:#e8c84a;color:#f0d060;font-weight:bold;}
+/* ══ DUNGEON INVITE POPUP ══ */
+#ov-dungeon-invite{position:fixed;inset:0;background:rgba(0,0,0,.75);
+  display:none;align-items:center;justify-content:center;z-index:220;}
+#ov-dungeon-invite.active{display:flex;}
+.dinv-box{background:linear-gradient(160deg,#1a0a2e,#0a0618);
+  border:2px solid #8040cc;max-width:420px;width:90%;padding:0;
+  box-shadow:0 0 50px rgba(120,40,200,.4);animation:csIn .3s ease both;}
+.dinv-header{padding:14px 20px;border-bottom:1px solid #3a1870;text-align:center;}
+.dinv-title{font-family:'Cinzel Decorative',serif;font-size:1rem;color:#c090ff;
+  text-shadow:0 0 14px rgba(160,80,255,.4);}
+.dinv-body{padding:16px 20px;text-align:center;}
+.dinv-who{font-size:.9rem;color:var(--parch);margin-bottom:4px;}
+.dinv-camp{font-family:'Cinzel',serif;font-size:1.1rem;color:#d0a0ff;margin-bottom:8px;font-weight:600;}
+.dinv-desc{font-size:.78rem;color:var(--parch-dk);font-style:italic;margin-bottom:16px;line-height:1.5;}
+.dinv-timer{height:4px;background:#2a1040;margin-bottom:14px;overflow:hidden;}
+.dinv-timer-fill{height:100%;background:linear-gradient(90deg,#5020a0,#c090ff);
+  transition:width .1s linear;}
+.dinv-btns{display:flex;gap:10px;justify-content:center;}
+.dinv-btn{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:2px;
+  text-transform:uppercase;padding:10px 22px;border:1px solid;
+  cursor:pointer;background:transparent;transition:all .2s;}
+.dinv-btn.join{border-color:#8040cc;color:#c090ff;}
+.dinv-btn.join:hover{background:rgba(80,32,160,.2);}
+.dinv-btn.decline{border-color:var(--border-b);color:var(--parch-dk);}
+.dinv-btn.decline:hover{border-color:var(--parch-dk);color:var(--parch);}
