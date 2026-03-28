@@ -8891,6 +8891,8 @@ function csLoadCharacter(idx){
   if(!save){ toast('Save not found','err'); console.error('No save at idx',idx,'_csSaves:',window._csSaves); return; }
   const data = save.cloudData || save.data;
   console.log('[Load] Loading save:', save.name, 'version:', data?.version, 'hasG:', !!data?.G);
+  GameState.player.x = Number(G.x);
+GameState.player.y = Number(G.y);
   const ok = _applyRawSave(data);
   if(!ok){ 
     toast('Could not load — save corrupted.','err'); 
