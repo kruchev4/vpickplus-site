@@ -3698,7 +3698,7 @@ function render() {
   drawMinimap();
 }*/
 
-function drawTile(tx,ty,sx,sy){
+/*function drawTile(tx,ty,sx,sy){
   if(tx<0||tx>=MAP_W||ty<0||ty>=MAP_H){
     // Endless ocean beyond the map edge — animated deep water
     const wx=(tx+1000)*TILE, wy=(ty+1000)*TILE;
@@ -3790,7 +3790,7 @@ function buildMinimapTerrain(){
   // Save as ImageData cache
   _mmTerrainCache = mmCtx.getImageData(0,0,MW,MH);
 }
-
+*/
 function drawMinimap(){
   if(!mmImgData) return;
   const MW=170,MH=128;
