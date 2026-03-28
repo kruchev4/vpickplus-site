@@ -6106,6 +6106,7 @@ function csNewCharacter(){
   document.getElementById('screen-charselect').classList.remove('active');
   document.getElementById('screen-create').classList.add('active');
   document.getElementById('screen-create').scrollTop=0;
+  showCharSelect();
 }
 
 async function csDeleteSave(idx, btn){
@@ -6728,16 +6729,7 @@ initFirebase();
 })();
 
 // Show character select — wrapped in rAF to ensure DOM is ready
-requestAnimationFrame(()=>{
-  const el = document.getElementById('screen-charselect');
-  if(el){
-    el.classList.add('active');
-    showCharSelect();
-  } else {
-    // Fallback: go straight to character creation
-    document.getElementById('screen-create').classList.add('active');
-  }
-});
+
 function showLoadingScreen(msg){
   let el = document.getElementById('loading-screen');
   if(!el){
