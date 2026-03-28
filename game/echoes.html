@@ -7169,6 +7169,7 @@ function showNewCharConfirm(){
 let lastFrame=0,moveAcc=0;
 function gameLoop(ts){
   resizeCanvasToDisplaySize(worldCanvas);
+  console.log("gameLoop tick", performance.now());
   // No auto-unstick — use Menu → Return to World if stuck
   const dt=Math.min(ts-lastFrame, 250);lastFrame=ts; // cap dt
   if(!G.inCombat&&!G.inTown){
