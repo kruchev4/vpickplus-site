@@ -1,1 +1,32 @@
 
+/* ── LEVEL UP ── */
+.lvlup-box{background:linear-gradient(180deg,#1a1408,#0d0a02);border:2px solid var(--gold-b);max-width:440px;width:90%;padding:32px;text-align:center;box-shadow:0 0 50px var(--gold-glow),0 0 100px rgba(201,146,42,.15);animation:lvlIn .5s ease;}
+@keyframes lvlIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.lvl-title{font-family:'Cinzel Decorative',serif;font-size:1.8rem;color:var(--gold-b);text-shadow:0 0 20px var(--gold-glow);margin-bottom:6px;}
+.lvl-sub{font-size:.85rem;color:var(--parch-dk);font-style:italic;margin-bottom:20px;}
+.lvl-gains{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.lvl-gain{display:flex;justify-content:space-between;padding:7px 12px;border:1px solid var(--border-b);font-size:.82rem;}
+.lg-label{color:var(--parch-dk);}.lg-val{color:var(--gold-b);font-family:'Cinzel',serif;}
+.stat-gain{border-top:1px solid var(--border);padding-top:14px;}
+.stat-gain-title{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;}
+.sg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px;}
+.sg-item{border:1px solid var(--border);padding:6px;text-align:center;}
+.sg-name{font-size:.55rem;color:var(--parch-dk);letter-spacing:1px;text-transform:uppercase;}
+.sg-val{font-family:'Cinzel',serif;font-size:.9rem;color:var(--gold-b);}
+
+/* ── DEATH ── */
+.death-box{background:linear-gradient(180deg,#0a0402,#060300);border:2px solid var(--blood);max-width:400px;width:90%;padding:32px;text-align:center;box-shadow:0 0 50px rgba(139,26,26,.5);}
+.death-title{font-family:'Cinzel Decorative',serif;font-size:2rem;color:var(--blood-b);text-shadow:0 0 20px rgba(192,57,43,.5);margin-bottom:8px;}
+.death-desc{font-size:.9rem;color:var(--parch-dk);font-style:italic;margin-bottom:20px;line-height:1.6;}
+.death-stats{font-size:.8rem;color:var(--parch-dk);margin-bottom:20px;}
+.death-stats span{color:var(--parch);font-family:'Cinzel',serif;}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(12,6,2,.97);border:1px solid var(--gold);padding:8px 20px;font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:2px;color:var(--gold-b);opacity:0;transition:all .3s;z-index:999;pointer-events:none;white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.err{border-color:var(--blood-b);color:#e07070;}
+
+@media(max-width:700px){
+  #left-panel,#right-panel{display:none;}
+  .stats-grid,.confirm-lay{grid-template-columns:1fr;}
+}
