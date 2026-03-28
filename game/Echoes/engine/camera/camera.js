@@ -1,3 +1,4 @@
+import { GameState } from "../state/GameState.js";
 export function updateCamera() {
   const cam = GameState.camera;
   const p = GameState.player;
