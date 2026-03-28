@@ -1844,6 +1844,7 @@ function startGame() {
   // Switch UI screens
   document.getElementById("screen-create")?.classList.remove("active");
   document.getElementById("screen-game")?.classList.add("active");
+  startGameLoop();
 
   // Signal engine readiness
   window.engineReady = true;
@@ -7167,6 +7168,14 @@ function showNewCharConfirm(){
 // ║                  GAME LOOP                          ║
 // ╚══════════════════════════════════════════════════════╝
 let lastFrame=0,moveAcc=0;
+let engineRunning = false;
+  
+function startGameLoop() {
+  if (engineRunning) return;
+  engineRunning = true;
+  requestAnimationFrame(gameLoop);
+}
+
 function gameLoop(ts){
   resizeCanvasToDisplaySize(worldCanvas);
   console.log("gameLoop tick", performance.now());
