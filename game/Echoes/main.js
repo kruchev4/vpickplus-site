@@ -205,3 +205,7 @@ window.dispatchEvent(new Event("engine-ready"));
 window.startEngine = startEngine;
 
 console.log("✅ main.js loaded");
+// main.js — LAST LINE
+if (window.startApp) {
+  window.startApp();
+}
