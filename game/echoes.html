@@ -37,74 +37,6 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 
 
 
-/* ══════════════════════════════════════
-   GAME SCREEN
-══════════════════════════════════════ */
-/* Game screen layout */
-#screen-game {
-  display: flex;
-  flex-direction: row;
-  background: #050302;
-  width: 100%;
-  height: 100%;
-}
-
-/* Left UI panel */
-#left-panel {
-  width: 190px;
-  flex-shrink: 0;
-  background: linear-gradient(180deg, #110b05, #0a0702);
-  border-right: 1px solid #3a2a15;
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-  gap: 10px;
-}
-
-/* Canvas container */
-#canvas-wrap {
-  position: relative;           /* ✅ critical */
-  flex: 1;                      /* ✅ fills remaining space */
-  overflow: hidden;              /* ✅ prevents scrollbars */
-  z-index: 1;
-}
-
-/* World canvas */
-#world-cv {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  z-index: 2;
-  pointer-events: auto;
-}
-#world-cv{image-rendering:pixelated;}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 </style>
@@ -747,166 +679,7 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 <style>
 
 
-/* ════════════════════════════════════════════
-   CHARACTER SELECT SCREEN
-════════════════════════════════════════════ */
-#screen-charselect{
-  flex-direction:column;align-items:center;justify-content:flex-start;
-  background:radial-gradient(ellipse at 50% 0%,#120a04 0%,#060300 60%);
-  overflow-y:auto;padding:40px 20px 60px;z-index:20;
-}
-#screen-charselect.active{ display:flex; }
 
-.cs-wrap{
-  position:relative;z-index:2;width:100%;max-width:520px;
-}
-
-/* ── Title ── */
-.cs-header{text-align:center;margin-bottom:32px;}
-.cs-game-title{
-  font-family:'Cinzel Decorative',serif;
-  font-size:clamp(.85rem,2.2vw,1.1rem);
-  letter-spacing:8px;color:var(--parch-dk);
-  text-shadow:0 0 40px rgba(201,162,39,.2);
-  margin-bottom:4px;
-}
-.cs-screen-title{
-  font-family:'Cinzel',serif;font-size:.7rem;
-  letter-spacing:6px;text-transform:uppercase;
-  color:var(--border-b);margin-bottom:12px;
-}
-.cs-divider{
-  display:flex;align-items:center;gap:12px;margin-bottom:0;
-}
-.cs-divider::before,.cs-divider::after{
-  content:'';flex:1;height:1px;background:var(--border);
-}
-.cs-divider-text{
-  font-size:.6rem;letter-spacing:4px;color:var(--border-b);
-}
-
-/* ── Loading ── */
-.cs-loading{
-  text-align:center;padding:48px 20px;
-  font-family:'Cinzel',serif;font-size:.75rem;
-  letter-spacing:3px;color:var(--parch-dk);
-  animation:csPulse 1.4s ease infinite alternate;
-}
-@keyframes csPulse{from{opacity:.4}to{opacity:1}}
-
-/* ── Slot list ── */
-.char-slots{
-  display:flex;flex-direction:column;gap:8px;
-  margin:20px 0;width:100%;
-}
-
-/* ── Single character card ── */
-.char-slot{
-  border:1px solid var(--border);
-  background:linear-gradient(135deg,rgba(20,12,4,.9),rgba(10,6,2,.95));
-  padding:16px 18px;cursor:pointer;
-  transition:border-color .2s,background .2s;
-  display:flex;align-items:center;gap:14px;
-  position:relative;overflow:hidden;
-}
-.char-slot::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;
-  width:3px;background:var(--gold);opacity:0;transition:opacity .2s;
-}
-.char-slot:hover{
-  border-color:var(--gold);
-  background:linear-gradient(135deg,rgba(30,18,6,.95),rgba(15,9,3,.98));
-}
-.char-slot:hover::before{opacity:1;}
-
-.csl-icon{
-  font-size:2.4rem;flex-shrink:0;
-  filter:drop-shadow(0 2px 8px rgba(0,0,0,.5));
-}
-.csl-info{flex:1;min-width:0;}
-.csl-name{
-  font-family:'Cinzel',serif;font-size:.92rem;
-  color:var(--gold-b);letter-spacing:1px;margin-bottom:3px;
-}
-.csl-meta{
-  font-size:.7rem;color:var(--parch-dk);margin-bottom:6px;
-}
-.csl-hp-bar{
-  display:flex;align-items:center;gap:8px;margin-bottom:4px;
-}
-.csl-hp-track{
-  flex:1;height:4px;background:rgba(0,0,0,.5);
-  border:1px solid rgba(255,255,255,.06);overflow:hidden;
-}
-.csl-hp-fill{height:100%;transition:width .3s;}
-.csl-hp-num{font-size:.55rem;color:var(--parch-dk);white-space:nowrap;}
-.csl-progress{font-size:.62rem;color:var(--border-b);font-style:italic;}
-.csl-saved{
-  font-size:.58rem;color:var(--border-b);
-  margin-top:4px;
-}
-
-.csl-actions{
-  display:flex;flex-direction:column;gap:6px;flex-shrink:0;
-}
-.csl-btn{
-  font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:1px;
-  padding:7px 14px;border:1px solid;cursor:pointer;
-  background:transparent;transition:all .2s;white-space:nowrap;
-  min-width:70px;text-align:center;
-}
-.csl-btn.play{border-color:var(--gold);color:var(--gold-b);}
-.csl-btn.play:hover{background:rgba(201,162,39,.15);}
-.csl-btn.del{border-color:var(--border);color:var(--parch-dk);}
-.csl-btn.del:hover{border-color:var(--blood-b);color:#e07070;}
-
-/* ── Empty state ── */
-.cs-empty{
-  text-align:center;padding:40px 20px;
-  color:var(--parch-dk);font-size:.82rem;
-  font-style:italic;line-height:2;border:1px dashed var(--border);
-  margin-bottom:8px;
-}
-.cs-empty small{
-  display:block;font-size:.68rem;color:var(--border-b);
-  font-style:normal;margin-top:8px;
-}
-
-/* ── New character button ── */
-.cs-new-btn{
-  display:block;width:100%;
-  font-family:'Cinzel',serif;font-size:.72rem;
-  letter-spacing:3px;text-transform:uppercase;
-  padding:15px;border:1px solid var(--border-b);
-  color:var(--parch-dk);background:transparent;
-  cursor:pointer;transition:all .2s;text-align:center;
-  margin-top:8px;
-}
-.cs-new-btn:hover{
-  border-color:var(--gold);color:var(--gold-b);
-  background:rgba(201,162,39,.06);
-}
-
-/* ── Token row ── */
-.cs-token-row{
-  display:flex;align-items:center;justify-content:center;
-  flex-wrap:wrap;gap:6px;
-  text-align:center;margin-top:20px;
-  font-size:.58rem;color:var(--border-b);
-  padding-top:16px;border-top:1px solid var(--border);
-}
-.cs-token-label{font-style:italic;}
-.cs-token-val{
-  font-family:'Courier New',monospace;
-  color:var(--parch-dk);letter-spacing:1px;
-}
-.cs-token-btn{
-  font-family:'Cinzel',serif;font-size:.56rem;
-  padding:3px 10px;border:1px solid var(--border);
-  color:var(--border-b);background:transparent;
-  cursor:pointer;transition:all .2s;
-}
-.cs-token-btn:hover{border-color:var(--parch-dk);color:var(--parch-dk);}
 
 
 </style>
@@ -6754,23 +6527,21 @@ function startGameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+import { renderMap } from "./engine/render/render.js";
+import { GameState } from "./engine/state/GameState.js";
+
 function gameLoop(ts) {
-  // --- resize canvas buffer to match CSS size ---
   resizeCanvasToDisplaySize(worldCanvas);
 
-  // IMPORTANT: reset transforms after resize
   worldCtx.setTransform(1, 0, 0, 1, 0, 0);
-
-  // Clear frame
   worldCtx.clearRect(0, 0, worldCanvas.width, worldCanvas.height);
 
-  // --- timing ---
   const dt = Math.min(ts - lastFrame, 250);
   lastFrame = ts;
 
   console.log("gameLoop tick", ts);
 
-  // --- movement/update ---
+  // --- update / movement ---
   if (!G.inCombat && !G.inTown) {
     moveAcc += dt;
 
@@ -6797,10 +6568,21 @@ function gameLoop(ts) {
   }
 
   // --- render ---
-  // Draw every frame (do NOT gate rendering during debugging)
-  render(worldCtx);
+  if (GameState.activeMap && GameState.camera && GameState.player) {
+    renderMap(
+      worldCtx,
+      GameState.activeMap,
+      GameState.camera,
+      [
+        {
+          x: GameState.player.x,
+          y: GameState.player.y,
+          color: "#ffd700"
+        }
+      ]
+    );
+  }
 
-  // --- loop ---
   requestAnimationFrame(gameLoop);
 }
 
