@@ -973,6 +973,44 @@ function checkStep1(){
     console.warn("populateRaceGrid: .race-grid not found");
     return;
   }
+    function populateClassGrid() {
+  const grid = document.querySelector("#cc2 .class-grid");
+  if (!grid) {
+    console.warn("populateClassGrid: .class-grid not found");
+    return;
+  }
+
+  if (!window.CLASSES || window.CLASSES.length === 0) {
+    console.warn("populateClassGrid: CLASSES not available");
+    return;
+  }
+
+  grid.innerHTML = "";
+
+  for (const cls of window.CLASSES) {
+    const card = document.createElement("div");
+    card.className = "clcard";
+
+    card.innerHTML = `
+      <div class="cl-hd">
+        <div class="cl-ic">${cls.icon ?? "❓"}</div>
+        <div class="cl-nm">${cls.name}</div>
+      </div>
+      <div class="cl-role">${cls.role ?? ""}</div>
+      <div class="cl-desc">${cls.desc ?? ""}</div>
+    `;
+
+    card.onclick = () => {
+      CC.cls = cls;
+      gotoStep(3); // advance to stats
+    };
+
+    grid.appendChild(card);
+  }
+}
+
+// expose to step system
+window.populateClassGrid = populateClassGrid;
 
   if (!window.RACES || window.RACES.length === 0) {
     console.warn("populateRaceGrid: RACES not available");
@@ -1013,17 +1051,12 @@ function gotoStep(n) {
 
   CC.step = n;
 
-  // ✅ STEP‑1 INITIALIZATION LIVES HERE
-  if (n === 1) {
-    populateRaceGrid();
-  }
-
+  if (n === 1) window.populateRaceGrid();
+  if (n === 2) window.populateClassGrid();
   if (n === 4) buildConfirm();
 
   document.getElementById('screen-create').scrollTop = 0;
 }
-
-// ✅ ensure global access
 window.gotoStep = gotoStep;
 
 
