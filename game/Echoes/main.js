@@ -1,13 +1,9 @@
-import { RACES } from "./engine/data/races.js";
-window.RACES = RACES;
-window.CLASSES = CLASSES;
-import { loadMap } from "./engine/supabase/mapLoader.js";
-import { GameState } from "./engine/state/GameState.js";
-import { renderMap } from "./engine/render/renderer.js";
-import { updateCamera } from "./engine/camera/camera.js";
-import { tryMove } from "./engine/movement/movement.js";
-import { playSound, toggleSound } from "./engine/audio/SoundEngine.js";
+/* ===============================
+   ENGINE BOOTSTRAP (MODULE)
+   =============================== */
 
+/* ---------- Engine Data ---------- */
+import { RACES } from "./engine/data/races.js";
 import { CLASSES } from "./engine/data/classes.js";
 import { STAT_DEFS } from "./engine/data/stats.js";
 import { MONSTERS } from "./engine/data/monsters.js";
@@ -19,6 +15,16 @@ import {
 import { CLASS_ABILITIES } from "./engine/data/abilities/classAbilities.js";
 import { TOWNS } from "./engine/data/world/towns.js";
 import { CRAFT_RECIPES } from "./engine/data/crafting/recipes.js";
+
+/* ---------- Engine Core ---------- */
+import { GameState } from "./engine/state/GameState.js";
+import { loadMap } from "./engine/supabase/mapLoader.js";
+import { renderMap } from "./engine/render/renderer.js";
+import { updateCamera } from "./engine/camera/camera.js";
+import { tryMove } from "./engine/movement/movement.js";
+import { playSound, toggleSound } from "./engine/audio/SoundEngine.js";
+
+/* ---------- UI Modules ---------- */
 import {
   openCharSheet,
   closeCharSheet,
@@ -29,7 +35,7 @@ import {
   openGameMenu,
   closeGameMenu,
   menuResume,
-  //menuSave,
+  menuSave,
   menuShowSyncInfo,
   menuPauseCampaign,
   menuExitCampaign,
@@ -37,6 +43,11 @@ import {
   menuNewChar
 } from "./ui/gameMenu.js";
 
+/* ===============================
+   LEGACY GLOBAL BRIDGES (INTENTIONAL)
+   =============================== */
+
+/* --- UI bridges --- */
 Object.assign(window, {
   openGameMenu,
   closeGameMenu,
@@ -46,121 +57,143 @@ Object.assign(window, {
   menuPauseCampaign,
   menuExitCampaign,
   menuReturnToWorld,
-  menuNewChar
+  menuNewChar,
+
+  openCharSheet,
+  closeCharSheet,
+  populateCharSheet,
+
+  playSound,
+  toggleSound
 });
-import { menuSave } from "./ui/gameMenu.js";
-//import { renderMap } from "./engine/render/render.js";
-//import { GameState } from "./engine/state/GameState.js";
 
+/* --- Data bridges --- */
+Object.assign(window, {
+  RACES,
+  CLASSES,
+  STAT_DEFS,
+  MONSTERS,
+  CLASS_ABILITIES,
+  TOWNS,
+  CRAFT_RECIPES,
+  LEGENDARY_ITEMS,
+  RARE_ITEMS,
+  UNCOMMON_LOOT: UNCOMMON_ITEMS
+});
 
-// Legacy bridge (temporary)
-window.menuSave = menuSave;
-
-// Temporary legacy bridge
-window.openCharSheet = openCharSheet;
-window.closeCharSheet = closeCharSheet;
-window.populateCharSheet = populateCharSheet;
-
-
-// Temporary legacy bridge
-window.CRAFT_RECIPES = CRAFT_RECIPES;
-
-
-// Temporary legacy bridge
-window.TOWNS = TOWNS;
-
-window.CLASS_ABILITIES = CLASS_ABILITIES;
-
-window.LEGENDARY_ITEMS = LEGENDARY_ITEMS;
-window.RARE_ITEMS = RARE_ITEMS;
-window.UNCOMMON_LOOT = UNCOMMON_ITEMS;
-// Legacy bridge — REMOVE later when UI is migrated
-window.RACES = RACES;
-window.CLASSES = CLASSES;
-
-window.STAT_DEFS = STAT_DEFS;
-window.MONSTERS = MONSTERS;
-
-
-
-window.playSound = playSound;
-window.toggleSound = toggleSound;
-console.log("✅ main.js loaded");
-console.log("RACES in main.js:", RACES);
-// Legacy compatibility stub — REMOVE once HUD is migrated
+/* Legacy HUD compatibility stub */
 window.worldMap = {
-  width: GameState.activeMap?.width ?? 0,
-  height: GameState.activeMap?.height ?? 0,
-  getTile(x, y) {
-    return null; // legacy HUD should not depend on tile data anymore
-  },
+  width: 0,
+  height: 0,
+  getTile() {
+    return null;
+  }
 };
 
+/* ===============================
+   CANVAS + ENGINE LOOP
+   =============================== */
+
+let canvas;
 let ctx;
+let engineRunning = false;
+let lastFrame = 0;
 
-async function initGame() {
-  const canvas = document.getElementById("world-cv");
+/* Resize canvas buffer to match CSS */
+function resizeCanvasToDisplaySize(canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
 
-  if (!canvas) {
-    throw new Error("❌ NO CANVAS with id='world-cv' found");
+  const width = Math.floor(rect.width * dpr);
+  const height = Math.floor(rect.height * dpr);
+
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
+    return true;
   }
+  return false;
+}
+
+/* ===============================
+   GAME LOOP (SOLE RAF OWNER)
+   =============================== */
+
+function gameLoop(ts) {
+  resizeCanvasToDisplaySize(canvas);
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const dt = Math.min(ts - lastFrame, 250);
+  lastFrame = ts;
+
+  updateCamera();
+
+  if (GameState.activeMap && GameState.camera && GameState.player) {
+    renderMap(
+      ctx,
+      GameState.activeMap,
+      GameState.camera,
+      [{
+        x: GameState.player.x,
+        y: GameState.player.y,
+        color: "#ff00ff"
+      }]
+    );
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+/* ===============================
+   ENGINE STARTUP
+   =============================== */
+
+async function startEngine() {
+  if (engineRunning) return;
+  engineRunning = true;
+
+  canvas = document.getElementById("world-cv");
+  if (!canvas) throw new Error("Canvas #world-cv not found");
 
   ctx = canvas.getContext("2d");
-
-  if (!ctx) {
-    throw new Error("❌ Failed to get 2D context");
-  }
-
-  console.log("[DEBUG] Canvas found:", canvas);
-  console.log("[DEBUG] Canvas size:", canvas.width, canvas.height);
+  if (!ctx) throw new Error("Failed to acquire 2D context");
 
   GameState.camera.w = canvas.width;
   GameState.camera.h = canvas.height;
 
   GameState.activeMap = await loadMap("overworld_generated");
 
+  /* Legacy HUD info */
+  window.worldMap.width = GameState.activeMap.width;
+  window.worldMap.height = GameState.activeMap.height;
+
   setupInput();
-  gameLoop();
+
+  window.engineReady = true;
+  console.log("✅ Engine ready");
+
+  requestAnimationFrame(gameLoop);
 }
 
+/* ===============================
+   INPUT (ENGINE-OWNED)
+   =============================== */
 
 function setupInput() {
-  window.addEventListener("keydown", (e) => {
+  window.addEventListener("keydown", e => {
     if (e.key === "ArrowUp") tryMove(0, -1);
     if (e.key === "ArrowDown") tryMove(0, 1);
     if (e.key === "ArrowLeft") tryMove(-1, 0);
     if (e.key === "ArrowRight") tryMove(1, 0);
   });
-
-  // Click-to-move handled separately
 }
 
-function gameLoop() {
-  
-  
+/* ===============================
+   EXPOSE ENGINE START
+   =============================== */
 
-  updateCamera();
+window.startEngine = startEngine;
 
- 
-  renderMap(
-    ctx,
-    GameState.activeMap,
-    GameState.camera,
-    [
-      {
-        x: GameState.player.x,
-        y: GameState.player.y,
-        color: "#ff00ff"
-      }
-    ]
-  );
-  // main.js
-window.engineReady = true;
-//console.log("✅ Engine ready");
-
- 
-  requestAnimationFrame(gameLoop);
-}
-
-initGame();
-document.getElementById("canvas-wrap").style.display = "block";
+console.log("✅ main.js loaded");
