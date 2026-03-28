@@ -1474,6 +1474,14 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 
 
 'use strict';
+const worldCanvas = document.getElementById("world-cv");
+  
+let lastFrame = performance.now();
+
+// Engine guard
+let engineRunning = false;
+
+const worldCtx = worldCanvas.getContext("2d
 
 function resizeCanvasToDisplaySize(canvas) {
   const rect = canvas.getBoundingClientRect();
@@ -7180,24 +7188,53 @@ function startGameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-function gameLoop(ts){
+function gameLoop(ts) {
+  // --- resize canvas buffer to match CSS size ---
   resizeCanvasToDisplaySize(worldCanvas);
-  console.log("gameLoop tick", performance.now());
-  // No auto-unstick — use Menu → Return to World if stuck
-  const dt=Math.min(ts-lastFrame, 250);lastFrame=ts; // cap dt
-  if(!G.inCombat&&!G.inTown){
-    moveAcc+=dt;
-    if(moveAcc>=MOVE_MS){
-      moveAcc=0;
-      const _anyKey=keys['ArrowUp']||keys['w']||keys['W']||keys['ArrowDown']||keys['s']||keys['S']||keys['ArrowLeft']||keys['a']||keys['A']||keys['ArrowRight']||keys['d']||keys['D'];
-      if(_anyKey&&_clickMoveTimer){clearInterval(_clickMoveTimer);_clickMoveTimer=null;_clickPath=[];}
-      if(keys['ArrowUp']||keys['w']||keys['W'])tryMove(0,-1);
-      else if(keys['ArrowDown']||keys['s']||keys['S'])tryMove(0,1);
-      else if(keys['ArrowLeft']||keys['a']||keys['A'])tryMove(-1,0);
-      else if(keys['ArrowRight']||keys['d']||keys['D'])tryMove(1,0);
+
+  // IMPORTANT: reset transforms after resize
+  worldCtx.setTransform(1, 0, 0, 1, 0, 0);
+
+  // Clear frame
+  worldCtx.clearRect(0, 0, worldCanvas.width, worldCanvas.height);
+
+  // --- timing ---
+  const dt = Math.min(ts - lastFrame, 250);
+  lastFrame = ts;
+
+  console.log("gameLoop tick", ts);
+
+  // --- movement/update ---
+  if (!G.inCombat && !G.inTown) {
+    moveAcc += dt;
+
+    if (moveAcc >= MOVE_MS) {
+      moveAcc = 0;
+
+      const anyKey =
+        keys["ArrowUp"] || keys["w"] || keys["W"] ||
+        keys["ArrowDown"] || keys["s"] || keys["S"] ||
+        keys["ArrowLeft"] || keys["a"] || keys["A"] ||
+        keys["ArrowRight"] || keys["d"] || keys["D"];
+
+      if (anyKey && _clickMoveTimer) {
+        clearInterval(_clickMoveTimer);
+        _clickMoveTimer = null;
+        _clickPath = [];
+      }
+
+      if (keys["ArrowUp"] || keys["w"] || keys["W"]) tryMove(0, -1);
+      else if (keys["ArrowDown"] || keys["s"] || keys["S"]) tryMove(0, 1);
+      else if (keys["ArrowLeft"] || keys["a"] || keys["A"]) tryMove(-1, 0);
+      else if (keys["ArrowRight"] || keys["d"] || keys["D"]) tryMove(1, 0);
     }
   }
-  if(ts%1000<dt+16)render(); // periodic re-render for water/portal animations (1fps)
+
+  // --- render ---
+  // Draw every frame (do NOT gate rendering during debugging)
+  render(worldCtx);
+
+  // --- loop ---
   requestAnimationFrame(gameLoop);
 }
 
