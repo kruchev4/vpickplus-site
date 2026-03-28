@@ -54,9 +54,7 @@ function gameLoop() {
     ]
   );
 
-  requestAnimationFrame(gameLoop);
-}
-
+ 
   requestAnimationFrame(gameLoop);
 }
 
