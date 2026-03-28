@@ -6569,6 +6569,8 @@ function gameLoop(ts) {
 
   // --- render ---
   if (GameState.activeMap && GameState.camera && GameState.player) {
+    worldCtx.fillStyle = "#111";
+worldCtx.fillRect(0, 0, worldCanvas.width, worldCanvas.height);
     renderMap(
       worldCtx,
       GameState.activeMap,
