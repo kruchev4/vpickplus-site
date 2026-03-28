@@ -4,6 +4,9 @@ import { renderMap } from "./engine/render/renderer.js";
 import { updateCamera } from "./engine/camera/camera.js";
 import { tryMove } from "./engine/movement/movement.js";
 import { playSound, toggleSound } from "./engine/audio/SoundEngine.js";
+import { RACES } from "./engine/data/races.js";
+import { CLASSES } from "./engine/data/classes.js";
+
 
 
 window.playSound = playSound;
