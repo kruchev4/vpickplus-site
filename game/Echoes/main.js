@@ -1,10 +1,11 @@
+import { RACES } from "./engine/data/races.js";
 import { loadMap } from "./engine/supabase/mapLoader.js";
 import { GameState } from "./engine/state/GameState.js";
 import { renderMap } from "./engine/render/renderer.js";
 import { updateCamera } from "./engine/camera/camera.js";
 import { tryMove } from "./engine/movement/movement.js";
 import { playSound, toggleSound } from "./engine/audio/SoundEngine.js";
-import { RACES } from "./engine/data/races.js";
+
 import { CLASSES } from "./engine/data/classes.js";
 import { STAT_DEFS } from "./engine/data/stats.js";
 import { MONSTERS } from "./engine/data/monsters.js";
