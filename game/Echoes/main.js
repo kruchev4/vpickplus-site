@@ -70,3 +70,4 @@ function gameLoop() {
 }
 
 initGame();
+document.getElementById("canvas-wrap").style.display = "block";
