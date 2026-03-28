@@ -7140,6 +7140,13 @@ function _applyRawSave(save) {
 
     window.G.cls =
       window.CLASSES?.find(c => c.id === window.G.cls?.id) || window.G.cls;
+    
+console.error("[Load] Invalid race/class after restore", {
+    race: window.G.race,
+    cls: window.G.cls,
+    races: window.RACES?.map(r => r.id),
+    classes: window.CLASSES?.map(c => c.id)
+
 
     if (!window.G.race || !window.G.cls) return false;
 
