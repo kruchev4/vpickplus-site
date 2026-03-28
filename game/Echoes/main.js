@@ -55,10 +55,7 @@ function gameLoop() {
 
   updateCamera();
 
-  // 🔴 DEBUG DRAW
-  ctx.fillStyle = "red";
-  ctx.fillRect(0, 0, 100, 100);
-
+ 
   renderMap(
     ctx,
     GameState.activeMap,
