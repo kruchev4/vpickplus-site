@@ -4,6 +4,7 @@ import { GameState } from "../state/GameState.js";
 const TILE_SIZE = GameState.TILE_SIZE;
 
 export function renderMap(ctx, map, camera, entities = []) {
+  console.log("[renderMap] map:", map?.id, "tiles:", map?.tiles?.length);
   if (!map || !map.tiles) return;
 
   const startX = Math.floor(camera.x / TILE_SIZE);
