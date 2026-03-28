@@ -1296,22 +1296,29 @@ function addLog(msg,type=''){
   box.scrollTop=box.scrollHeight;
 }
  function showCharSelect() {
-   
-  // Hide other screens
+  // HARD STOP if engine data is not ready yet
+  if (!window.__ENGINE_READY__) {
+    console.warn("showCharSelect delayed until engine is ready");
+    window.addEventListener(
+      "engine-ready",
+      () => showCharSelect(),
+      { once: true }
+    );
+    return;
+  }
+
+  // --- SAFE EXECUTION BELOW ---
+
   document.getElementById("screen-game")?.classList.remove("active");
   document.getElementById("screen-menu")?.classList.remove("active");
+  document.getElementById("screen-create")?.classList.add("active");
 
-  // Show character creation screen
-  const create = document.getElementById("screen-create");
-  create?.classList.add("active");
-
-  // ✅ RESET step state (important if returning here)
-  CC._raceBuilt = false;
-  CC._classBuilt = false;
   buildCC();
-  // ✅ ENTER STEP 1
   gotoStep(1);
 }
+
+window.showCharSelect = showCharSelect;
+``
 
 window.showCharSelect = showCharSelect;
 
