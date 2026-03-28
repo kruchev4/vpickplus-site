@@ -37,6 +37,10 @@ function gameLoop() {
 
   updateCamera();
 
+  // 🔴 DEBUG DRAW
+  ctx.fillStyle = "red";
+  ctx.fillRect(0, 0, 100, 100);
+
   renderMap(
     ctx,
     GameState.activeMap,
@@ -45,10 +49,13 @@ function gameLoop() {
       {
         x: GameState.player.x,
         y: GameState.player.y,
-        color: "#ff00ff" // HOT PINK for visibility
+        color: "#ff00ff"
       }
     ]
   );
+
+  requestAnimationFrame(gameLoop);
+}
 
   requestAnimationFrame(gameLoop);
 }
