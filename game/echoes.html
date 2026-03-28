@@ -7113,42 +7113,42 @@ async function loadGameAsync(){
   }
 }
 
-function loadGameLocal(){
-  try{
-    const raw=localStorage.getItem('realmSave');
-    if(!raw) return { ok:false };
-    const ok=_applyRawSave(JSON.parse(raw));
-    return { ok, source:'local' };
-  }catch(e){ return { ok:false }; }
-}
+function _applyRawSave(save) {
+  try {
+    console.log("[Load] Applying raw save:", JSON.parse(JSON.stringify(save)));
 
-function loadGame(){ return loadGameLocal().ok; }
+    if (!save) return false;
 
-function _applyRawSave(save){
-  
-try {
-    console.log("[Load] Applying raw save:", JSON.parse(JSON.stringify(data)));
+    // Handle multiple save formats:
+    // {version:3, G:{...}} — standard local save
+    // {G:{...}}            — cloud save wrapper
+    // {...name, cls...}    — raw G object
+    const gData = save.G || (save.name && save.cls ? save : null);
+    if (!gData) return false;
 
-  if(!save) return false;
-  // Handle multiple save formats:
-  // {version:3, G:{...}} — standard local save
-  // {G:{...}}            — cloud save wrapper
-  // {...name, cls...}    — raw G object
-  const gData = save.G || (save.name && save.cls ? save : null);
-  if(!gData) return false;
-  // Version check — only enforce on versioned saves
-  if(save.version !== undefined && save.version < 2) return false;
-  Object.assign(G, gData);
-  G.race=RACES.find(r=>r.id===G.race?.id)||G.race;
-  G.cls =CLASSES.find(c=>c.id===G.cls?.id)||G.cls;
-  if(!G.race||!G.cls) return false;
-  return true;
-  
-} catch (err) {
-    console.error("[Load] _applyRawSave failed:", err, data);
+    // Version check — only enforce on versioned saves
+    if (save.version !== undefined && save.version < 2) return false;
+
+    // Ensure legacy global exists
+    if (!window.G) window.G = {};
+
+    Object.assign(window.G, gData);
+
+    // Re-link race and class from canonical data tables
+    window.G.race =
+      window.RACES?.find(r => r.id === window.G.race?.id) || window.G.race;
+
+    window.G.cls =
+      window.CLASSES?.find(c => c.id === window.G.cls?.id) || window.G.cls;
+
+    if (!window.G.race || !window.G.cls) return false;
+
+    return true;
+
+  } catch (err) {
+    console.error("[Load] _applyRawSave failed:", err, save);
     throw err;
   }
-
 }
 
 async function listCloudSaves(){
