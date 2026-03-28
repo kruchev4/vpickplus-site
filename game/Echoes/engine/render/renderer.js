@@ -1,6 +1,7 @@
 import { TILE_COLORS } from "../world/constants.js";
+import { GameState } from "../state/GameState.js";
 
-const TILE_SIZE = 32;
+const TILE_SIZE = GameState.TILE_SIZE;
 
 export function renderMap(ctx, map, camera, entities = []) {
   if (!map || !map.tiles) return;
