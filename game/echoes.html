@@ -965,33 +965,114 @@ function toggleSound(){
 // ╚══════════════════════════════════════════════════════╝
 
 // Portal locations on the world map
-const PORTALS=[
-  // Starter lairs near spawn (lv 1-4)
-  {x:56, y:48, campaignId:'goblin_warrens'},
-  {x:128,y:100,campaignId:'bandit_cave'},
-  // Mid-tier (lv 4-8)
-  {x:112,y:44, campaignId:'sunken_throne'},
-  {x:72, y:96, campaignId:'duskwood_siege'},
-  // High tier near corners (lv 8+) — placeholder IDs for future content
-  {x:30, y:30, campaignId:'glacial_tomb'},
-  {x:210,y:28, campaignId:'ashspire'},
-  {x:28, y:150,campaignId:'irondeep'},
-  {x:208,y:152,campaignId:'drowned_citadel'},
-];
+window.PORTALS = [
+    // ── Starter zone (near spawn 120,90) ──────────────────────
+    { x:56,  y:48,  campaignId:'goblin_warrens'  },   // lv 1-3
+    { x:128, y:100, campaignId:'bandit_cave'      },   // lv 1-4
+    { x:100, y:70,  campaignId:'mossy_hollows'    },   // lv 2-5
+    { x:140, y:75,  campaignId:'forest_glades'    },   // lv 2-5
+ 
+    // ── Mid zone ───────────────────────────────────────────────
+    { x:112, y:44,  campaignId:'sunken_throne'    },   // lv 4-7
+    { x:72,  y:96,  campaignId:'duskwood_siege'   },   // lv 4-8
+    { x:95,  y:115, campaignId:'echoing_cavern'   },   // lv 3-6
+    { x:155, y:50,  campaignId:'elders_grove'     },   // lv 3-7
+    { x:160, y:110, campaignId:'sunken_ruins'     },   // lv 4-8
+ 
+    // ── High tier (corners) ────────────────────────────────────
+    { x:30,  y:30,  campaignId:'glacial_tomb'     },   // lv 8-12
+    { x:30,  y:30,  campaignId:'frostbound_keep'  },   // lv 7-11  (same area, different portal)
+    { x:210, y:28,  campaignId:'ashspire'         },   // lv 8-12
+    { x:210, y:28,  campaignId:'magma_pit'        },   // lv 6-10
+    { x:28,  y:150, campaignId:'irondeep'         },   // lv 8-12
+    { x:28,  y:150, campaignId:'crypt_of_bones'   },   // lv 5-9
+    { x:208, y:152, campaignId:'drowned_citadel'  },   // lv 10-15
+  ];
+ 
+  console.log('[Patch B] ✅ Dungeons wired to Supabase map IDs');
+  console.log('[Patch B]    Available dungeons:', Object.keys(window.DUNGEON_FILES));
 
 
 
-// ── Campaign definitions (keyed by campaignId) ───────────────────────────────
-const CAMPAIGNS = {
-  goblin_warrens:  { id:'goblin_warrens',  name:'The Goblin Warrens',     icon:'👺', type:'lair',     levelRange:[1,3],  players:[1,4], estTime:'1 Session',  desc:'A fetid network of tunnels beneath the farmlands. Goblins have been raiding local villages.',      longDesc:'' },
-  bandit_cave:     { id:'bandit_cave',     name:'Bandit\'s Cave',         icon:'🗡️', type:'lair',     levelRange:[1,4],  players:[1,4], estTime:'1 Session',  desc:'A notorious hideout carved into the cliffs. The Ironmask bandits have stolen a merchant\'s cargo.',  longDesc:'' },
-  sunken_throne:   { id:'sunken_throne',   name:'The Sunken Throne',      icon:'🌊', type:'campaign', levelRange:[4,7],  players:[2,4], estTime:'2-3 Sessions',desc:'An ancient palace, half-swallowed by the sea. Something stirs in the deep chambers.',              longDesc:'' },
-  duskwood_siege:  { id:'duskwood_siege',  name:'Siege of Duskwood',      icon:'🌲', type:'campaign', levelRange:[4,8],  players:[2,4], estTime:'2-3 Sessions',desc:'The forest town of Duskwood is besieged by undead. Hold the walls until dawn.',                     longDesc:'' },
-  glacial_tomb:    { id:'glacial_tomb',    name:'The Glacial Tomb',       icon:'❄️', type:'campaign', levelRange:[8,12], players:[3,4], estTime:'3-4 Sessions',desc:'A frost giant\'s burial vault, sealed for centuries. The seals are breaking.',                     longDesc:'' },
-  ashspire:        { id:'ashspire',        name:'Ashspire',               icon:'🔥', type:'campaign', levelRange:[8,12], players:[3,4], estTime:'3-4 Sessions',desc:'A volcanic tower ruled by a fire cult. They seek to awaken something beneath the mountain.',          longDesc:'' },
-  irondeep:        { id:'irondeep',        name:'Irondeep Mine',          icon:'⛏️', type:'campaign', levelRange:[8,12], players:[3,4], estTime:'3-4 Sessions',desc:'The deepest mine in the realm has gone silent. Only echoes come up from below now.',                  longDesc:'' },
-  drowned_citadel: { id:'drowned_citadel', name:'The Drowned Citadel',    icon:'💀', type:'campaign', levelRange:[10,15],players:[4,4], estTime:'4-5 Sessions',desc:'A legendary fortress sunk into a cursed lake. Only the most powerful dare descend.',                 longDesc:'' },
-};
+window.CAMPAIGNS = {
+    goblin_warrens:  {
+      id:'goblin_warrens',  name:'The Goblin Warrens',     icon:'👺',
+      type:'lair',     levelRange:[1,3],  players:[1,4],
+      estTime:'1 Session',
+      desc:'A fetid network of tunnels beneath the farmlands. Goblins have been raiding local villages.',
+      longDesc:'Venture into the goblin-infested warrens beneath the Ashfield farms. Clear the tunnels and face the Goblin King.'
+    },
+    bandit_cave: {
+      id:'bandit_cave',     name:"Bandit's Cave",           icon:'🗡️',
+      type:'lair',     levelRange:[1,4],  players:[1,4],
+      estTime:'1 Session',
+      desc:"A notorious hideout carved into the cliffs. The Ironmask bandits have stolen a merchant's cargo.",
+      longDesc:''
+    },
+    forest_glades: {
+      id:'forest_glades',   name:'Forest Glades',           icon:'🌲',
+      type:'lair',     levelRange:[2,5],  players:[1,4],
+      estTime:'1 Session',
+      desc:'A haunted grove deep in the Ashenwood. Strange creatures stalk between the ancient trees.',
+      longDesc:''
+    },
+    echoing_cavern: {
+      id:'echoing_cavern',  name:'The Echoing Cavern',      icon:'🦇',
+      type:'lair',     levelRange:[3,6],  players:[1,4],
+      estTime:'1-2 Sessions',
+      desc:'An enormous cavern system that amplifies every sound into terrifying echoes. Something large lives within.',
+      longDesc:''
+    },
+    sunken_throne: {
+      id:'sunken_throne',   name:'The Sunken Throne',       icon:'🌊',
+      type:'campaign', levelRange:[4,7],  players:[2,4],
+      estTime:'2-3 Sessions',
+      desc:'An ancient palace, half-swallowed by the sea. Something stirs in the deep chambers.',
+      longDesc:''
+    },
+    duskwood_siege: {
+      id:'duskwood_siege',  name:'Siege of Duskwood',       icon:'🌲',
+      type:'campaign', levelRange:[4,8],  players:[2,4],
+      estTime:'2-3 Sessions',
+      desc:'The forest town of Duskwood is besieged by undead. Hold the walls until dawn.',
+      longDesc:''
+    },
+    glacial_tomb: {
+      id:'glacial_tomb',    name:'The Glacial Tomb',        icon:'❄️',
+      type:'campaign', levelRange:[8,12], players:[3,4],
+      estTime:'3-4 Sessions',
+      desc:"A frost giant's burial vault, sealed for centuries. The seals are breaking.",
+      longDesc:''
+    },
+    ashspire: {
+      id:'ashspire',        name:'Ashspire',                icon:'🔥',
+      type:'campaign', levelRange:[8,12], players:[3,4],
+      estTime:'3-4 Sessions',
+      desc:'A volcanic tower ruled by a fire cult. They seek to awaken something beneath the mountain.',
+      longDesc:''
+    },
+    irondeep: {
+      id:'irondeep',        name:'Irondeep Mine',           icon:'⛏️',
+      type:'campaign', levelRange:[8,12], players:[3,4],
+      estTime:'3-4 Sessions',
+      desc:'The deepest mine in the realm has gone silent. Only echoes come up from below now.',
+      longDesc:''
+    },
+    drowned_citadel: {
+      id:'drowned_citadel', name:'The Drowned Citadel',     icon:'💀',
+      type:'campaign', levelRange:[10,15],players:[4,4],
+      estTime:'4-5 Sessions',
+      desc:'A legendary fortress sunk into a cursed lake. Only the most powerful dare descend.',
+      longDesc:''
+    },
+    // ── Direct access by Supabase ID ──
+    crypt_of_bones:  { id:'crypt_of_bones',  name:'Crypt of Bones',    icon:'💀', type:'lair', levelRange:[5,9],  players:[1,4], estTime:'1-2 Sessions', desc:'Ancient burial chambers overrun with the restless dead.', longDesc:'' },
+    elders_grove:    { id:'elders_grove',    name:'Elder Grove',       icon:'🌳', type:'lair', levelRange:[3,7],  players:[1,4], estTime:'1 Session',   desc:'A sacred grove corrupted by dark magic.', longDesc:'' },
+    frostbound_keep: { id:'frostbound_keep', name:'Frostbound Keep',   icon:'❄️', type:'lair', levelRange:[7,11], players:[2,4], estTime:'2 Sessions',  desc:'A fortress locked in eternal winter. The dead walk its frozen halls.', longDesc:'' },
+    magma_pit:       { id:'magma_pit',       name:'The Magma Pit',     icon:'🌋', type:'lair', levelRange:[6,10], players:[2,4], estTime:'1-2 Sessions', desc:'A volcanic pit teeming with fire elementals and lava creatures.', longDesc:'' },
+    mossy_hollows:   { id:'mossy_hollows',   name:'Mossy Hollows',     icon:'🍄', type:'lair', levelRange:[2,5],  players:[1,4], estTime:'1 Session',   desc:'A damp labyrinth of caves and hollows, home to fungal horrors.', longDesc:'' },
+    sunken_ruins:    { id:'sunken_ruins',    name:'Sunken Ruins',      icon:'🌊', type:'lair', levelRange:[4,8],  players:[1,4], estTime:'1-2 Sessions', desc:'Partially flooded ruins of an ancient civilization.', longDesc:'' },
+  };
 
 // ── render() stub ─────────────────────────────────────────────────────────────
 // The old monolithic render() was replaced by the engine's RAF game loop in main.js.
@@ -5488,16 +5569,33 @@ function closePortal(){
 }
 
 // Dungeon file map — campaignId → dungeon HTML path
-const DUNGEON_FILES = {
-  'goblin_warrens':  'dungeons/dungeon-goblin-warrens.html',
-  'bandit_cave':     'dungeons/dungeon-bandit-cave.html',
-  'sunken_throne':   'dungeons/dungeon-sunken-throne.html',
-  'duskwood_siege':  'dungeons/dungeon-duskwood-siege.html',
-  'glacial_tomb':    'dungeons/dungeon-glacial-tomb.html',
-  'ashspire':        'dungeons/dungeon-ashspire.html',
-  'irondeep':        'dungeons/dungeon-irondeep.html',
-  'drowned_citadel': 'dungeons/dungeon-drowned-citadel.html',
-};
+window.DUNGEON_FILES = {
+    // ── Starter lairs (Lv 1-3) ──────────────────────────────────
+    'goblin_warrens':  'goblin_warrens',      // 240x180 world map
+    'bandit_cave':     'mossy_hollows',        // best fit for a cave/bandit lair
+    'forest_glades':   'forest_glades',        // 60x60 dungeon
+ 
+    // ── Mid-tier (Lv 4-8) ────────────────────────────────────────
+    'sunken_throne':   'sunken_ruins',         // Sunken Ruins for the Sunken Throne campaign
+    'duskwood_siege':  'elders_grove',         // forest/grove fits dusk-wood siege
+    'echoing_cavern':  'echoing_cavern',       // 60x60 dungeon
+ 
+    // ── High tier (Lv 8+) ────────────────────────────────────────
+    'glacial_tomb':    'frostbound_keep',      // frost/cold theme matches
+    'ashspire':        'magma_pit',            // fire/volcanic theme matches
+    'irondeep':        'crypt_of_bones',       // deep mine → crypt of bones
+    'drowned_citadel': 'sunken_ruins',         // drowned = sunken
+ 
+    // ── Direct IDs (dungeons accessible by their Supabase ID) ──
+    'crypt_of_bones':  'crypt_of_bones',
+    'echoing_cavern':  'echoing_cavern',
+    'elders_grove':    'elders_grove',
+    'forest_glades':   'forest_glades',
+    'frostbound_keep': 'frostbound_keep',
+    'magma_pit':       'magma_pit',
+    'mossy_hollows':   'mossy_hollows',
+    'sunken_ruins':    'sunken_ruins',
+  };
 
 // ── Dungeon entry/exit on same canvas ────────────────────────────────────────
 async function enterDungeon(campaignId) {
