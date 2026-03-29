@@ -34,6 +34,7 @@
 <script src="./Echoes/paperdoll-fix.js"></script>
   <script src="./Echoes/town-map-system.js"></script>
   <script src="patch-v3.js"></script>
+  <script src="patch.js"></script>
  
 
 <title>Realm of Echoes v2.4</title>
@@ -449,7 +450,7 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
     </div>
 
     <!-- Town Overlay -->
-    <div class="overlay" id="ov-town">
+    <!-- <div class="overlay" id="ov-town">
       <div class="town-box">
         <div class="tb-header">
           <div class="tb-name" id="town-name-h">Town</div>
@@ -506,7 +507,7 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
         </div>
         <button class="tb-leave" onclick="leaveTown()">↩ Return to World</button>
       </div>
-    </div>
+    </div> -->
 
     <!-- Level Up Overlay -->
     <div class="overlay" id="ov-levelup">
@@ -3558,10 +3559,9 @@ function addCombatLog(msg,type=''){
 // ╔══════════════════════════════════════════════════════╗
 // ║                    TOWNS                            ║
 // ╚══════════════════════════════════════════════════════╝
-let currentTown=null;
-let openServicePanel=null;
 
-function enterTown(town){
+
+/*function enterTown(town){
   currentTown=town;G.inTown=false;
   document.getElementById('town-name-h').textContent=town.name;
   document.getElementById('town-type-h').textContent=town.type;
@@ -3605,7 +3605,7 @@ function enterTown(town){
   });
   playSound('town');
   addLog(`You enter ${town.name}.`,'disc');
-}
+}*/
 
 function openService(svc){
   if(openServicePanel===svc){
@@ -3672,13 +3672,13 @@ function doTemple(type){
   updateHUD();saveGame();
 }
 
-function leaveTown(){
+/*function leaveTown(){
   document.getElementById('ov-town').classList.remove('active');
   G.inTown=false; G.inCombat=false; openServicePanel=null;
   G.justEnteredTown = false; // allow re-entry after explicit leave
   addLog('You step back into the world.');
   render(); updateHUD();
-}
+}*/
 
 
 // ╔══════════════════════════════════════════════════════╗
