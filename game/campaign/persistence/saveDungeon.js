@@ -14,7 +14,7 @@ export async function saveDungeonToSupabase(dungeon) {
         height: dungeon.height ?? 180,
 
         // jsonb column that actually exists
-        data: dungeon
+        json: dungeon
       },
       { onConflict: "id" }
     );
