@@ -1870,21 +1870,24 @@ function onKey(e){
     if(_menuOpen){ closeGameMenu(); return; }
     if(document.getElementById('ov-inventory')?.classList.contains('active')){ closeInventory(); return; }
     if(charSheetOpen){ closeCharSheet(); return; }
-    if(document.getElementById('ov-item').classList.contains('active')){ closeItemModal(); return; }
-    if(document.getElementById('screen-game').classList.contains('active')) openGameMenu();
+    if(document.getElementById('ov-item')?.classList.contains('active')){ closeItemModal(); return; }
+    if(document.getElementById('screen-game')?.classList.contains('active')) openGameMenu();
     return;
   }
   if((e.key==='m'||e.key==='M') && !G.inCombat &&
-     document.getElementById('screen-game').classList.contains('active')){ openGameMenu(); return; }
+     document.getElementById('screen-game')?.classList.contains('active')){ openGameMenu(); return; }
   if((e.key==='r'||e.key==='R') && !G.inCombat && !G.inTown){ fieldRest(); return; }
   if((e.key==='i'||e.key==='I') && !G.inCombat){
     const invEl=document.getElementById('ov-inventory');
-    if(invEl.classList.contains('active')) closeInventory();
+    if(invEl?.classList.contains('active')) closeInventory();
     else openInventory();
     return;
   }
-  if((e.key==='c'||e.key==='C') && !G.inCombat && document.getElementById('ov-item').style.display!=='flex'){
-    charSheetOpen ? closeCharSheet() : openCharSheet();
+  if((e.key==='c'||e.key==='C') && !G.inCombat){
+    const itemModal = document.getElementById('ov-item');
+    if(!itemModal || itemModal.style.display !== 'flex'){
+      charSheetOpen ? closeCharSheet() : openCharSheet();
+    }
     return;
   }
   keys[e.key]=true;
@@ -1895,13 +1898,18 @@ function tryMove(dx,dy){
 
   // ── Read tile from new engine map ──────────────────────────────────────────
   const _map = window.GameState?.activeMap;
-  const _getTile = (x, y) => _map ? _map.getTile(x, y) : null;
   const _W = _map?.width  || window.MAP_W || 240;
   const _H = _map?.height || window.MAP_H || 180;
 
   // Tile type constants (match constants.js)
   const _T = { GRASS:0, FOREST:1, MOUNTAIN:2, DEEP_WATER:3, SHALLOW:4, TOWN:5, DANGER:6, SAND:7 };
   const _PASSABLE = new Set([0,1,4,5,6,7]); // grass,forest,shallow,town,danger,sand
+
+  // If map not loaded yet, allow movement freely (will render once map loads)
+  const _getTile = (x, y) => {
+    if (!_map) return _T.GRASS; // assume passable until map loads
+    return _map.getTile(x, y);
+  };
 
   // Peers: optimistic local move (client-side prediction) + notify host
   if(!coopIsHost && coopActive && coopConns.length>0){
