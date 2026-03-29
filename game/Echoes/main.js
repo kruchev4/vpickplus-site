@@ -240,14 +240,19 @@ async function startEngine() {
   // Re-link multi to the live G object now that startGame() has set window.G
   if (window.G) multi.G = window.G;
 
-  GameState.activeMap = await loadMap("overworld_generated");
+  try {
+    GameState.activeMap = await loadMap("overworld_generated");
+  } catch (e) {
+    console.error("[startEngine] Map load failed — canvas will be blank:", e.message);
+    // Don't rethrow — game loop still runs, toast shown by mapLoader
+  }
 
-  window.worldMap.width  = GameState.activeMap.width;
-  window.worldMap.height = GameState.activeMap.height;
-
-  // Expose MAP_W / MAP_H so legacy HUD code works
-  window.MAP_W = GameState.activeMap.width;
-  window.MAP_H = GameState.activeMap.height;
+  if (GameState.activeMap) {
+    window.worldMap.width  = GameState.activeMap.width;
+    window.worldMap.height = GameState.activeMap.height;
+    window.MAP_W = GameState.activeMap.width;
+    window.MAP_H = GameState.activeMap.height;
+  }
 
   setupInput();
 
