@@ -2287,10 +2287,18 @@ let moveAccum=0;const MOVE_MS=150;
 function onKey(e){
   // Movement
   if(!G.inCombat && !G.inTown){
-    if(e.key==='ArrowUp'   ||e.key==='w'||e.key==='W'){e.preventDefault();tryMove(0,-1);return;}
-    if(e.key==='ArrowDown' ||e.key==='s'||e.key==='S'){e.preventDefault();tryMove(0, 1);return;}
-    if(e.key==='ArrowLeft' ||e.key==='a'||e.key==='A'){e.preventDefault();tryMove(-1,0);return;}
-    if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){e.preventDefault();tryMove(1, 0);return;}
+    const _moveKeys = {'ArrowUp':true,'ArrowDown':true,'ArrowLeft':true,'ArrowRight':true,'w':true,'W':true,'a':true,'A':true,'s':true,'S':true,'d':true,'D':true};
+    if(_moveKeys[e.key]){
+      e.preventDefault();
+      const now = Date.now();
+      if(now - (window._lastKeyMove||0) < 160) return; // 160ms = ~6 steps/sec, adjust to taste
+      window._lastKeyMove = now;
+      if(e.key==='ArrowUp'   ||e.key==='w'||e.key==='W') tryMove(0,-1);
+      else if(e.key==='ArrowDown' ||e.key==='s'||e.key==='S') tryMove(0, 1);
+      else if(e.key==='ArrowLeft' ||e.key==='a'||e.key==='A') tryMove(-1,0);
+      else if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') tryMove(1, 0);
+      return;
+    }
   }
   // Combat hotkeys
   if(G.inCombat && !combat.playerCasting && ['1','2','3','4','5','6'].includes(e.key)){
