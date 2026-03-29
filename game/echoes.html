@@ -2338,7 +2338,7 @@ function onKey(e){
   keys[e.key]=true;
 }
 function tryMove(dx,dy){
-  if(G.inCombat||G.inTown)return;
+  if(G.inCombat)return;
   // ADD THIS BLOCK right after that line:
 if(window.GameState?.mode==='town'){
   const _tm=window.GameState.activeMap;
