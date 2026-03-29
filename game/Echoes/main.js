@@ -248,6 +248,7 @@ async function startEngine() {
 
   ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Failed to acquire 2D context");
+  window._engineCtx = ctx; // expose for legacy code (ripples etc)
 
   GameState.camera.w = canvas.width;
   GameState.camera.h = canvas.height;
