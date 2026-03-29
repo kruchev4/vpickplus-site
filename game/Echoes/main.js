@@ -201,6 +201,10 @@ function resizeCanvasToDisplaySize(canvas) {
 function gameLoop(ts) {
   resizeCanvasToDisplaySize(canvas);
 
+  // Keep camera dimensions in sync with the actual canvas buffer size
+  GameState.camera.w = canvas.width;
+  GameState.camera.h = canvas.height;
+
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
