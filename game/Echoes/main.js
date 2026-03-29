@@ -51,6 +51,9 @@ Object.assign(window, {
 
 window.worldMap = { width: 0, height: 0, getTile() { return null; } };
 
+// Expose loadMap so echo.html can load dungeons on the same canvas
+window.loadMapById = loadMap;
+
 /* ===============================
   MULTIPLAYER
   =============================== */
