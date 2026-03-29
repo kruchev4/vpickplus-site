@@ -1,1 +1,221 @@
 
+/* ================================
+   Campaign Generator UI – MVP CSS
+   ================================ */
+
+:root {
+  --bg-page: #0f1216;
+  --bg-panel: #171b22;
+  --bg-panel-alt: #1f2530;
+  --border: #2b3240;
+  --text-main: #e6ebf2;
+  --text-muted: #9aa4b2;
+  --accent: #4ea1ff;
+  --accent-warn: #ffb84e;
+  --accent-good: #5bd67a;
+  --danger: #ff5c5c;
+  --radius: 6px;
+  --font-mono: "Consolas", "Courier New", monospace;
+}
+
+/* ================================
+   Base Layout
+   ================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 24px;
+  background: var(--bg-page);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+    sans-serif;
+}
+
+h1, h2 {
+  margin-top: 0;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 1.8rem;
+  margin-bottom: 16px;
+}
+
+h2 {
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+  color: var(--accent);
+}
+
+/* ================================
+   Panels
+   ================================ */
+
+section {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+/* ================================
+   Generator Form
+   ================================ */
+
+#generator label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+#generator input,
+#generator select {
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  color: var(--text-main);
+  font-size: 0.9rem;
+}
+
+#generator input:focus,
+#generator select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Biome checkboxes */
+#generator label input[type="checkbox"] {
+  margin-right: 6px;
+}
+
+#generator .biomes {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+/* Generate button */
+#generate {
+  margin-top: 12px;
+  padding: 8px 14px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#generate:hover {
+  background: #6bb3ff;
+}
+
+#generate:active {
+  transform: translateY(1px);
+}
+
+/* ================================
+   Results / Dungeon List
+   ================================ */
+
+#results ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#results li {
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+#results li strong {
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+/* ================================
+   Dungeon Metadata
+   ================================ */
+
+.dungeon-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.dungeon-meta span {
+  display: block;
+}
+
+/* ================================
+   Status Tags (future-proof)
+   ================================ */
+
+.tag {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  margin-right: 6px;
+}
+
+.tag-easy {
+  background: #203f2a;
+  color: var(--accent-good);
+}
+
+.tag-hard {
+  background: #3f2a20;
+  color: var(--accent-warn);
+}
+
+.tag-mythic {
+  background: #3f2020;
+  color: var(--danger);
+}
+
+/* ================================
+   Code / JSON Preview (later)
+   ================================ */
+
+pre {
+  background: #0b0e12;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: #cfd6e4;
+  overflow-x: auto;
+}
+
+/* ================================
+   Utility
+   ================================ */
+
+.hidden {
+  display: none !important;
+}
+
+.muted {
+  color: var(--text-muted);
+}
