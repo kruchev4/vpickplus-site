@@ -1845,6 +1845,10 @@ function drawClickRipple(cx, cy){
 // ── INPUT ──
 const keys={};
 let moveAccum=0;const MOVE_MS=150;
+// These are set by the UI modules (gameMenu.js, characterSheet.js)
+// declared here so onKey never throws ReferenceError
+if(typeof _menuOpen==='undefined')    window._menuOpen    = false;
+if(typeof charSheetOpen==='undefined') window.charSheetOpen = false;
 
 function onKey(e){
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key))e.preventDefault();
@@ -1905,7 +1909,8 @@ function tryMove(dx,dy){
   const _T = { GRASS:0, FOREST:1, MOUNTAIN:2, DEEP_WATER:3, SHALLOW:4, TOWN:5, DANGER:6, SAND:7 };
   const _PASSABLE = new Set([0,1,4,5,6,7]); // grass,forest,shallow,town,danger,sand
 
-  // If map not loaded yet, allow movement freely (will render once map loads)
+  // If map not loaded yet, allow movement but skip encounters
+  const _mapReady = !!_map;
   const _getTile = (x, y) => {
     if (!_map) return _T.GRASS; // assume passable until map loads
     return _map.getTile(x, y);
@@ -1947,7 +1952,7 @@ function tryMove(dx,dy){
 
   // ── Encounter check ────────────────────────────────────────────────────────
   const prevType = _getTile(G.prevX, G.prevY);
-  if(G.encounterCooldown<=0){
+  if(_mapReady && G.encounterCooldown<=0){
     let chance=0;
     if     (type===_T.DANGER)   chance=.30;
     else if(type===_T.FOREST)   chance=.12;
