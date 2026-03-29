@@ -880,6 +880,27 @@ const PORTALS=[
 
 
 
+// ── Campaign definitions (keyed by campaignId) ───────────────────────────────
+const CAMPAIGNS = {
+  goblin_warrens:  { id:'goblin_warrens',  name:'The Goblin Warrens',     icon:'👺', type:'lair',     levelRange:[1,3],  players:[1,4], estTime:'1 Session',  desc:'A fetid network of tunnels beneath the farmlands. Goblins have been raiding local villages.',      longDesc:'' },
+  bandit_cave:     { id:'bandit_cave',     name:'Bandit\'s Cave',         icon:'🗡️', type:'lair',     levelRange:[1,4],  players:[1,4], estTime:'1 Session',  desc:'A notorious hideout carved into the cliffs. The Ironmask bandits have stolen a merchant\'s cargo.',  longDesc:'' },
+  sunken_throne:   { id:'sunken_throne',   name:'The Sunken Throne',      icon:'🌊', type:'campaign', levelRange:[4,7],  players:[2,4], estTime:'2-3 Sessions',desc:'An ancient palace, half-swallowed by the sea. Something stirs in the deep chambers.',              longDesc:'' },
+  duskwood_siege:  { id:'duskwood_siege',  name:'Siege of Duskwood',      icon:'🌲', type:'campaign', levelRange:[4,8],  players:[2,4], estTime:'2-3 Sessions',desc:'The forest town of Duskwood is besieged by undead. Hold the walls until dawn.',                     longDesc:'' },
+  glacial_tomb:    { id:'glacial_tomb',    name:'The Glacial Tomb',       icon:'❄️', type:'campaign', levelRange:[8,12], players:[3,4], estTime:'3-4 Sessions',desc:'A frost giant\'s burial vault, sealed for centuries. The seals are breaking.',                     longDesc:'' },
+  ashspire:        { id:'ashspire',        name:'Ashspire',               icon:'🔥', type:'campaign', levelRange:[8,12], players:[3,4], estTime:'3-4 Sessions',desc:'A volcanic tower ruled by a fire cult. They seek to awaken something beneath the mountain.',          longDesc:'' },
+  irondeep:        { id:'irondeep',        name:'Irondeep Mine',          icon:'⛏️', type:'campaign', levelRange:[8,12], players:[3,4], estTime:'3-4 Sessions',desc:'The deepest mine in the realm has gone silent. Only echoes come up from below now.',                  longDesc:'' },
+  drowned_citadel: { id:'drowned_citadel', name:'The Drowned Citadel',    icon:'💀', type:'campaign', levelRange:[10,15],players:[4,4], estTime:'4-5 Sessions',desc:'A legendary fortress sunk into a cursed lake. Only the most powerful dare descend.',                 longDesc:'' },
+};
+
+// ── render() stub ─────────────────────────────────────────────────────────────
+// The old monolithic render() was replaced by the engine's RAF game loop in main.js.
+// This stub silences "render is not defined" errors from legacy code that still
+// calls render() after state changes. Remove each call as you refactor.
+function render() {
+  // No-op — rendering is now handled by the engine game loop in main.js
+  // If you need an immediate redraw, the next RAF frame will handle it (<16ms away)
+}
+
 const SHOP_ITEMS=[
   {name:'Health Potion',  icon:'🧪',desc:'+30 HP',         price:25, type:'potion',effect:{hp:30}},
   {name:'Mana Potion',    icon:'💧',desc:'+20 MP',         price:20, type:'potion',effect:{mp:20}},
@@ -6142,18 +6163,26 @@ function csLoadCharacter(idx){
   if(!save){ toast('Save not found','err'); console.error('No save at idx',idx,'_csSaves:',window._csSaves); return; }
   const data = save.cloudData || save.data;
   console.log('[Load] Loading save:', save.name, 'version:', data?.version, 'hasG:', !!data?.G);
-  GameState.player.x = Number(G.x);
-GameState.player.y = Number(G.y);
+
   const ok = _applyRawSave(data);
-  if(!ok){ 
-    toast('Could not load — save corrupted.','err'); 
+  if(!ok){
+    toast('Could not load — save corrupted.','err');
     console.error('[Load] _applyRawSave failed. data:', data);
-    return; 
+    return;
   }
+
+  // Sync GameState.player and multi.G to the loaded window.G
+  GameState.player = window.G;
+  if(window.multi) window.multi.G = window.G;
+
   try{ localStorage.setItem('realmSave', JSON.stringify(data)); }catch(e){}
   document.getElementById('screen-charselect').classList.remove('active');
   document.getElementById('screen-game').classList.add('active');
-  initGame();
+
+  // Same startup path as new character
+  window.engineReady = true;
+  window.startEngine();
+
   addLog(`Welcome back, ${G.name}!`,'disc');
   updateHUD();
   toast(`Playing as ${G.name}`);
