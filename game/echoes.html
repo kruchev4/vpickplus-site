@@ -207,7 +207,7 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
       <div id="tile-xy" style="margin-top:3px;"></div>
       <div style="margin-top:8px;">
         <div style="font-size:.52rem;letter-spacing:2px;color:#5a4030;text-transform:uppercase;margin-bottom:4px;">⬟ Portals</div>
-        <div id="portal-shortcut-list"></div>
+        <div id="portal-shortcut-list" style="max-height:90px;overflow-y:auto;"></div>
       </div>
     </div>
     <div class="panel-sec" style="flex:1;overflow-y:auto;">
@@ -624,6 +624,25 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 
     <!-- Character Sheet Overlay (press C) -->
     <style>
+/* Combat quick slots */
+.combat-quick-slots-bar{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;min-height:0;}
+.cqs-btn{display:flex;align-items:center;gap:4px;padding:4px 9px;
+  background:rgba(20,10,5,.7);border:1px solid rgba(120,80,30,.5);
+  border-radius:4px;cursor:pointer;font-family:'Cinzel',serif;
+  color:var(--parch-lt,#d4c4a0);transition:border-color .15s;}
+.cqs-btn:hover{border-color:var(--gold-b,#c9a227);background:rgba(40,25,5,.8);}
+.cqs-btn.potion{border-color:rgba(30,80,140,.5);}
+.cqs-btn.potion:hover{border-color:#3a9ad9;}
+.cqs-icon{font-size:.95rem;}
+.cqs-name{font-size:.6rem;letter-spacing:.5px;}
+.cqs-qty{font-size:.55rem;color:var(--gold-b,#c9a227);margin-left:2px;}
+/* Compact portal shortcuts */
+.portal-shortcut{display:block;width:100%;text-align:left;padding:3px 6px;margin-bottom:2px;
+  background:transparent;border:1px solid rgba(74,53,32,.3);
+  font-family:'Cinzel',serif;font-size:.58rem;color:var(--parch-dk,#9a8a6a);
+  cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:2px;}
+.portal-shortcut:hover{border-color:var(--gold-b,#c9a227);color:var(--parch-lt,#d4c4a0);}
+.ps-level{font-size:.5rem;opacity:.6;}
 #ov-charsheet {
   position:fixed;inset:0;z-index:120;display:none;
   align-items:center;justify-content:center;
@@ -2463,6 +2482,53 @@ function triggerCombat(tileType){
   combat.animFrame = requestAnimationFrame(tickCombat);
 }
 
+function buildCombatQuickSlots(){
+  const bar = document.getElementById('combat-quick-slots');
+  if(!bar) return;
+  bar.innerHTML = '';
+  // Show all potions from inventory as quick-use buttons + activeSlots
+  const potions = (G.inventory||[])
+    .map((item,i)=>({item,i}))
+    .filter(({item})=>item.type==='potion');
+
+  if(!potions.length && !(G.activeSlots||[]).some(s=>s)){
+    bar.innerHTML = '<span style="font-size:.6rem;color:rgba(100,80,60,.5);font-style:italic;">No potions</span>';
+    return;
+  }
+
+  // Active slots first (items dragged to quick bar)
+  (G.activeSlots||[]).forEach((item,i)=>{
+    if(!item) return;
+    const btn = document.createElement('button');
+    btn.className = 'cqs-btn';
+    btn.innerHTML = `<span class="cqs-icon">${item.icon||'📦'}</span><span class="cqs-name">${item.name}</span>${item.qty>1?`<span class="cqs-qty">x${item.qty}</span>`:''}`;
+    btn.title = `Use ${item.name}`;
+    btn.onclick = () => { useActiveSlotInCombat(i); };
+    bar.appendChild(btn);
+  });
+
+  // Then potions from inventory not in active slots
+  potions.forEach(({item,i})=>{
+    const btn = document.createElement('button');
+    btn.className = 'cqs-btn potion';
+    btn.innerHTML = `<span class="cqs-icon">${item.icon||'🧪'}</span><span class="cqs-name">${item.name}</span>${item.qty>1?`<span class="cqs-qty">x${item.qty}</span>`:''}`;
+    btn.title = `Use ${item.name} (${item.desc||''})`;
+    btn.onclick = () => { usePotion(i); buildCombatQuickSlots(); updateHUD(); };
+    bar.appendChild(btn);
+  });
+}
+
+function useActiveSlotInCombat(idx){
+  const item = G.activeSlots?.[idx];
+  if(!item) return;
+  applyItemEffect(item);
+  item.qty = (item.qty||1) - 1;
+  if(item.qty <= 0) G.activeSlots[idx] = null;
+  addCombatLog(`Used ${item.name}.`,'sys');
+  buildCombatQuickSlots();
+  updateHUD();
+}
+
 function buildCombatUI(){
   const e=combat.enemy;
   if(e){
@@ -2478,6 +2544,7 @@ function buildCombatUI(){
   // Build the full battlefield UI
   buildBattlefieldUI();
   updateCombatBars();
+  buildCombatQuickSlots();
 
   // Actions
   // Re-link cls from CLASSES array if actions missing (happens after save restore)
@@ -3454,9 +3521,8 @@ function buildPortalShortcuts(){
     const camp = CAMPAIGNS[p.campaignId];
     if(!camp) return '';
     const type = camp.type==='lair'?'⚔':'🌟';
-    return `<button class="portal-shortcut" onclick="fastTravelToPortal(${p.x},${p.y})">
-      ${type} ${camp.name}<br>
-      <span class="ps-level">Lv${camp.levelRange[0]}-${camp.levelRange[1]} · ${camp.estTime}</span>
+    return `<button class="portal-shortcut" onclick="fastTravelToPortal(${p.x},${p.y})" title="${camp.name} — Lv${camp.levelRange[0]}-${camp.levelRange[1]}">
+      ${type} ${camp.name} <span class="ps-level">Lv${camp.levelRange[0]}-${camp.levelRange[1]}</span>
     </button>`;
   }).join('');
 }
