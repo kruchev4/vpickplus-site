@@ -323,7 +323,7 @@
       const desc = Object.getOwnPropertyDescriptor(window, name);
       if (desc?.get) {
         const val = (() => { try { return window[name]; } catch(e) { return undefined; }})();
-        delete window[name];
+        //delete window[name];
         window[name] = val ?? (name.includes('Party') || name.includes('Conns') ? [] : false);
       }
     });
