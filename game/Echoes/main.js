@@ -237,8 +237,12 @@ async function startEngine() {
   GameState.camera.w = canvas.width;
   GameState.camera.h = canvas.height;
 
-  // Re-link multi to the live G object now that startGame() has set window.G
-  if (window.G) multi.G = window.G;
+  // Sync GameState.player to window.G — single source of truth for all game code.
+  // startGame() / csLoadCharacter() set window.G before calling startEngine().
+  if (window.G && window.G.name) {
+    GameState.player = window.G;
+  }
+  if (window.multi) window.multi.G = window.G || GameState.player;
 
   try {
     GameState.activeMap = await loadMap("overworld_generated");
