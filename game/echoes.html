@@ -1926,9 +1926,24 @@ function tryMove(dx,dy){
     if(town){ enterTown(town); return; }
   }
 
+  // ── Dungeon boss check ────────────────────────────────────────────────────
+  if(window.GameState?.mode === 'dungeon'){
+    const boss = (window._dungeonMonsters||[]).find(m=>m.alive && m.isBoss &&
+      Math.abs(nx-m.x)<=2 && Math.abs(ny-m.y)<=2);
+    if(boss){
+      boss.alive = false; // mark as engaged
+      triggerDungeonBoss(boss);
+      return;
+    }
+  }
+
   // ── Dungeon stairs ─────────────────────────────────────────────────────────
   if(type === 13){ // STAIRS_DOWN = exit dungeon
-    if(window.GameState?.mode === 'dungeon') exitDungeon();
+    if(window.GameState?.mode === 'dungeon'){
+      // Confirm before exiting
+      if(confirm('Exit the dungeon and return to the world?')) exitDungeon();
+      else G.x=G.prevX; G.y=G.prevY; // step back
+    }
     return;
   }
 
@@ -1945,13 +1960,25 @@ function tryMove(dx,dy){
   const prevType = _getTile(G.prevX, G.prevY);
   if(_mapReady && G.encounterCooldown<=0){
     let chance=0;
-    if     (type===_T.DANGER)   chance=.30;
-    else if(type===_T.FOREST)   chance=.12;
-    else if(type===_T.MOUNTAIN) chance=.10;
-    else if(type===_T.GRASS)    chance=.04;
-    else if(type===_T.SAND)     chance=.06;
+    const inDungeon = window.GameState?.mode === 'dungeon';
+    if(inDungeon){
+      // Dungeon encounter rates by tile
+      if(type===9)  chance=0.15; // floor
+      if(type===10) chance=0.08; // door
+    } else {
+      if     (type===_T.DANGER)   chance=.30;
+      else if(type===_T.FOREST)   chance=.12;
+      else if(type===_T.MOUNTAIN) chance=.10;
+      else if(type===_T.GRASS)    chance=.04;
+      else if(type===_T.SAND)     chance=.06;
+    }
     if(chance>0 && Math.random()<chance){
-      if(!checkEncounterAvoid()){ triggerCombat(type); return; }
+      if(!checkEncounterAvoid()){
+        // Check dungeon monsters first
+        if(inDungeon) triggerDungeonEncounter();
+        else triggerCombat(type);
+        return;
+      }
     }
   }
   G.encounterCooldown=Math.max(0,G.encounterCooldown-1);
@@ -1985,6 +2012,11 @@ function tryMove(dx,dy){
   G._stepCount++;
   if(G._stepCount%3===0) playSound('step');
   if(G._stepCount%20===0) saveGame();
+  // Mark visited tiles for fog of war (reveal radius 4 in dungeon, 6 in world)
+  const _fogRadius = window.GameState?.mode==='dungeon' ? 4 : 6;
+  markVisited(G.x, G.y, _fogRadius);
+  // Update minimap every step
+  if(G._stepCount%3===0) updateMinimapMode();
   render(); updateHUD();
 }
 window.tryMove = tryMove; // expose for main.js setupInput
@@ -2103,6 +2135,79 @@ function triggerWorldBossCombat(boss){
   document.getElementById('ov-combat').classList.add('active');
   addCombatLog(`${boss.icon} ${boss.name} attacks with FURY!`,'hit');
   addCombatLog('⚠ This is a world boss — extremely dangerous!','hit');
+  combat.lastTick=performance.now();
+  if(combat.animFrame) cancelAnimationFrame(combat.animFrame);
+  combat.animFrame=requestAnimationFrame(tickCombat);
+}
+
+// Dungeon monster definitions
+const DUNGEON_MONSTERS = {
+  goblin:        {name:'Goblin',        icon:'👺',hd:4, loot:['Rusty Dagger','Goblin Ear'],     gold:[1,8],   xp:50,  habitat:['DUNGEON']},
+  goblin_shaman: {name:'Goblin Shaman', icon:'🧙',hd:5, loot:['Spell Scroll','Shaman Staff'],  gold:[5,15],  xp:80,  habitat:['DUNGEON']},
+  hobgoblin:     {name:'Hobgoblin',     icon:'👹',hd:7, loot:['Iron Shield','Hobgoblin Helm'],  gold:[8,20],  xp:120, habitat:['DUNGEON']},
+  goblin_king:   {name:'Goblin King',   icon:'👑',hd:20,loot:['Crown Shard','Goblin King Axe'], gold:[50,150],xp:5000,habitat:['DUNGEON'],isBoss:true},
+};
+
+function triggerDungeonEncounter(){
+  const zl = Math.max(1, getZoneLevel());
+  // Pick from nearby alive dungeon monsters or random
+  const nearby = (window._dungeonMonsters||[]).filter(m =>
+    m.alive && Math.abs(m.x - G.x) <= 5 && Math.abs(m.y - G.y) <= 5
+  );
+  const monsterType = nearby.length > 0
+    ? nearby[Math.floor(Math.random()*nearby.length)].type
+    : ['goblin','goblin','goblin_shaman','hobgoblin'][Math.floor(Math.random()*4)];
+
+  const def = DUNGEON_MONSTERS[monsterType] || DUNGEON_MONSTERS.goblin;
+  const count = def.isBoss ? 1 : randInt(1, 2);
+  combat.enemies = [];
+  for(let i=0;i<count;i++){
+    const hpMax = rollDice(def.hd, 1+Math.floor(zl/3)) + zl*2;
+    combat.enemies.push({
+      def, hp:hpMax, hpMax,
+      ac:10+Math.floor(zl/2), atk:2+Math.floor(zl/3), dmg:Math.floor(def.hd/4)+1,
+      timer:0, timerMax:randInt(1800,3000),
+      timerStartDelay:randInt(400,1200), timerStarted:false,
+      status:{}, _announcedDead:false,
+    });
+  }
+  combat.targetIdx=0; combat.round=1;
+  combat.playerCasting=false; combat.playerCastTimer=0; combat.playerCastAction=null;
+  combat.active=true; combat.playerTurn=true;
+  combat.queuedAction=null;
+  G.inCombat=true; G.encounterCooldown=25;
+  buildCombatUI();
+  document.getElementById('ov-combat').classList.add('active');
+  const names = combat.enemies.map(e=>e.def.name).join(', ');
+  addLog(`⚔ ${def.isBoss?'👑 BOSS: ':''}Encountered: ${names}!`,'combat');
+  addCombatLog(count>1?`${count} enemies attack!`:`A ${def.name} attacks!`);
+  combat.lastTick=performance.now();
+  if(combat.animFrame) cancelAnimationFrame(combat.animFrame);
+  combat.animFrame=requestAnimationFrame(tickCombat);
+  // Mark nearby monster as engaged
+  if(nearby.length>0) nearby[0].alive = false;
+}
+
+function triggerDungeonBoss(bossMonster){
+  const def = DUNGEON_MONSTERS[bossMonster.type] || DUNGEON_MONSTERS.goblin_king;
+  const hpMax = 120 + G.level * 15;
+  combat.enemies = [{
+    def, hp:hpMax, hpMax,
+    ac:16, atk:8, dmg:6,
+    isBoss:true,
+    timer:0, timerMax:2500, timerStartDelay:600, timerStarted:false,
+    status:{}, _announcedDead:false,
+  }];
+  combat.targetIdx=0; combat.round=1;
+  combat.playerCasting=false; combat.playerCastTimer=0; combat.playerCastAction=null;
+  combat.active=true; combat.playerTurn=true; combat.queuedAction=null;
+  G.inCombat=true; G.encounterCooldown=50;
+  buildCombatUI();
+  document.getElementById('ov-combat').classList.add('active');
+  addLog(`👑 BOSS ENCOUNTER: ${def.name}!`,'combat');
+  addCombatLog(`The ${def.name} lets out a terrifying roar!`,'hit');
+  addCombatLog(`HP: ${hpMax} — This will be a tough fight!`,'sys');
+  toast(`👑 BOSS: ${def.name}!`,'err');
   combat.lastTick=performance.now();
   if(combat.animFrame) cancelAnimationFrame(combat.animFrame);
   combat.animFrame=requestAnimationFrame(tickCombat);
@@ -4084,11 +4189,105 @@ function updateMinimapMode(){
   const dungeonCv = document.getElementById('minimap-dungeon-cv');
   const label     = document.getElementById('minimap-label');
   if(!worldCv||!dungeonCv) return;
-  const inDungeon = !!campState;
+  const inDungeon = window.GameState?.mode === 'dungeon';
   worldCv.style.display   = inDungeon ? 'none'  : 'block';
   dungeonCv.style.display = inDungeon ? 'block' : 'none';
   if(label) label.textContent = inDungeon ? '⬟ Dungeon Map' : '⬡ Minimap';
-  if(inDungeon) drawDungeonMapSmall(dungeonCv);
+  if(inDungeon) drawNewDungeonMinimap(dungeonCv);
+  else drawWorldMinimap(worldCv);
+}
+
+// ── Fog of war — tracks which tiles player has visited ──────────────────────
+if(!window._visitedTiles) window._visitedTiles = new Set();
+
+function markVisited(cx, cy, radius) {
+  const map = window.GameState?.activeMap;
+  if(!map) return;
+  for(let dy=-radius; dy<=radius; dy++){
+    for(let dx=-radius; dx<=radius; dx++){
+      if(dx*dx+dy*dy <= radius*radius)
+        window._visitedTiles.add(`${cx+dx},${cy+dy}`);
+    }
+  }
+}
+
+function drawNewDungeonMinimap(cv) {
+  const map = window.GameState?.activeMap;
+  if(!map || !cv) return;
+  const W=cv.width||170, H=cv.height||128;
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
+  const ctx2=cv.getContext('2d');
+  ctx2.fillStyle='#060308'; ctx2.fillRect(0,0,W,H);
+
+  // Scale to fit dungeon in minimap
+  const scaleX = W / map.width;
+  const scaleY = H / map.height;
+  const tileColors = {8:'#0a0a14',9:'#3a3028',10:'#7a4a20',11:'#c9a227',12:'#6080a0',13:'#405060'};
+
+  for(let y=0;y<map.height;y++){
+    for(let x=0;x<map.width;x++){
+      const visited = window._visitedTiles.has(`${x},${y}`);
+      if(!visited) continue; // fog of war
+      const tile = map.getTile(x,y);
+      ctx2.fillStyle = tileColors[tile] || '#3a3028';
+      ctx2.fillRect(
+        Math.floor(x*scaleX), Math.floor(y*scaleY),
+        Math.max(1,Math.ceil(scaleX)), Math.max(1,Math.ceil(scaleY))
+      );
+    }
+  }
+
+  // Player dot
+  ctx2.fillStyle = '#c090ff';
+  const px2 = Math.floor(G.x*scaleX);
+  const py2 = Math.floor(G.y*scaleY);
+  ctx2.fillRect(px2-1, py2-1, 3, 3);
+
+  // Dungeon monsters
+  (window._dungeonMonsters||[]).forEach(m=>{
+    if(!m.alive) return;
+    if(!window._visitedTiles.has(`${m.x},${m.y}`)) return;
+    ctx2.fillStyle = m.isBoss ? '#ff4040' : '#ff8040';
+    ctx2.fillRect(Math.floor(m.x*scaleX), Math.floor(m.y*scaleY), 2, 2);
+  });
+
+  // Exit marker
+  const exit = window.GameState?.activeMap?.exit;
+  if(exit) {
+    ctx2.fillStyle='#60ff60';
+    ctx2.fillRect(Math.floor(exit.x*scaleX)-1, Math.floor(exit.y*scaleY)-1, 3, 3);
+  }
+}
+
+function drawWorldMinimap(cv) {
+  const map = window.GameState?.activeMap;
+  if(!map || !cv) return;
+  const W=cv.width||170, H=cv.height||128;
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
+  const ctx2=cv.getContext('2d');
+  ctx2.fillStyle='#071e3d'; ctx2.fillRect(0,0,W,H);
+
+  const scaleX = W / map.width;
+  const scaleY = H / map.height;
+  const worldColors = {0:'#3a6b30',1:'#1a3d16',2:'#5a5045',3:'#071e3d',4:'#1a5a8a',5:'#8b6914',6:'#3c0e0e',7:'#c8a870'};
+
+  for(let y=0;y<map.height;y++){
+    for(let x=0;x<map.width;x++){
+      const tile = map.getTile(x,y);
+      ctx2.fillStyle = worldColors[tile] || '#3a6b30';
+      ctx2.fillRect(Math.floor(x*scaleX), Math.floor(y*scaleY), Math.max(1,Math.ceil(scaleX)), Math.max(1,Math.ceil(scaleY)));
+    }
+  }
+
+  // Player dot
+  ctx2.fillStyle='#ffffff';
+  ctx2.fillRect(Math.floor(G.x*scaleX)-1, Math.floor(G.y*scaleY)-1, 3, 3);
+
+  // Towns
+  (map.towns||[]).forEach(t=>{
+    ctx2.fillStyle='#c9a227';
+    ctx2.fillRect(Math.floor(t.x*scaleX)-1, Math.floor(t.y*scaleY)-1, 3, 3);
+  });
 }
 
 function drawDungeonMapSmall(cv){
@@ -5353,6 +5552,11 @@ async function enterDungeon(campaignId) {
     G.inTown    = false; // re-enable movement
     G.inCombat  = false;
 
+    // Reset fog of war for new dungeon
+    window._visitedTiles = new Set();
+    markVisited(ex, ey, 4); // reveal entry area
+    updateMinimapMode();     // switch minimap to dungeon mode
+
     addLog(`You descend into the ${raw.name || campaignId.replace(/_/g,' ')}. Watch your step.`, 'disc');
     toast('⚔ Dungeon entered! Find the exit stairs to return.');
 
@@ -5378,9 +5582,12 @@ function exitDungeon() {
   G.prevX = G.x; G.prevY = G.y;
   GS.player = G;
   GS.mode = 'world';
+  window.MAP_W = GS.activeMap.width;
+  window.MAP_H = GS.activeMap.height;
   window._dungeonMonsters = [];
+  updateMinimapMode();
   addLog('You emerge from the dungeon, blinking in the light.', 'disc');
-  toast('Returned to world');
+  toast('✅ Returned to world');
 }
 window.exitDungeon = exitDungeon;
 
@@ -5893,7 +6100,19 @@ function respawn(){
   // Keep level/class/race, reset HP/XP, penalise gold
   G.hp=G.hpMax;G.mp=G.mpMax;G.gold=Math.max(0,Math.floor(G.gold*.5));
   G.xp=0;G.level=1;G.xpNext=200;
-  G.x=120;G.y=90;G.inCombat=false;
+  G.inCombat=false;
+  // If in dungeon, return to overworld on death
+  const GS = window.GameState;
+  if(GS && GS.mode === 'dungeon'){
+    GS.mode = 'world';
+    if(GS.returnMap) GS.activeMap = GS.returnMap;
+    GS.returnMap = null;
+    G.x = GS.returnX || 120;
+    G.y = GS.returnY || 90;
+    addLog('You are dragged out of the dungeon, barely alive.','sys');
+  } else {
+    G.x=120;G.y=90;
+  }
   document.getElementById('ov-death').classList.remove('active');
   addLog('You rise again, weakened but alive.','sys');
   addLog('Half your gold was lost.','sys');
