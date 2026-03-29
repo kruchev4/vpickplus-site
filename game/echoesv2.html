@@ -640,13 +640,6 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 .ab-card-desc{font-size:.62rem;color:var(--parch-dk,#9a8a6a);line-height:1.5;margin-bottom:8px;}
 .ab-card-tag{display:inline-block;font-size:.5rem;letter-spacing:1px;padding:2px 7px;border-radius:10px;background:rgba(74,53,32,.4);color:var(--parch-dk,#9a8a6a);text-transform:uppercase;}
 .ab-card-tag.active-tag{background:rgba(40,80,140,.4);color:#7aacdf;}
-/* Paper doll equipped states */
-.pd-slot.pd-filled { border-color:rgba(201,162,39,.6); background:rgba(201,162,39,.08); }
-.pd-slot.pd-filled .pd-icon { filter:none; opacity:1; }
-.pd-slot.pd-filled .pd-lbl { color:var(--parch-lt,#d4c4a0); font-size:.48rem; }
-.pd-slot.pd-rare { border-color:rgba(100,150,255,.7); background:rgba(100,150,255,.06); }
-.pd-slot.pd-legendary { border-color:rgba(255,200,0,.8); background:rgba(255,200,0,.08);
-  box-shadow:0 0 6px rgba(255,200,0,.2); }
 /* Milestone ability buttons in combat — gold-tinted to distinguish from base actions */
 .action-btn.ability-action{border-color:rgba(201,162,39,.4);background:rgba(201,162,39,.05);}
 .action-btn.ability-action:hover{border-color:var(--gold-b,#c9a227);background:rgba(201,162,39,.12);}
@@ -1657,100 +1650,13 @@ function _buildEquipSlotsUI_legacy(){
 }
 
 function openEquipSlot(slot){
+  // Redirect to new full inventory overlay
   openInventory();
-}
-
-// Default icons for empty slots
-const SLOT_ICONS = {
-  head:'🪖', shoulders:'🛡️', chest:'👕', pants:'👖', boots:'👢',
-  mainhand:'⚔️', offhand:'🛡️', ring1:'💍', ring2:'💍', necklace:'📿'
-};
-const SLOT_LABELS = {
-  head:'Head', shoulders:'Shldr', chest:'Chest', pants:'Legs', boots:'Boots',
-  mainhand:'Main', offhand:'Off', ring1:'Ring 1', ring2:'Ring 2', necklace:'Neck'
-};
-
-function updatePaperDoll(){
-  if(!G.equipped) return;
-  for(const slot of EQUIP_SLOTS){
-    const el = document.getElementById('pd-'+slot);
-    if(!el) continue;
-    const item = G.equipped[slot];
-    const iconEl = el.querySelector('.pd-icon');
-    const lblEl  = el.querySelector('.pd-lbl');
-    if(item){
-      el.classList.add('pd-filled');
-      el.classList.toggle('pd-rare',      item.tier==='rare');
-      el.classList.toggle('pd-legendary', item.tier==='legendary');
-      el.title = item.name+': '+(item.desc||'');
-      if(iconEl) iconEl.textContent = item.icon||'📦';
-      if(lblEl)  lblEl.textContent  = item.name.length>8 ? item.name.slice(0,7)+'…' : item.name;
-    } else {
-      el.classList.remove('pd-filled','pd-rare','pd-legendary');
-      el.title = (SLOT_LABELS[slot]||slot)+' — empty';
-      if(iconEl) iconEl.textContent = SLOT_ICONS[slot]||'—';
-      if(lblEl)  lblEl.textContent  = SLOT_LABELS[slot]||slot;
-    }
-  }
-}
-
-function pdSlotClick(slot){
-  const item = G.equipped?.[slot];
-  if(!item){
-    // Show inventory filtered to equippable items for this slot
-    openInventory();
-    toast('Select an item to equip in '+( SLOT_LABELS[slot]||slot)+' slot');
-    return;
-  }
-  // Show item modal for equipped item (allows unequip)
-  const idx = G.inventory.indexOf(item);
-  if(idx >= 0){
-    openItemModal(idx);
-  } else {
-    // Item equipped but not in inventory — show unequip option directly
-    const d = document.createElement('div');
-    d.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
-      'z-index:300;background:#0a0612;border:1px solid rgba(74,53,32,.6);' +
-      'padding:20px 24px;min-width:220px;text-align:center;font-family:Cinzel,serif;';
-    d.innerHTML = `
-  <div style="color:var(--gold-b);font-size:.8rem;margin-bottom:8px;">
-    ${item.icon} ${item.name}
-  </div>
-
-  <div style="color:var(--parch-dk);font-size:.65rem;margin-bottom:14px;">
-    ${item.desc || 'Equipped item'}
-  </div>
-
-  <div style="display:flex;gap:8px;justify-content:center;">
-    <button
-      style="padding:6px 14px;border:1px solid #c0392b;color:#c0392b;background:transparent;
-             font-family:Cinzel,serif;font-size:.65rem;cursor:pointer;"
-      onclick="
-        unequipItem('${slot}');
-        updatePaperDoll();
-        buildInventoryUI();
-        this.closest('div').remove();
-      "
-    >
-      ↩ Unequip
-    </button>
-
-    <button
-      style="padding:6px 14px;border:1px solid rgba(74,53,32,.4);color:var(--parch-dk);background:transparent;
-             font-family:Cinzel,serif;font-size:.65rem;cursor:pointer;"
-      onclick="this.closest('div').remove();"
-    >
-      ✕ Close
-    </button>
-  </div>
-`;
-document.body.appendChild(d);
 }
 
 let _modalItemIdx = null;
 
 function buildInventoryUI(){
-  updatePaperDoll();
   // Rebuild left-panel active slots
   buildLeftPanelActiveSlots();
   // If full inventory is open, rebuild that too
@@ -1864,7 +1770,6 @@ function equipItem(idx){
   if(item.tier==='legendary') addLog(`⭐ ${item.name} — "${item.flavour}"`, 'legendary');
   recalcStats();
   buildInventoryUI();
-  updatePaperDoll();
   updateHUD();
   saveGame();
   toast(`Equipped ${item.name}!`);
@@ -1877,7 +1782,6 @@ function unequipItem(slot){
   addLog(`Unequipped: ${item.name}.`,'sys');
   recalcStats();
   buildInventoryUI();
-  updatePaperDoll();
   updateHUD();
   saveGame();
   toast(`Unequipped ${item.name}.`);
@@ -1907,13 +1811,17 @@ function onCanvasClick(e){
   const cx   = e.clientX - rect.left;
   const cy   = e.clientY - rect.top;
   // Use new engine camera from GameState
-  const _cam = window.GameState?.camera;
-  const _TS  = window.GameState?.TILE || 32;
+  const _cam = window.GameState?.camera || window._engineCamera;
+  const _TS  = window.TILE_SIZE || window.GameState?.TILE || 32;
   const _map = window.GameState?.activeMap;
   const _W   = _map?.width  || window.MAP_W || 240;
   const _H   = _map?.height || window.MAP_H || 180;
-  const camX = _cam ? _cam.x : (G.x*_TS - wc.width/2  + _TS/2);
-  const camY = _cam ? _cam.y : (G.y*_TS - wc.height/2 + _TS/2);
+  const camX = _cam
+  ? (_cam.x ?? G.x * _TS - wc.width  / (2 * (window.devicePixelRatio||1)) + _TS/2)
+  : (G.x * _TS - wc.width  / (2 * (window.devicePixelRatio||1)) + _TS/2);
+const camY = _cam
+  ? (_cam.y ?? G.y * _TS - wc.height / (2 * (window.devicePixelRatio||1)) + _TS/2)
+  : (G.y * _TS - wc.height / (2 * (window.devicePixelRatio||1)) + _TS/2);
   const tx = Math.floor((cx + camX) / _TS);
   const ty = Math.floor((cy + camY) / _TS);
   if(tx<0||tx>=_W||ty<0||ty>=_H) return;
@@ -2336,17 +2244,17 @@ function tryMove(dx,dy){
   };
 
   // Peers: optimistic local move (client-side prediction) + notify host
-  if(!coopIsHost && coopActive && coopConns.length>0){
-    const nx=G.x+dx, ny=G.y+dy;
-    if(nx<0||nx>=_W||ny<0||ny>=_H) return;
-    if(!_PASSABLE.has(_getTile(nx,ny))) return;
-    G.prevX=G.x; G.prevY=G.y; G.x=nx; G.y=ny;
-    coopSendMove(dx,dy);
-    if(!G._stepCount) G._stepCount=0; G._stepCount++;
-    if(G._stepCount%3===0) playSound('step');
-    render(); updateHUD();
-    return;
-  }
+  if(!coopIsHost && coopActive){
+  const nx=G.x+dx, ny=G.y+dy;
+  if(nx<0||nx>=_W||ny<0||ny>=_H) return;
+  if(!_PASSABLE.has(_getTile(nx,ny))) return;
+  G.prevX=G.x; G.prevY=G.y; G.x=nx; G.y=ny;
+  coopSendMove(dx,dy);
+  if(!G._stepCount) G._stepCount=0; G._stepCount++;
+  if(G._stepCount%3===0) playSound('step');
+  render(); updateHUD();
+  return;
+}
   const nx=G.x+dx,ny=G.y+dy;
   if(nx<0||nx>=_W||ny<0||ny>=_H)return;
   const type=_getTile(nx,ny);
@@ -2618,10 +2526,18 @@ function triggerDungeonEncounter(){
   document.getElementById('ov-combat').classList.add('active');
   const names = combat.enemies.map(e=>e.def.name).join(', ');
   addLog(`⚔ ${def.isBoss?'👑 BOSS: ':''}Encountered: ${names}!`,'combat');
-  // Notify all party members
-  if(coopActive && coopParty.length > 1){
-    coopBroadcast({type:'combat_invite', from:G.name, enemyNames:names,
-      hostX:G.x, hostY:G.y, isDungeon:true});
+  // Notify nearby party members
+  if(coopActive){
+    const PROX = 6;
+    coopParty.forEach(p=>{
+      if(!p||p.id===coopMyId) return;
+      const dist = Math.abs((p.x||0)-G.x)+Math.abs((p.y||0)-G.y);
+      if(dist <= PROX){
+        coopBroadcast({type:'combat_invite',
+          from:G.name, enemyNames:names, dist
+        });
+      }
+    });
   }
   addCombatLog(count>1?`${count} enemies attack!`:`A ${def.name} attacks!`);
   combat.lastTick=performance.now();
@@ -2685,10 +2601,13 @@ function triggerCombat(tileType){
   document.getElementById('ov-combat').classList.add('active');
   const names = combat.enemies.map(e=>e.def.name).join(', ');
   addLog(`⚔ Encountered: ${names}!`,'combat');
-  // Notify ALL party members (let them decide based on distance)
-  if(coopActive && coopParty.length > 1){
-    coopBroadcast({type:'combat_invite', from:G.name, enemyNames:names,
-      hostX:G.x, hostY:G.y});
+  // Notify nearby party members
+  if(coopActive){
+    coopParty.forEach(p=>{
+      if(!p||p.id===coopMyId) return;
+      const dist = Math.abs((p.x||0)-G.x)+Math.abs((p.y||0)-G.y);
+      if(dist <= 6) coopBroadcast({type:'combat_invite', from:G.name, enemyNames:names, dist});
+    });
   }
   coopOnCombatStart();
   addCombatLog(count>1 ? `${count} enemies attack!` : `A ${combat.enemies[0].def.name} attacks!`);
@@ -4075,12 +3994,7 @@ function showCoopCombatInvite(ev){
   document.getElementById('coop-combat-invite')?.remove();
   const from = ev.from || 'A party member';
   const enemies = ev.enemyNames || 'enemies';
-  // Calculate distance from combat location if we have it
-  let distStr = 'nearby';
-  if(ev.hostX != null){
-    const d = Math.abs(ev.hostX - G.x) + Math.abs(ev.hostY - G.y);
-    distStr = d <= 3 ? 'right next to you!' : d+' tiles away';
-  }
+  const dist = ev.dist != null ? ev.dist+' tiles away' : 'nearby';
   const fromId = ev._from;
   const d = document.createElement('div');
   d.id = 'coop-combat-invite';
@@ -4343,14 +4257,24 @@ function _coopHandleEvent(ev){
 
   switch(ev.type){
     case 'player_move':
-    case 'peer_move':
-    case 'world_sync': {
-      // Update that player's position in coopParty
-      const p = coopParty.find(p=>p&&p.id===ev._from);
-      if(p){ p.x=ev.x||p.x; p.y=ev.y||p.y; }
-      updatePartyHUD();
-      break;
-    }
+case 'peer_move':
+case 'world_sync': {
+  const p = coopParty.find(p=>p&&p.id===ev._from);
+  if(p){
+    p.x = ev.x ?? p.x;
+    p.y = ev.y ?? p.y;
+    if(ev.hp  != null) p.hp    = ev.hp;
+    if(ev.hpMax != null) p.hpMax = ev.hpMax;
+  }
+  // If we are host, re-broadcast updated party positions to all peers
+  if(coopIsHost && _fbRoomRef && coopMyId){
+    _fbRoomRef.child('players/'+ev._from).update({
+      x: ev.x, y: ev.y, ts: Date.now()
+    });
+  }
+  updatePartyHUD();
+  break;
+}
     case 'player_stat':
     case 'stat_update': {
       const p = coopParty.find(p=>p&&p.id===ev._from);
@@ -4367,8 +4291,7 @@ function _coopHandleEvent(ev){
       break;
     }
     case 'dungeon_invite': {
-      // Show to everyone who isn't already in that dungeon
-      if(window.GameState?.mode !== 'dungeon') showCoopDungeonInvite(ev);
+      if(!coopIsHost) showCoopDungeonInvite(ev);
       break;
     }
     case 'start_campaign': {
@@ -4395,7 +4318,7 @@ function _coopHandleEvent(ev){
       break;
     }
     case 'combat_invite': {
-      // Show to everyone not currently in combat
+      // Another party member entered combat nearby
       if(!G.inCombat) showCoopCombatInvite(ev);
       break;
     }
@@ -4497,8 +4420,13 @@ function coopBroadcastCombatEnd(victory,xp,gold){
 }
 
 function coopSendMove(dx,dy){
-  if(!coopActive) return;
-  coopBroadcast({type:'peer_move', dx, dy, x:G.x, y:G.y});
+  if(!coopActive||!_fbRoomRef) return;
+  // Write position directly to Firebase player node (instant)
+  if(coopMyId){
+    _fbRoomRef.child('players/'+coopMyId).update({
+      x:G.x, y:G.y, hp:G.hp, hpMax:G.hpMax, ts:Date.now()
+    });
+  }
 }
 
 function coopSendAction(action){
@@ -7394,54 +7322,7 @@ console.log('%c Realm of Echoes v2.4 %c built ' + new Date().toISOString().slice
 // Makes old render functions (renderDungeonPartyBar, renderDungeonPartyCol etc.)
 // transparently read from MultiEngine without rewriting them right now.
 // Remove each shim as you refactor those functions to use `multi` directly.
-(function installCoopShims(){
-  // Guard: if MultiEngine not yet imported, retry after a short delay
-  function tryInstall(){
-    if(typeof multi === 'undefined'){
-      setTimeout(tryInstall, 200);
-      return;
-    }
-    Object.defineProperties(window, {
-      coopActive:   { get: () => multi.active,    configurable: true, enumerable: true },
-      coopIsHost:   { get: () => multi.isHost,    configurable: true, enumerable: true },
-      coopParty:    { get: () => multi.partyArray, configurable: true, enumerable: true },
-      coopRoomCode: { get: () => multi.roomCode,  configurable: true, enumerable: true },
-      PARTY_COLORS: {
-        get: () => ['#c9a227','#4a9eff','#ff6b6b','#6bff6b'],
-        configurable: true, enumerable: true
-      },
-      // coopConns is used to call .send() on individual peers
-      coopConns: {
-        get: () => multi._peers.map(p => ({
-          _partyIdx: p.partyIdx,
-          send: (d) => p.conn?.send(d),
-        })),
-        configurable: true, enumerable: true
-      },
-    });
 
-    // coopBroadcast → multi.broadcast
-    window.coopBroadcast = (data) => multi.broadcast(data);
-
-    // coopBroadcastWorldState → manual world sync trigger (heal events etc.)
-    window.coopBroadcastWorldState = () => {
-      if (!multi.active) return;
-      multi.broadcast({
-        type: 'world_sync',
-        members: multi.party.buildWorldSnapshot().members,
-      });
-    };
-
-    // coopDisconnect → multi.disconnect (used in lobby close button)
-    window.coopDisconnect = () => {
-      multi.disconnect();
-      closeCoopLobby();
-    };
-
-    console.log('[Echoes] Co-op shims installed.');
-  }
-  tryInstall();
-})();
 
 //buildCC();
 initFirebase();
