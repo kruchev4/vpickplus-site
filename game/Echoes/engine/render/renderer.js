@@ -564,6 +564,124 @@ function drawStairsDown(ctx, px, py, x, y) {
   ctx.textAlign='center';ctx.textBaseline='middle';
   ctx.fillText('⬇', px+TS/2, py+TS/2);
 }
+function drawTownFloor(ctx, px, py, x, y) {
+  const h = hash(x, y);
+  // Cobblestone base
+  ctx.fillStyle = h > 0.5 ? '#7a6e5e' : '#6a5e4e';
+  ctx.fillRect(px, py, TS, TS);
+  // Cobble grid lines
+  ctx.strokeStyle = 'rgba(30,20,10,0.4)';
+  ctx.lineWidth = 0.5;
+  const offset = (Math.floor(y) % 2 === 0) ? 0 : TS/4;
+  for (let i = 0; i < 4; i++) {
+    ctx.strokeRect(px + (i * TS/4 + offset) % TS, py, TS/4, TS/2);
+    ctx.strokeRect(px + i * TS/4, py + TS/2, TS/4, TS/2);
+  }
+  // Worn highlight on some stones
+  if (h > 0.75) {
+    ctx.fillStyle = 'rgba(255,240,200,0.07)';
+    ctx.fillRect(px + 3, py + 3, TS/4 - 2, TS/2 - 4);
+  }
+}
+
+function drawTownWall(ctx, px, py, x, y) {
+  const h = hash(x, y);
+  // Stone wall base
+  ctx.fillStyle = h > 0.5 ? '#2e2418' : '#241c10';
+  ctx.fillRect(px, py, TS, TS);
+  // Stone block pattern
+  ctx.fillStyle = 'rgba(255,255,255,0.05)';
+  ctx.fillRect(px + 1, py + 1, TS/2 - 2, TS/2 - 2);
+  ctx.fillRect(px + TS/2 + 1, py + TS/2 + 1, TS/2 - 2, TS/2 - 2);
+  // Mortar lines
+  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(px + 0.5, py + 0.5, TS - 1, TS - 1);
+  ctx.beginPath();
+  ctx.moveTo(px, py + TS/2); ctx.lineTo(px + TS, py + TS/2);
+  ctx.moveTo(px + TS/2, py); ctx.lineTo(px + TS/2, py + TS/2);
+  ctx.stroke();
+  // Slight top highlight (depth)
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.fillRect(px, py, TS, 2);
+}
+
+function drawTownService(ctx, px, py, x, y, icon, color) {
+  const h = hash(x, y);
+  // Coloured floor base
+  ctx.fillStyle = color;
+  ctx.fillRect(px, py, TS, TS);
+  // Cobble texture underneath
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.fillRect(px, py, TS, TS);
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
+  ctx.fillRect(px + 1, py + 1, TS/2 - 2, TS/2 - 2);
+  ctx.fillRect(px + TS/2 + 1, py + TS/2 + 1, TS/2 - 2, TS/2 - 2);
+  // Coloured glow
+  const pulse = 0.5 + Math.sin(Date.now() / 1200 + x * 0.7 + y * 0.5) * 0.15;
+  ctx.fillStyle = color + Math.round(pulse * 40).toString(16).padStart(2,'0');
+  ctx.fillRect(px, py, TS, TS);
+  // Icon
+  ctx.font = `${Math.round(TS * 0.5)}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.globalAlpha = 0.9;
+  ctx.fillText(icon, px + TS/2, py + TS/2);
+  ctx.globalAlpha = 1;
+  // Bright border
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.6;
+  ctx.strokeRect(px + 1, py + 1, TS - 2, TS - 2);
+  ctx.globalAlpha = 1;
+}
+
+function drawTownExit(ctx, px, py, x, y) {
+  const h = hash(x, y);
+  // Green grass exit
+  ctx.fillStyle = '#2a5a2a';
+  ctx.fillRect(px, py, TS, TS);
+  // Grass tufts
+  ctx.fillStyle = '#3a7a3a';
+  ctx.fillRect(px + 2, py + 2, TS - 4, TS - 4);
+  // Pulsing arrow indicator
+  const pulse = 0.4 + Math.sin(Date.now() / 800) * 0.3;
+  ctx.fillStyle = `rgba(100,255,100,${pulse})`;
+  ctx.font = `${Math.round(TS * 0.55)}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🌍', px + TS/2, py + TS/2);
+  // Dashed border
+  ctx.strokeStyle = `rgba(60,200,60,${pulse})`;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([3, 3]);
+  ctx.strokeRect(px + 1, py + 1, TS - 2, TS - 2);
+  ctx.setLineDash([]);
+}
+
+function drawTownDeco(ctx, px, py, x, y) {
+  const h = hash(x, y);
+  // Stone base
+  ctx.fillStyle = '#3a3028';
+  ctx.fillRect(px, py, TS, TS);
+  // Fountain pool
+  ctx.fillStyle = '#1a3a5a';
+  ctx.beginPath();
+  ctx.ellipse(px + TS/2, py + TS*0.6, TS*0.38, TS*0.25, 0, 0, Math.PI*2);
+  ctx.fill();
+  // Water shimmer
+  const t = (Date.now() / 1000 + h * 3) % 1;
+  ctx.fillStyle = `rgba(100,180,255,${0.2 + Math.sin(t*Math.PI*2)*0.1})`;
+  ctx.beginPath();
+  ctx.ellipse(px + TS/2, py + TS*0.6, TS*0.25, TS*0.15, 0, 0, Math.PI*2);
+  ctx.fill();
+  // Centre pillar
+  ctx.fillStyle = '#7a6a58';
+  ctx.fillRect(px + TS/2 - 3, py + TS*0.2, 6, TS*0.45);
+  // Water spout
+  ctx.fillStyle = `rgba(150,210,255,${0.5 + Math.sin(t*Math.PI*4)*0.2})`;
+  ctx.fillRect(px + TS/2 - 1, py + TS*0.1, 2, TS*0.15);
+}
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
@@ -603,10 +721,20 @@ export function renderMap(ctx, map, camera, entities = []) {
         case 11: drawChest(ctx, px, py, tx, ty);      break;
         case 12: drawStairsUp(ctx, px, py, tx, ty);   break;
         case 13: drawStairsDown(ctx, px, py, tx, ty); break;
-        default: {
-          const colors = TILE_COLORS?.[tile];
-          if (colors) { ctx.fillStyle = colors[0]; ctx.fillRect(px, py, TS, TS); }
-        }
+        dcase 20: drawTownFloor(ctx, px, py, tx, ty);   break;
+case 21: drawTownWall(ctx, px, py, tx, ty);    break;
+case 22: drawTownService(ctx, px, py, tx, ty, '🏨', '#7a5030'); break;
+case 23: drawTownService(ctx, px, py, tx, ty, '⚒',  '#1a3a5a'); break;
+case 24: drawTownService(ctx, px, py, tx, ty, '✝',  '#4a2a6a'); break;
+case 25: drawTownService(ctx, px, py, tx, ty, '🍺', '#3a2808'); break;
+case 26: drawTownService(ctx, px, py, tx, ty, '💰', '#1a3a1a'); break;
+case 27: drawTownService(ctx, px, py, tx, ty, '⚗',  '#102a2a'); break;
+case 28: drawTownExit(ctx, px, py, tx, ty);    break;
+case 29: drawTownDeco(ctx, px, py, tx, ty);    break;
+default: {
+  const colors = TILE_COLORS?.[tile];
+  if (colors) { ctx.fillStyle = colors[0]; ctx.fillRect(px, py, TS, TS); }
+}
       }
       // Portal overlay
       if (portalSet.has(`${tx},${ty}`)) {
