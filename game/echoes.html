@@ -1285,9 +1285,10 @@ function updateHUD(){
   
 if (!window.engineReady) return;
   if (!window.MAP_W || !window.MAP_H) return;
+  if (!G || !G.cls || !G.name) return; // guard: G not fully loaded yet
 
   document.getElementById('hud-name').textContent=G.name;
-  document.getElementById('hud-class').textContent=`${G.cls.name} · Lv.${G.level}`;
+  document.getElementById('hud-class').textContent=`${G.cls?.name||'?'} · Lv.${G.level||1}`;
   const hpPct=Math.max(0,G.hp/G.hpMax*100);
   const mpPct=G.mpMax>0?Math.max(0,G.mp/G.mpMax*100):0;
   const xpPct=G.xp/G.xpNext*100;
@@ -1311,14 +1312,24 @@ if (!window.engineReady) return;
   }
   hudStats.textContent=`AC ${G.ac} · ATK +${G.atkBonus} · DMG +${G.dmgBonus}`;
 
-  const type=worldMap[G.y*MAP_W+G.x];
-  const TNAMES={[T.GRASS]:'Open Grasslands',[T.FOREST]:'Dense Forest',[T.MOUNTAIN]:'Mountains',
-    [T.DEEP_WATER]:'Deep Waters',[T.SHALLOW]:'Shallows',[T.TOWN]:'Town',
-    [T.DANGER]:'⚠ Danger Zone!',[T.SAND]:'Sandy Wastes'};
-  let locName=TNAMES[type]||'Unknown';
-  for(const t of TOWNS)if(Math.abs(G.x-t.x)<=1&&Math.abs(G.y-t.y)<=1)locName=t.name;
-  document.getElementById('loc-name').textContent=locName;
-  document.getElementById('tile-xy').textContent=`${G.x}, ${G.y}`;
+  // Location name — read from GameState.activeMap (new engine)
+  let locName = 'Unknown Wilds';
+  try {
+    const activeMap = window.GameState?.activeMap;
+    if (activeMap && typeof activeMap.getTile === 'function') {
+      const tileType = activeMap.getTile(G.x, G.y);
+      const TNAMES = { 0:'Open Grasslands', 1:'Dense Forest', 2:'Mountains',
+        3:'Deep Waters', 4:'Shallows', 5:'Town', 6:'\u26a0 Danger Zone!', 7:'Sandy Wastes' };
+      locName = TNAMES[tileType] || 'Unknown Wilds';
+    }
+    if (window.TOWNS) {
+      for (const t of TOWNS) {
+        if (Math.abs(G.x-t.x)<=1 && Math.abs(G.y-t.y)<=1) { locName = t.name; break; }
+      }
+    }
+  } catch(e) {}
+  document.getElementById('loc-name').textContent = locName;
+  document.getElementById('tile-xy').textContent  = `${G.x}, ${G.y}`;
 }
 
 // ── LOG ──
