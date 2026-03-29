@@ -640,13 +640,6 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 .ab-card-desc{font-size:.62rem;color:var(--parch-dk,#9a8a6a);line-height:1.5;margin-bottom:8px;}
 .ab-card-tag{display:inline-block;font-size:.5rem;letter-spacing:1px;padding:2px 7px;border-radius:10px;background:rgba(74,53,32,.4);color:var(--parch-dk,#9a8a6a);text-transform:uppercase;}
 .ab-card-tag.active-tag{background:rgba(40,80,140,.4);color:#7aacdf;}
-/* Paper doll equipped states */
-.pd-slot.pd-filled { border-color:rgba(201,162,39,.6); background:rgba(201,162,39,.08); }
-.pd-slot.pd-filled .pd-icon { filter:none; opacity:1; }
-.pd-slot.pd-filled .pd-lbl { color:var(--parch-lt,#d4c4a0); font-size:.48rem; }
-.pd-slot.pd-rare { border-color:rgba(100,150,255,.7); background:rgba(100,150,255,.06); }
-.pd-slot.pd-legendary { border-color:rgba(255,200,0,.8); background:rgba(255,200,0,.08);
-  box-shadow:0 0 6px rgba(255,200,0,.2); }
 /* Milestone ability buttons in combat — gold-tinted to distinguish from base actions */
 .action-btn.ability-action{border-color:rgba(201,162,39,.4);background:rgba(201,162,39,.05);}
 .action-btn.ability-action:hover{border-color:var(--gold-b,#c9a227);background:rgba(201,162,39,.12);}
@@ -1657,80 +1650,13 @@ function _buildEquipSlotsUI_legacy(){
 }
 
 function openEquipSlot(slot){
+  // Redirect to new full inventory overlay
   openInventory();
-}
-
-// Default icons for empty slots
-const SLOT_ICONS = {
-  head:'🪖', shoulders:'🛡️', chest:'👕', pants:'👖', boots:'👢',
-  mainhand:'⚔️', offhand:'🛡️', ring1:'💍', ring2:'💍', necklace:'📿'
-};
-const SLOT_LABELS = {
-  head:'Head', shoulders:'Shldr', chest:'Chest', pants:'Legs', boots:'Boots',
-  mainhand:'Main', offhand:'Off', ring1:'Ring 1', ring2:'Ring 2', necklace:'Neck'
-};
-
-function updatePaperDoll(){
-  if(!G.equipped) return;
-  for(const slot of EQUIP_SLOTS){
-    const el = document.getElementById('pd-'+slot);
-    if(!el) continue;
-    const item = G.equipped[slot];
-    const iconEl = el.querySelector('.pd-icon');
-    const lblEl  = el.querySelector('.pd-lbl');
-    if(item){
-      el.classList.add('pd-filled');
-      el.classList.toggle('pd-rare',      item.tier==='rare');
-      el.classList.toggle('pd-legendary', item.tier==='legendary');
-      el.title = item.name+': '+(item.desc||'');
-      if(iconEl) iconEl.textContent = item.icon||'📦';
-      if(lblEl)  lblEl.textContent  = item.name.length>8 ? item.name.slice(0,7)+'…' : item.name;
-    } else {
-      el.classList.remove('pd-filled','pd-rare','pd-legendary');
-      el.title = (SLOT_LABELS[slot]||slot)+' — empty';
-      if(iconEl) iconEl.textContent = SLOT_ICONS[slot]||'—';
-      if(lblEl)  lblEl.textContent  = SLOT_LABELS[slot]||slot;
-    }
-  }
-}
-
-function pdSlotClick(slot){
-  const item = G.equipped?.[slot];
-  if(!item){
-    // Show inventory filtered to equippable items for this slot
-    openInventory();
-    toast('Select an item to equip in '+( SLOT_LABELS[slot]||slot)+' slot');
-    return;
-  }
-  // Show item modal for equipped item (allows unequip)
-  const idx = G.inventory.indexOf(item);
-  if(idx >= 0){
-    openItemModal(idx);
-  } else {
-    // Item equipped but not in inventory — show unequip option directly
-    const d = document.createElement('div');
-    d.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
-      'z-index:300;background:#0a0612;border:1px solid rgba(74,53,32,.6);' +
-      'padding:20px 24px;min-width:220px;text-align:center;font-family:Cinzel,serif;';
-    d.innerHTML =
-      '<div style="color:var(--gold-b);font-size:.8rem;margin-bottom:8px;">'+item.icon+' '+item.name+'</div>' +
-      '<div style="color:var(--parch-dk);font-size:.65rem;margin-bottom:14px;">'+( item.desc||'Equipped item')+'</div>' +
-      '<div style="display:flex;gap:8px;justify-content:center;">' +
-      '<button onclick="unequipItem(''+slot+'');updatePaperDoll();buildInventoryUI();this.closest('div[style]').remove();" ' +
-      'style="padding:6px 14px;border:1px solid #c0392b;color:#c0392b;background:transparent;' +
-      'font-family:Cinzel,serif;font-size:.65rem;cursor:pointer;">↩ Unequip</button>' +
-      '<button onclick="this.closest('div[style]').remove();" ' +
-      'style="padding:6px 14px;border:1px solid rgba(74,53,32,.4);color:var(--parch-dk);background:transparent;' +
-      'font-family:Cinzel,serif;font-size:.65rem;cursor:pointer;">✕ Close</button>' +
-      '</div>';
-    document.body.appendChild(d);
-  }
 }
 
 let _modalItemIdx = null;
 
 function buildInventoryUI(){
-  updatePaperDoll();
   // Rebuild left-panel active slots
   buildLeftPanelActiveSlots();
   // If full inventory is open, rebuild that too
@@ -1844,7 +1770,6 @@ function equipItem(idx){
   if(item.tier==='legendary') addLog(`⭐ ${item.name} — "${item.flavour}"`, 'legendary');
   recalcStats();
   buildInventoryUI();
-  updatePaperDoll();
   updateHUD();
   saveGame();
   toast(`Equipped ${item.name}!`);
@@ -1857,7 +1782,6 @@ function unequipItem(slot){
   addLog(`Unequipped: ${item.name}.`,'sys');
   recalcStats();
   buildInventoryUI();
-  updatePaperDoll();
   updateHUD();
   saveGame();
   toast(`Unequipped ${item.name}.`);
