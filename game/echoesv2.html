@@ -2155,7 +2155,7 @@ function buildCombatUI(){
   // Actions
   const ag=document.getElementById('action-grid');
   ag.innerHTML='';
-  G.cls.actions.forEach(a=>{
+  /*G.cls.actions.forEach(a=>{
     const isMagic=G.cls.spells.includes(a);
     const mpCost=isMagic?Math.ceil(G.mpMax*.15):0;
     const btn=document.createElement('button');
@@ -2180,7 +2180,7 @@ function buildCombatUI(){
     btn.dataset.action=a;btn.dataset.mp=mpCost;
     ag.appendChild(btn);
   });
-}
+}*/
 
 function queueAction(action,mpCost,btn){
   if(mpCost>0&&G.mp<mpCost){toast('Not enough MP!','err');return;}
