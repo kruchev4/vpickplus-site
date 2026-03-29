@@ -214,11 +214,22 @@ function gameLoop(ts) {
   updateCamera();
 
   if (GameState.activeMap && GameState.camera && GameState.player) {
-    renderMap(ctx, GameState.activeMap, GameState.camera, [{
+    // Build entity list — player + alive world bosses
+    const entities = [{
       x:   GameState.player.x,
       y:   GameState.player.y,
       cls: GameState.player.cls,
-    }]);
+    }];
+
+    // Add world bosses
+    const bosses = window.worldBosses;
+    if (Array.isArray(bosses)) {
+      for (const b of bosses) {
+        if (b.alive) entities.push({ x: b.x, y: b.y, cls: 'boss', icon: b.icon, name: b.name, isBoss: true });
+      }
+    }
+
+    renderMap(ctx, GameState.activeMap, GameState.camera, entities);
   }
 
   requestAnimationFrame(gameLoop);
