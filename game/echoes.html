@@ -22,6 +22,7 @@
 
 <!-- Engine -->
 <script type="module" src="./Echoes/main.js"></script>
+  <script src="./Echoes/equipment-system.js"></script>
 
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -3396,14 +3397,8 @@ function checkCombatEnd(){
   if(!combat.active) return false;
 
   // Announce newly dead enemies
-  combat.enemies.forEach((e,i)=>{
-    if(e.hp<=0 && !e._announcedDead){
-      e._announcedDead=true;
-      addCombatLog(`${e.def.name} is defeated!`,'player-hit');
-      const fig=document.getElementById('bf-fig-enemy'+i);
-      if(fig) fig.classList.add('dead');
-    }
-  });
+  grantCombatLoot(combat.enemies);
+  
 
   // Count alive enemies
   const aliveEnemies=combat.enemies.filter(e=>e.hp>0);
