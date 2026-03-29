@@ -1159,6 +1159,24 @@ function buildCC(){
 
   document.getElementById('inp-name').addEventListener('input',checkStep1);
 }
+  function getFirebaseDB() {
+    try {
+      if (window.firebase?.apps?.length) {
+        return window.firebase.app().database();
+      }
+    } catch(e) {}
+    return null;
+  }
+ 
+  // Expose it so our patched functions can use it reliably
+  Object.defineProperty(window, '_db', {
+    get: () => getFirebaseDB(),
+    configurable: true,
+    enumerable: true
+  });
+ 
+  console.log('[Patch] Firebase DB getter installed — test:', !!getFirebaseDB());
+ 
 
 function selRace(id){
   CC.race=id;
@@ -5596,96 +5614,34 @@ window.DUNGEON_FILES = {
   };
 
 // ── Dungeon entry/exit on same canvas ────────────────────────────────────────
-async function enterDungeon(campaignId) {
-  const GS = window.GameState;
-
-  // Save world return point
-  GS.returnMap = GS.activeMap;
-  GS.returnX   = G.x;
-  GS.returnY   = G.y;
-  GS.mode      = 'dungeon';
-  G.inTown     = true; // freeze movement while loading
-
-  toast('Loading dungeon…');
-
-  try {
-    // Fetch raw JSON directly
-    const { data, error } = await window.supabaseClient
-      .from('maps').select('json').eq('id', campaignId).maybeSingle();
-
-    if(error || !data) throw new Error(error?.message || 'Map not found: ' + campaignId);
-
-    const raw = typeof data.json === 'string' ? JSON.parse(data.json) : data.json;
-    console.log('[dungeon] raw keys:', Object.keys(raw), 'tiles:', raw.tiles?.length);
-
-    // Build a map object compatible with GameState/renderer without using GameMap constructor
-    // (GameMap does Uint8Array.from which can fail — we bypass it)
-    const tiles = Array.isArray(raw.tiles) ? raw.tiles : Array.from(raw.tiles || []);
-    const dungeonMap = {
-      id:       raw.id || campaignId,
-      name:     raw.name || campaignId,
-      type:     'dungeon',
-      width:    raw.width,
-      height:   raw.height,
-      tiles:    tiles,
-      entry:    raw.entry,
-      exit:     raw.exit,
-      monsters: raw.monsters || [],
-      rooms:    raw.rooms    || [],
-      towns:    [],
-      portals:  [],
-      getTile(x, y) {
-        if(x < 0 || y < 0 || x >= this.width || y >= this.height) return 8; // WALL
-        return this.tiles[y * this.width + x] ?? 8;
-      }
-    };
-
-    GS.activeMap = dungeonMap;
-
-    // Spawn player at entry
-    const ex = raw.entry?.x ?? 5;
-    const ey = raw.entry?.y ?? 5;
-    G.x = ex; G.y = ey; G.prevX = ex; G.prevY = ey;
-    GS.player = G;
-
-    // Sync window.MAP_W/H for any legacy code
-    window.MAP_W = dungeonMap.width;
-    window.MAP_H = dungeonMap.height;
-
-    // Store dungeon monsters
-    window._dungeonMonsters = dungeonMap.monsters.map(m => ({...m, alive:true}));
-
-    G.inTown    = false; // re-enable movement
-    G.inCombat  = false;
-
-    // Reset fog of war for new dungeon
-    window._visitedTiles = new Set();
-    markVisited(ex, ey, 4); // reveal entry area
-    updateMinimapMode();     // switch minimap to dungeon mode
-
-    // Broadcast dungeon invite to party
-    if(coopActive){
-      coopBroadcast({type:'dungeon_invite',
-        dungeonId: campaignId,
-        dungeonName: raw.name || campaignId.replace(/_/g,' '),
-        from: G.name,
-      });
+window.menuSave = async function menuSave() {
+    window.saveGame();
+    await window.cloudSyncNow(false);
+    const statusEl = document.getElementById('menu-status');
+    if (statusEl) {
+      statusEl.textContent = '✅ Saved at ' + new Date().toLocaleTimeString();
+      statusEl.style.color = '#27ae60';
     }
-
-    addLog(`You descend into the ${raw.name || campaignId.replace(/_/g,' ')}. Watch your step.`, 'disc');
-    toast('⚔ Dungeon entered! Find the exit stairs to return.');
-
-  } catch(e) {
-    console.error('[dungeon] load failed:', e);
-    addLog('The dungeon entrance crumbled — cannot enter right now.', 'err');
-    toast('Dungeon load failed: ' + e.message, 'err');
-    // Roll back
-    GS.mode      = 'world';
-    GS.activeMap = GS.returnMap;
-    GS.returnMap = null;
-    G.inTown     = false;
-  }
-}
+  };
+ 
+  // Also fix the menuShowSyncInfo to show Firebase status
+  window.menuShowSyncInfo = function menuShowSyncInfo() {
+    const tok = localStorage.getItem('realmPlayerToken') || '—';
+    const db  = getFirebaseDB();
+    const statusEl = document.getElementById('menu-status');
+    if (statusEl) {
+      statusEl.innerHTML =
+        `<span style="font-size:.65rem;line-height:1.7;">` +
+        `Firebase: <strong style="color:${db?'#27ae60':'#e74c3c'}">${db?'Connected':'Not connected'}</strong><br>` +
+        `Player ID: <code style="font-size:.6rem;">${tok.slice(0,8)}…</code><br>` +
+        `<button onclick="navigator.clipboard?.writeText('${tok}').then(()=>toast('Copied!'))" ` +
+        `style="font-size:.6rem;margin-top:4px;padding:3px 8px;border:1px solid #4a3520;` +
+        `background:transparent;color:var(--parch-dk);cursor:pointer;">Copy Full ID</button>` +
+        `</span>`;
+    }
+  };
+ 
+  console.log('[Patch B] ✅ menuSave + menuShowSyncInfo fixed');
 
 function exitDungeon() {
   const GS = window.GameState;
@@ -6389,28 +6345,27 @@ function getPlayerToken(){
 // debounced auto-sync which fires at most once per 60 seconds.
 window.saveGame = function saveGame() {
     const G = window.G;
-    if (!G || !G.name || !G.cls) return; // don't save empty/unloaded state
+    if (!G || !G.name || !G.cls) return;
+ 
+    // Keep GameState in sync
+    if (window.GameState?.player) Object.assign(window.GameState.player, G);
  
     try {
-      // Always sync window.G with GameState.player
-      if (window.GameState?.player) {
-        Object.assign(window.GameState.player, G);
-      }
- 
-      const savePayload = {
+      localStorage.setItem('realmSave', JSON.stringify({
         version: 3,
         G: G,
         savedAt: Date.now()
-      };
- 
-      localStorage.setItem('realmSave', JSON.stringify(savePayload));
- 
-      // Schedule cloud sync (Firebase) — debounced, max once per 60s
-      _scheduleCloudSync();
- 
-    } catch (e) {
-      console.warn('[saveGame] Failed:', e);
+      }));
+    } catch(e) {
+      console.warn('[saveGame] localStorage failed:', e);
     }
+ 
+    // Debounced cloud sync
+    if (window._cloudSyncTimer) clearTimeout(window._cloudSyncTimer);
+    window._cloudSyncTimer = setTimeout(() => {
+      window._cloudSyncTimer = null;
+      window.cloudSyncNow(true);
+    }, 5000);
   };
  
   // Debounced cloud sync — safe to call frequently
@@ -6432,25 +6387,28 @@ window.saveGame = function saveGame() {
   // Cloud sync to Firebase
   window.cloudSyncNow = async function cloudSyncNow(silent = false) {
     const G = window.G;
-    if (!G || !G.name) return;
+    if (!G?.name) return;
  
-    // Local-only mode
     if (location.protocol === 'file:') {
       if (!silent) window.toast?.('Local mode — cloud sync disabled');
       return;
     }
  
-    const _db = window._db;
-    if (!_db) {
-      if (!silent) window.toast?.('Not connected to Firebase', 'err');
+    const db = getFirebaseDB();
+    if (!db) {
+      if (!silent) window.toast?.('Firebase not ready — saved locally only', 'err');
+      console.warn('[cloudSyncNow] Firebase DB not available');
       return;
     }
  
     try {
       const tok = window.getPlayerToken?.() || localStorage.getItem('realmPlayerToken');
-      if (!tok) return;
+      if (!tok) {
+        console.warn('[cloudSyncNow] No player token');
+        return;
+      }
  
-      await _db.ref('saves/' + tok).set({
+      await db.ref('saves/' + tok).set({
         token:     tok,
         charName:  G.name,
         data:      JSON.stringify(G),
@@ -6458,30 +6416,57 @@ window.saveGame = function saveGame() {
       });
  
       if (!silent) window.toast?.('✅ Saved to cloud');
-      console.log('[saveGame] Cloud sync OK —', G.name, 'Lv', G.level);
+      console.log('[cloudSyncNow] ✅ Saved:', G.name, 'Lv', G.level);
+ 
     } catch (e) {
-      console.warn('[saveGame] Cloud sync failed:', e.message);
+      console.warn('[cloudSyncNow] Failed:', e.message);
       if (!silent) window.toast?.('Save failed: ' + e.message, 'err');
     }
   };
  
   // Also fix the beforeunload handler to use the new save
-  window.addEventListener('beforeunload', () => {
-    const G = window.G;
-    const _db = window._db;
-    if (!G?.name || !_db) return;
+   window.addEventListener('beforeunload', () => {
+    const G   = window.G;
+    const db  = getFirebaseDB();
+    const tok = localStorage.getItem('realmPlayerToken');
+    if (!G?.name || !db || !tok) return;
     try {
-      const tok = localStorage.getItem('realmPlayerToken');
-      if (tok) {
-        _db.ref('saves/' + tok).set({
-          token: tok, charName: G.name,
-          data: JSON.stringify(G), updatedAt: Date.now()
-        });
-      }
+      db.ref('saves/' + tok).set({
+        token: tok, charName: G.name,
+        data: JSON.stringify(G), updatedAt: Date.now()
+      });
     } catch(e) {}
   });
  
-  console.log('[Patch A] ✅ saveGame fixed');
+  console.log('[Patch A] ✅ saveGame + cloudSyncNow fixed');
+  window.menuSave = async function menuSave() {
+    window.saveGame();
+    await window.cloudSyncNow(false);
+    const statusEl = document.getElementById('menu-status');
+    if (statusEl) {
+      statusEl.textContent = '✅ Saved at ' + new Date().toLocaleTimeString();
+      statusEl.style.color = '#27ae60';
+    }
+  };
+ 
+  // Also fix the menuShowSyncInfo to show Firebase status
+  window.menuShowSyncInfo = function menuShowSyncInfo() {
+    const tok = localStorage.getItem('realmPlayerToken') || '—';
+    const db  = getFirebaseDB();
+    const statusEl = document.getElementById('menu-status');
+    if (statusEl) {
+      statusEl.innerHTML =
+        `<span style="font-size:.65rem;line-height:1.7;">` +
+        `Firebase: <strong style="color:${db?'#27ae60':'#e74c3c'}">${db?'Connected':'Not connected'}</strong><br>` +
+        `Player ID: <code style="font-size:.6rem;">${tok.slice(0,8)}…</code><br>` +
+        `<button onclick="navigator.clipboard?.writeText('${tok}').then(()=>toast('Copied!'))" ` +
+        `style="font-size:.6rem;margin-top:4px;padding:3px 8px;border:1px solid #4a3520;` +
+        `background:transparent;color:var(--parch-dk);cursor:pointer;">Copy Full ID</button>` +
+        `</span>`;
+    }
+  };
+ 
+  console.log('[Patch B] ✅ menuSave + menuShowSyncInfo fixed');
 
 async function loadGameAsync(){
   if(_isLocal||!_db) return loadGameLocal();
