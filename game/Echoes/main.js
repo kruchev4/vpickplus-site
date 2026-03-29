@@ -215,9 +215,9 @@ function gameLoop(ts) {
 
   if (GameState.activeMap && GameState.camera && GameState.player) {
     renderMap(ctx, GameState.activeMap, GameState.camera, [{
-      x: GameState.player.x,
-      y: GameState.player.y,
-      color: "#ff00ff",
+      x:   GameState.player.x,
+      y:   GameState.player.y,
+      cls: GameState.player.cls,
     }]);
   }
 
