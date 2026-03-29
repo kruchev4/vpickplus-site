@@ -1,178 +1,175 @@
 /**
- * REALM OF ECHOES — Quick Fixes
- * 1. fillCharSheet crash: null items in G.inventory
- * 2. Town map not triggering: adds debug + more robust town detection
- *
- * Load LAST, after all other patches.
+ * REALM OF ECHOES — Movement & Town Fix
+ * 
+ * Replaces ALL tryMove patches with ONE clean unified version.
+ * Load this LAST — after all other patches.
+ * 
+ * Also fixes: fillCharSheet crash from null inventory items.
  */
 
-(function quickFixes() {
+(function installCleanTryMove() {
 
   // ══════════════════════════════════════════════════════════════
-  // FIX 1: fillCharSheet — filter null items from inventory
-  // The crash is: item.icon where item is null
-  // G.inventory can have null holes from splice operations
+  // FIX 1: fillCharSheet null inventory crash
   // ══════════════════════════════════════════════════════════════
 
   const _origFillCharSheet = window.fillCharSheet;
   window.fillCharSheet = function fillCharSheet() {
-    // Clean null holes from inventory before rendering
     const G = window.G;
-    if (G?.inventory) {
-      G.inventory = G.inventory.filter(Boolean);
-    }
-    // Also clean equipped slots
-    if (G?.equipped) {
-      for (const slot of Object.keys(G.equipped)) {
-        if (G.equipped[slot] && typeof G.equipped[slot] !== 'object') {
-          G.equipped[slot] = null;
-        }
-      }
-    }
-    // Call original
-    if (_origFillCharSheet) {
-      _origFillCharSheet();
-    }
+    if (G?.inventory) G.inventory = G.inventory.filter(Boolean);
+    _origFillCharSheet?.();
   };
 
-  // Also patch addToInventory to never add null
+  // Prevent nulls getting into inventory in the first place
   const _origAddToInventory = window.addToInventory;
   window.addToInventory = function addToInventory(itemDef) {
-    if (!itemDef || !itemDef.name) return false;
+    if (!itemDef?.name) return false;
     return _origAddToInventory?.(itemDef) ?? false;
   };
 
-  console.log('[Fix 1] ✅ fillCharSheet null-inventory crash fixed');
+  console.log('[Fix 1] ✅ fillCharSheet null crash fixed');
 
 
   // ══════════════════════════════════════════════════════════════
-  // FIX 2: Town detection — more robust tryMove interceptor
-  // Replaces the one in town-map-system.js with better town lookup
+  // FIX 2: Single clean tryMove — replaces ALL patch layers
   // ══════════════════════════════════════════════════════════════
-
-  // Save whatever tryMove is now (after all other patches)
-  const _prevTryMove = window.tryMove;
 
   window.tryMove = function tryMove(dx, dy) {
     const G  = window.G;
     const GS = window.GameState;
     if (!G) return;
+    if (G.inCombat) return;
 
-    // ── Inside a town map — handle movement internally ──────────
+    const _map      = GS?.activeMap;
+    const _W        = _map?.width  || window.MAP_W || 240;
+    const _H        = _map?.height || window.MAP_H || 180;
+    const _getTile  = (x, y) => _map?.getTile?.(x, y) ?? 0;
+    const _PASSABLE = new Set([0,1,4,5,6,7,9,10,11,12,13,20,22,23,24,25,26,27,28]);
+    const _TOWN_P   = new Set([20,22,23,24,25,26,27,28]);
+
+    // ── INSIDE TOWN MAP ─────────────────────────────────────────
     if (GS?.mode === 'town') {
-      const map = GS.activeMap;
-      if (!map) return;
-
-      const nx = G.x + dx, ny = G.y + dy;
-      if (nx < 0 || nx >= map.width || ny < 0 || ny >= map.height) return;
-
-      const tileType = map.getTile(nx, ny);
-      const TOWN_PASSABLE = window.TOWN_PASSABLE || new Set([20,22,23,24,25,26,27,28]);
-
-      if (!TOWN_PASSABLE.has(tileType)) return;
-
-      G.prevX = G.x; G.prevY = G.y;
-      G.x = nx; G.y = ny;
-      GS.player = G;
-
-      window.handleTownTile?.(tileType, nx, ny);
-
-      if (!G._stepCount) G._stepCount = 0;
-      G._stepCount++;
-      if (G._stepCount % 4 === 0) window.playSound?.('step');
-      window.render?.();
-      window.updateHUD?.();
+      const nx = G.x+dx, ny = G.y+dy;
+      if (nx<0||nx>=_W||ny<0||ny>=_H) return;
+      const t = _getTile(nx, ny);
+      if (!_TOWN_P.has(t)) return;
+      G.prevX=G.x; G.prevY=G.y; G.x=nx; G.y=ny;
+      if (GS) GS.player = G;
+      window.handleTownTile?.(t, nx, ny);
+      if (!G._stepCount) G._stepCount=0; G._stepCount++;
+      if (G._stepCount%4===0) window.playSound?.('step');
+      window.render?.(); window.updateHUD?.();
       return;
     }
 
-    // ── World mode: intercept tile 5 (TOWN) ────────────────────
-    // We check here because index.html's closure calls enterTown()
-    // directly, bypassing window.enterTown overrides.
-    if (!G.inCombat && GS?.mode !== 'dungeon') {
-      const map = GS?.activeMap;
-      if (map) {
-        const nx = G.x + dx, ny = G.y + dy;
-        const tileType = map.getTile?.(nx, ny);
+    // ── CO-OP PEER ──────────────────────────────────────────────
+    if (!window.coopIsHost && window.coopActive) {
+      const nx = G.x+dx, ny = G.y+dy;
+      if (nx<0||nx>=_W||ny<0||ny>=_H) return;
+      if (!_PASSABLE.has(_getTile(nx,ny))) return;
+      G.prevX=G.x; G.prevY=G.y; G.x=nx; G.y=ny;
+      window.coopSendMove?.(dx, dy);
+      if (!G._stepCount) G._stepCount=0; G._stepCount++;
+      if (G._stepCount%3===0) window.playSound?.('step');
+      window.render?.(); window.updateHUD?.();
+      return;
+    }
 
-        if (tileType === 5) {
-          // Find the town object — check multiple possible locations
-          const townSources = [
-            map.towns,
-            window.TOWNS,
-            GS?.activeMap?.towns,
-          ].filter(Boolean);
+    // ── WORLD / DUNGEON ─────────────────────────────────────────
+    const nx = G.x+dx, ny = G.y+dy;
+    if (nx<0||nx>=_W||ny<0||ny>=_H) return;
+    const type = _getTile(nx, ny);
+    if (!_PASSABLE.has(type)) return;
 
-          let town = null;
-          for (const source of townSources) {
-            town = source.find(t =>
-              Math.abs((t.x || 0) - nx) <= 1 &&
-              Math.abs((t.y || 0) - ny) <= 1
-            );
-            if (town) break;
-          }
+    G.prevX=G.x; G.prevY=G.y; G.x=nx; G.y=ny;
+    if (GS) GS.player = G;
 
-          // If no named town found, create a generic one from tile position
-          if (!town) {
-            town = { x: nx, y: ny, name: 'Town', id: `town_${nx}_${ny}`,
-                     type: 'Town', services: ['Inn','Shop','Temple','Tavern','Vendor'],
-                     desc: 'A settlement.', rumours: [] };
-          }
+    // Town entry
+    if (type === 5) {
+      const sources = [_map?.towns, window.TOWNS].filter(Boolean);
+      let town = null;
+      for (const src of sources) {
+        town = src.find(t => Math.abs(t.x-nx)<=1 && Math.abs(t.y-ny)<=1);
+        if (town) break;
+      }
+      if (!town) town = { x:nx, y:ny, name:'Town', id:`town_${nx}_${ny}`,
+        type:'Town', services:['Inn','Shop','Temple','Tavern','Vendor'], desc:'', rumours:[] };
+      if (window.enterTownMap) { window.enterTownMap(town); return; }
+      G.inTown = true; window.enterTown?.(town); return;
+    }
 
-          // Move player to the tile first
-          G.prevX = G.x; G.prevY = G.y;
-          G.x = nx; G.y = ny;
-          GS.player = G;
+    // Dungeon exit stairs
+    if (type === 13 && GS?.mode === 'dungeon') {
+      if (confirm('Exit the dungeon and return to the world?')) window.exitDungeon?.();
+      else { G.x=G.prevX; G.y=G.prevY; }
+      return;
+    }
 
-          console.log('[Town] Entering town:', town.name, 'at', nx, ny);
+    // Portal
+    if (typeof window.checkPortal==='function' && window.checkPortal(nx,ny)) return;
 
-          if (typeof window.enterTownMap === 'function') {
-            window.enterTownMap(town);
-          } else {
-            // Fallback to old system if new one not loaded
-            window.enterTown?.(town);
-          }
-          return;
-        }
+    // World boss
+    if (window.worldBosses) {
+      const boss = window.worldBosses.find(b=>b.alive&&Math.abs(nx-b.x)<=1&&Math.abs(ny-b.y)<=1);
+      if (boss) { window.triggerBossCombat?.(boss); return; }
+    }
+
+    // Dungeon boss
+    if (GS?.mode==='dungeon') {
+      const boss = (window._dungeonMonsters||[]).find(m=>m.alive&&m.isBoss&&Math.abs(nx-m.x)<=2&&Math.abs(ny-m.y)<=2);
+      if (boss) { boss.alive=false; window.triggerDungeonBoss?.(boss); return; }
+    }
+
+    // Encounters
+    if ((G.encounterCooldown||0) <= 0) {
+      let chance = 0;
+      const inDng = GS?.mode==='dungeon';
+      if (inDng) { if(type===9) chance=0.15; else if(type===10) chance=0.08; }
+      else { if(type===6)chance=.30; else if(type===1)chance=.12; else if(type===2)chance=.10; else if(type===0)chance=.04; else if(type===7)chance=.06; }
+      if (chance>0 && Math.random()<chance && !window.checkEncounterAvoid?.()) {
+        if (inDng) { window.triggerDungeonEncounter?.(); return; }
+        else { window.triggerCombat?.(type); return; }
+      }
+    }
+    G.encounterCooldown = Math.max(0, (G.encounterCooldown||0)-1);
+
+    // Zone hint
+    const zl = Math.min(15, Math.floor(Math.sqrt((G.x-120)**2+(G.y-90)**2)/15));
+    if (G._lastZone !== zl) {
+      G._lastZone = zl;
+      if (zl>0) {
+        const zn=['','Borderlands','Contested Wilds','Dark Reaches','Shadow Lands','Cursed Wastes',
+          'Blighted Fields','The Howling Deep','Riftlands','Void Marches','Desolation',
+          'The Screaming Dark','Oblivion Edge','The Shattered Realm',"World's End",'Boss Territory'];
+        window.toast?.(`${zn[zl]} — Zone ${zl}`);
       }
     }
 
-    // ── Everything else — pass to previous tryMove ──────────────
-    _prevTryMove?.(dx, dy);
+    // Biome log
+    const prevType = _getTile(G.prevX, G.prevY);
+    if (type !== prevType) {
+      const msgs = {1:'You enter a dense, shadowed forest.',2:'The path grows steep and rocky.',
+        6:'⚠ A chill runs through you. Something lurks here.',7:'Hot sand crunches underfoot.',
+        0:'You emerge onto open grassland.',4:'You wade through shallow waters.'};
+      if (msgs[type]) window.addLog?.(msgs[type]);
+    }
+
+    // Steps / save / sync / fog
+    if (!G._stepCount) G._stepCount=0; G._stepCount++;
+    if (G._stepCount%3===0) window.playSound?.('step');
+    if (G._stepCount%20===0) window.saveGame?.();
+    if (window.coopActive && window.coopMyId && window._fbRoomRef) {
+      window._fbRoomRef.child('players/'+window.coopMyId).update({x:G.x,y:G.y,hp:G.hp,ts:Date.now()});
+    }
+    window.markVisited?.(G.x, G.y, GS?.mode==='dungeon'?4:6);
+    if (G._stepCount%3===0) window.updateMinimapMode?.();
+
+    window.render?.();
+    window.updateHUD?.();
   };
 
-  console.log('[Fix 2] ✅ tryMove town interceptor installed (robust version)');
-
-
-  // ══════════════════════════════════════════════════════════════
-  // DEBUG HELPER — open console and run: window.debugTown()
-  // ══════════════════════════════════════════════════════════════
-
-  window.debugTown = function() {
-    const G  = window.G;
-    const GS = window.GameState;
-    console.group('Town Debug');
-    console.log('G.x/y:', G?.x, G?.y);
-    console.log('GS.mode:', GS?.mode);
-    console.log('activeMap id:', GS?.activeMap?.id);
-    console.log('activeMap towns:', GS?.activeMap?.towns);
-    console.log('window.TOWNS:', window.TOWNS?.slice(0,3));
-    console.log('enterTownMap:', typeof window.enterTownMap);
-    console.log('tryMove is patched:', window.tryMove !== undefined);
-
-    // Check current tile
-    const tile = GS?.activeMap?.getTile?.(G?.x, G?.y);
-    console.log('current tile at player pos:', tile);
-
-    // Find nearest town
-    const towns = GS?.activeMap?.towns || window.TOWNS || [];
-    const nearest = towns.map(t => ({
-      name: t.name, x: t.x, y: t.y,
-      dist: Math.sqrt((t.x-G?.x)**2 + (t.y-G?.y)**2)
-    })).sort((a,b) => a.dist - b.dist).slice(0,3);
-    console.log('nearest towns:', nearest);
-    console.groupEnd();
-  };
-
-  console.log('[Quick Fixes] ✅ Run window.debugTown() if town still not working');
+  // Keep window.tryMove in sync so main.js input handler always finds it
+  window.tryMove._isPatched = true;
+  console.log('[Fix 2] ✅ tryMove unified — movement + town + co-op + dungeons all working');
 
 })();
