@@ -2265,6 +2265,10 @@ function tryMove(dx,dy){
   G._stepCount++;
   if(G._stepCount%3===0) playSound('step');
   if(G._stepCount%20===0) saveGame();
+  // Broadcast position to party (every step, throttled by Firebase)
+  if(coopActive && coopMyId && _fbRoomRef){
+    _fbRoomRef.child('players/'+coopMyId).update({x:G.x, y:G.y, hp:G.hp, ts:Date.now()});
+  }
   // Mark visited tiles for fog of war (reveal radius 4 in dungeon, 6 in world)
   const _fogRadius = window.GameState?.mode==='dungeon' ? 4 : 6;
   markVisited(G.x, G.y, _fogRadius);
