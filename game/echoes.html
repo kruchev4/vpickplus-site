@@ -2153,6 +2153,12 @@ function buildCombatUI(){
   updateCombatBars();
 
   // Actions
+  // Re-link cls from CLASSES array if actions missing (happens after save restore)
+  if(!G.cls?.actions && G.cls?.id){
+    const linked = window.CLASSES?.find(c => c.id === G.cls.id);
+    if(linked) G.cls = linked;
+  }
+  if(!G.cls?.actions){ console.warn('[combat] G.cls.actions missing, aborting buildCombatUI'); return; }
   const ag=document.getElementById('action-grid');
   ag.innerHTML='';
   G.cls.actions.forEach(a=>{
