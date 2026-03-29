@@ -19,7 +19,6 @@
   // ══════════════════════════════════════════════════════════════
 
   window.buildPaperDoll = function buildPaperDoll() {
-    const G = getG(); if (!G) return;
     const G = getG();
     if (!G) return;
     if (!G.equipped) G.equipped = {};
