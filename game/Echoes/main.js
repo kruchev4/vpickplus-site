@@ -116,6 +116,24 @@ function gameLoop(ts) {
         if(b.alive) entities.push({x:b.x,y:b.y,cls:'boss',icon:b.icon,name:b.name,isBoss:true});
     }
     renderMap(ctx, GameState.activeMap, GameState.camera, entities);
+
+    // Dungeon: torch FOV darkness overlay
+    if(GameState.mode === 'dungeon'){
+      const cx = canvas.width/2, cy = canvas.height/2;
+      const t = Date.now()/1800;
+      const TORCH = canvas.height * 0.45 * (1 + Math.sin(t)*0.02);
+      const fog = ctx.createRadialGradient(cx,cy,TORCH*0.25,cx,cy,TORCH*1.6);
+      fog.addColorStop(0,'rgba(0,0,0,0)');fog.addColorStop(0.55,'rgba(0,0,0,0.2)');
+      fog.addColorStop(0.8,'rgba(0,0,0,0.82)');fog.addColorStop(1,'rgba(0,0,0,0.98)');
+      ctx.fillStyle=fog; ctx.fillRect(0,0,canvas.width,canvas.height);
+      const warm = ctx.createRadialGradient(cx,cy,0,cx,cy,TORCH*0.5);
+      warm.addColorStop(0,`rgba(180,100,20,${0.06+Math.sin(t*1.3)*0.02})`);
+      warm.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=warm; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle='rgba(180,120,60,0.7)';ctx.font="11px 'Cinzel',serif";
+      ctx.textAlign='left';ctx.textBaseline='top';
+      ctx.fillText('⚔ The Goblin Warrens',12,8);
+    }
   }
   requestAnimationFrame(gameLoop);
 }
