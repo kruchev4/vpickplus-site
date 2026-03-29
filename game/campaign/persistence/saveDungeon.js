@@ -1,5 +1,5 @@
 // campaign/persistence/saveDungeon.js
-import { supabase } from "../../Echoes/engine/supabase/client.js";
+import { supabase } from "../../engine/supabase/client.js";
 
 export async function saveDungeonToSupabase(dungeon) {
   const { data, error } = await supabase
@@ -7,8 +7,14 @@ export async function saveDungeonToSupabase(dungeon) {
     .upsert(
       {
         id: dungeon.id,
-        name: dungeon.name,
-        json: dungeon
+
+        // required by schema
+        type: dungeon.type ?? "world",
+        width: dungeon.width ?? 240,
+        height: dungeon.height ?? 180,
+
+        // jsonb column that actually exists
+        data: dungeon
       },
       { onConflict: "id" }
     );
@@ -16,3 +22,4 @@ export async function saveDungeonToSupabase(dungeon) {
   if (error) throw error;
   return data;
 }
+``
