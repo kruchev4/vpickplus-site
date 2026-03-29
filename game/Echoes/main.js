@@ -22,7 +22,6 @@ import { loadMap }      from "./engine/supabase/mapLoader.js";
 import { renderMap }    from "./engine/render/renderer.js";
 import { updateCamera } from "./engine/camera/camera.js";
 import { playSound, toggleSound } from "./engine/audio/SoundEngine.js";
-import { tryMove } from "./engine/movement/movement.js";
 
 /* ---------- Multiplayer ---------- */
 import { MultiEngine } from "./engine/multi/MultiEngine.js";
@@ -247,7 +246,6 @@ async function startEngine() {
 }
 
 window.startEngine = startEngine;
-window.tryMove = tryMove; // expose so echo.html inline code can still call it
 
 /* ===============================
   INPUT (ENGINE-OWNED)
@@ -257,11 +255,8 @@ function setupInput() {
   if (window._inputRegistered) return;
   window._inputRegistered = true;
   window.addEventListener("keydown", e => {
-    if (window.G?.inCombat || window.G?.inTown) return;
-    if (e.key === "ArrowUp"    || e.key === "w" || e.key === "W") { e.preventDefault(); tryMove(0, -1); }
-    if (e.key === "ArrowDown"  || e.key === "s" || e.key === "S") { e.preventDefault(); tryMove(0,  1); }
-    if (e.key === "ArrowLeft"  || e.key === "a" || e.key === "A") { e.preventDefault(); tryMove(-1, 0); }
-    if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") { e.preventDefault(); tryMove(1,  0); }
+    // Delegate to echo.html's onKey which handles movement + UI shortcuts
+    if (typeof window.onKey === 'function') window.onKey(e);
   });
 }
 
