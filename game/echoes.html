@@ -993,6 +993,46 @@ const CAMPAIGNS = {
   drowned_citadel: { id:'drowned_citadel', name:'The Drowned Citadel',    icon:'💀', type:'campaign', levelRange:[10,15],players:[4,4], estTime:'4-5 Sessions',desc:'A legendary fortress sunk into a cursed lake. Only the most powerful dare descend.',                 longDesc:'' },
 };
 
+  
+// ✅ TEMPORARY: map campaigns → real dungeon map IDs
+  const DUNGEON_MAPS = {
+    goblin_warrens:  "goblin_warrens",
+    bandit_cave:    "crypt_of_bones",
+    sunken_throne:  "sunken_ruins",
+    duskwood_siege: "forest_glades",
+    glacial_tomb:   "frostbound_keep",
+    ashspire:       "magma_pit",
+    irondeep:       "mossy_hollows",
+    drowned_citadel:"elders_grove"
+  };
+
+  const list = document.getElementById("campaign-list");
+
+  Object.values(CAMPAIGNS).forEach(c => {
+    const dungeonId = DUNGEON_MAPS[c.id];
+    const li = document.createElement("li");
+
+    li.innerHTML = `
+      <strong>${c.icon} ${c.name}</strong><br/>
+      <small>${c.desc}</small><br/>
+      <small>Dungeon: ${dungeonId ?? "Unavailable"}</small>
+    `;
+
+    if (!dungeonId) {
+      li.style.opacity = "0.4";
+    } else {
+      li.onclick = () => {
+        // ✅ THIS is the critical fix
+        window.pendingPortalId = dungeonId;
+        window.startCampaign();
+      };
+    }
+
+    list.appendChild(li);
+  });
+
+
+
 // ── render() stub ─────────────────────────────────────────────────────────────
 // The old monolithic render() was replaced by the engine's RAF game loop in main.js.
 // This stub silences "render is not defined" errors from legacy code that still
