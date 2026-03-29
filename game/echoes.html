@@ -640,6 +640,10 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 .ab-card-desc{font-size:.62rem;color:var(--parch-dk,#9a8a6a);line-height:1.5;margin-bottom:8px;}
 .ab-card-tag{display:inline-block;font-size:.5rem;letter-spacing:1px;padding:2px 7px;border-radius:10px;background:rgba(74,53,32,.4);color:var(--parch-dk,#9a8a6a);text-transform:uppercase;}
 .ab-card-tag.active-tag{background:rgba(40,80,140,.4);color:#7aacdf;}
+/* Milestone ability buttons in combat — gold-tinted to distinguish from base actions */
+.action-btn.ability-action{border-color:rgba(201,162,39,.4);background:rgba(201,162,39,.05);}
+.action-btn.ability-action:hover{border-color:var(--gold-b,#c9a227);background:rgba(201,162,39,.12);}
+.action-btn.ability-action .a-icon{filter:sepia(0.5);}
 /* Combat quick slots */
 .combat-quick-slots-bar{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;min-height:0;}
 .cqs-btn{display:flex;align-items:center;gap:4px;padding:4px 9px;
@@ -2571,30 +2575,47 @@ function buildCombatUI(){
   if(!G.cls?.actions){ console.warn('[combat] G.cls.actions missing, aborting buildCombatUI'); return; }
   const ag=document.getElementById('action-grid');
   ag.innerHTML='';
-  G.cls.actions.forEach(a=>{
-    const isMagic=G.cls.spells.includes(a);
-    const mpCost=isMagic?Math.ceil(G.mpMax*.15):0;
+  const icons={
+    'Attack':'⚔️','Heavy Strike':'💥','Defend':'🛡️','Second Wind':'💨',
+    'Magic Missile':'✨','Fireball':'🔥','Blink':'💨','Sneak Attack':'🗡️',
+    'Dodge':'🏃','Poison Strike':'☠️','Sacred Flame':'✝️','Heal':'💚',
+    'Turn Undead':'☀️','Divine Smite':'⚡','Lay on Hands':'🙏',
+    'Aura of Protection':'🔰',"Multishot":'🏹',"Hunter's Mark":'🎯','Evade':'🌬️',
+    'Rage Attack':'😡','Reckless Attack':'🌀','Intimidate':'👿',
+    'Vicious Mockery':'🎭','Inspiration':'✨','Charm':'💫',
+    'Thorn Whip':'🌿','Entangle':'🌱','Wild Shape':'🐻',
+    'Chaos Bolt':'⚡','Metamagic':'🔮','Dragon Breath':'🐉',
+    'Eldritch Blast':'👁️','Hex':'🔮',"Dark One's Blessing":'🌑',
+    'Flurry of Blows':'👊','Stunning Strike':'💫','Patient Defense':'🧘',
+  };
+
+  function addActionBtn(name, mpCost, isAbility=false){
     const btn=document.createElement('button');
-    btn.className='action-btn';
-    const icons={
-      'Attack':'⚔️','Heavy Strike':'💥','Defend':'🛡️','Second Wind':'💨',
-      'Magic Missile':'✨','Fireball':'🔥','Blink':'💨','Sneak Attack':'🗡️',
-      'Dodge':'🏃','Poison Strike':'☠️','Sacred Flame':'✝️','Heal':'💚',
-      'Turn Undead':'☀️','Divine Smite':'⚡','Lay on Hands':'🙏',
-      'Aura of Protection':'🔰',"Multishot":'🏹',"Hunter's Mark":'🎯','Evade':'🌬️',
-      'Rage Attack':'😡','Reckless Attack':'🌀','Intimidate':'👿',
-      'Vicious Mockery':'🎭','Inspiration':'✨','Charm':'💫',
-      'Thorn Whip':'🌿','Entangle':'🌱','Wild Shape':'🐻',
-      'Chaos Bolt':'⚡','Metamagic':'🔮','Dragon Breath':'🐉',
-      'Eldritch Blast':'👁️','Hex':'🔮',"Dark One's Blessing":'🌑',
-      'Flurry of Blows':'👊','Stunning Strike':'💫','Patient Defense':'🧘',
-    };
-    const _bidx = Array.from(ag.children).length; // 0-based index at time of creation
+    btn.className='action-btn'+(isAbility?' ability-action':'');
+    const _bidx = Array.from(ag.children).length;
     const _kbind = _bidx<6 ? `<span class="a-keybind">${_bidx+1}</span>` : '';
-    btn.innerHTML=`${_kbind}<span class="a-icon">${icons[a]||'⚔️'}</span>${a}${mpCost?`<span class="a-cost">${mpCost}MP</span>`:''}`;
-    btn.onclick=()=>queueAction(a,mpCost,btn);
-    btn.dataset.action=a;btn.dataset.mp=mpCost;
+    btn.innerHTML=`${_kbind}<span class="a-icon">${icons[name]||'✦'}</span>${name}${mpCost?`<span class="a-cost">${mpCost}MP</span>`:''}`;
+    btn.onclick=()=>queueAction(name,mpCost,btn);
+    btn.dataset.action=name;btn.dataset.mp=mpCost;
     ag.appendChild(btn);
+  }
+
+  // Base class actions
+  G.cls.actions.forEach(a=>{
+    const isMagic=G.cls.spells?.includes(a);
+    const mpCost=isMagic?Math.ceil(G.mpMax*.15):0;
+    addActionBtn(a, mpCost, false);
+  });
+
+  // Milestone abilities — only non-passive ones
+  (G.abilities||[]).forEach(ab=>{
+    if(!ab || ab.passive) return; // skip passives
+    const name = ab.name||ab;
+    if(!name || typeof name !== 'string') return;
+    // Don't duplicate base actions
+    if(G.cls.actions.includes(name)) return;
+    const mpCost = ab.mpCost || (ab.effect?.mp ? 0 : Math.ceil(G.mpMax*0.12));
+    addActionBtn(name, mpCost, true);
   });
 }
 
@@ -6174,10 +6195,22 @@ function checkEncounterAvoid(){
 
 // ── New & upgraded action execution (called from executePlayerAction) ──
 function executeCustomAction(action, e){
-  const upg = G.cls.upgradedActions && G.cls.upgradedActions[action];
-  const cust = G.cls.customActions && G.cls.customActions[action];
-  const src = upg || cust;
-  if(!src) return null; // not custom
+  const upg  = G.cls.upgradedActions && G.cls.upgradedActions[action];
+  const cust = G.cls.customActions   && G.cls.customActions[action];
+  // Also check milestone abilities from G.abilities
+  const milestoneAb = (G.abilities||[]).find(ab=>(ab.name||ab)===action && typeof ab==='object');
+  const src = upg || cust || milestoneAb?.combatEffect || milestoneAb?.effect || null;
+  if(!src && !milestoneAb) return null; // not custom
+
+  // Handle milestone ability with no combat effect — apply passive buff
+  if(milestoneAb && !src){
+    if(milestoneAb.effect){
+      Object.assign(G.passives||{}, milestoneAb.effect);
+      addCombatLog(`${action} activated!`,'player-hit');
+      return {hit:false, dmg:0, handled:true};
+    }
+    return null;
+  }
 
   let dmg=0, hit=false, msg='';
   const roll = d20(), toHit = roll + G.atkBonus;
