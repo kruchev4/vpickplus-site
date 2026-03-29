@@ -102,7 +102,7 @@ function resizeCanvasToDisplaySize(c) {
 }
 
 function gameLoop(ts) {
-  window._engineCamera = camera; // expose for click-to-move
+  
   resizeCanvasToDisplaySize(canvas);
   GameState.camera.w = canvas.width;
   GameState.camera.h = canvas.height;
