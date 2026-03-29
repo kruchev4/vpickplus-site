@@ -5304,23 +5304,36 @@ async function enterDungeon(campaignId) {
   toast('Loading dungeon…');
 
   try {
-    // Load raw JSON first so we can read entry/monsters before GameMap wraps it
+    // Fetch raw JSON directly
     const { data, error } = await window.supabaseClient
       .from('maps').select('json').eq('id', campaignId).maybeSingle();
 
     if(error || !data) throw new Error(error?.message || 'Map not found: ' + campaignId);
 
     const raw = typeof data.json === 'string' ? JSON.parse(data.json) : data.json;
+    console.log('[dungeon] raw keys:', Object.keys(raw), 'tiles:', raw.tiles?.length);
 
-    // Build the GameMap via loadMapById (which calls new GameMap(json))
-    const dungeonMap = await window.loadMapById(campaignId);
-
-    // Attach extra fields GameMap may not expose
-    dungeonMap.entry    = raw.entry;
-    dungeonMap.exit     = raw.exit;
-    dungeonMap.monsters = raw.monsters || [];
-    dungeonMap.rooms    = raw.rooms    || [];
-    dungeonMap.type     = 'dungeon';
+    // Build a map object compatible with GameState/renderer without using GameMap constructor
+    // (GameMap does Uint8Array.from which can fail — we bypass it)
+    const tiles = Array.isArray(raw.tiles) ? raw.tiles : Array.from(raw.tiles || []);
+    const dungeonMap = {
+      id:       raw.id || campaignId,
+      name:     raw.name || campaignId,
+      type:     'dungeon',
+      width:    raw.width,
+      height:   raw.height,
+      tiles:    tiles,
+      entry:    raw.entry,
+      exit:     raw.exit,
+      monsters: raw.monsters || [],
+      rooms:    raw.rooms    || [],
+      towns:    [],
+      portals:  [],
+      getTile(x, y) {
+        if(x < 0 || y < 0 || x >= this.width || y >= this.height) return 8; // WALL
+        return this.tiles[y * this.width + x] ?? 8;
+      }
+    };
 
     GS.activeMap = dungeonMap;
 
