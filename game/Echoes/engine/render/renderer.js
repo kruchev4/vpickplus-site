@@ -289,6 +289,33 @@ function drawBard(ctx, sx, sy, s, c) {
   ctx.fillRect(sx + 24*s, sy + 17*s, 4*s, 1*s);
 }
 
+function drawBoss(ctx, sx, sy, ts, icon) {
+  const s = ts / 32;
+  // Pulsing dark aura
+  ctx.fillStyle = 'rgba(80,0,0,0.35)';
+  ctx.beginPath();
+  ctx.ellipse(sx + ts/2, sy + ts*0.6, ts*0.55, ts*0.45, 0, 0, Math.PI*2);
+  ctx.fill();
+  // Drop shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.beginPath();
+  ctx.ellipse(sx + ts/2, sy + ts - 2*s, ts*0.38, ts*0.12, 0, 0, Math.PI*2);
+  ctx.fill();
+  // Boss emoji icon — large
+  ctx.font = `${Math.round(ts * 0.7)}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(icon || '💀', sx + ts/2, sy + ts*0.45);
+  // Red health bar under boss
+  ctx.fillStyle = '#1a0000';
+  ctx.fillRect(sx + 2*s, sy + ts - 5*s, ts - 4*s, 3*s);
+  ctx.fillStyle = '#c0392b';
+  ctx.fillRect(sx + 2*s, sy + ts - 5*s, ts - 4*s, 3*s);
+  // Skull crown
+  ctx.font = `${Math.round(ts * 0.22)}px serif`;
+  ctx.fillText('👑', sx + ts/2, sy + 4*s);
+}
+
 function drawSprite(ctx, sx, sy, ts, cls) {
   const c = CLASS_COLORS[cls] || CLASS_COLORS.fighter;
   const s = ts / 32;
@@ -350,9 +377,13 @@ export function renderMap(ctx, map, camera, entities = []) {
   for (const e of entities) {
     const sx  = Math.round(e.x * TILE_SIZE - camera.x);
     const sy  = Math.round(e.y * TILE_SIZE - camera.y);
-    const cls = (e.cls?.id || e.cls || 'fighter').toLowerCase();
     ctx.save();
-    drawSprite(ctx, sx, sy, TILE_SIZE, cls);
+    if (e.isBoss) {
+      drawBoss(ctx, sx, sy, TILE_SIZE, e.icon);
+    } else {
+      const cls = (e.cls?.id || e.cls || 'fighter').toLowerCase();
+      drawSprite(ctx, sx, sy, TILE_SIZE, cls);
+    }
     ctx.restore();
   }
 }
