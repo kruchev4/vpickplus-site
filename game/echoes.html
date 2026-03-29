@@ -1223,7 +1223,8 @@ function startGame() {
   // Signal engine readiness BEFORE startEngine so render guards pass on first frame
   window.engineReady = true;
 
-  initGame(); // register keyboard + click handlers
+  registerInput(); // attach keyboard + click listeners now
+  initGame();       // HUD, inventory, bosses, logs
   console.log("about to start loop");
   window.startEngine(); // called ONCE only
 
@@ -1822,17 +1823,19 @@ function hasSavedCharacter() {
 }
 
 function drawClickRipple(cx, cy){
-  // Draw a small ripple at click point — fades out
+  // Use the engine canvas context if available
+  const _ctx = window._engineCtx || null;
+  if (!_ctx) return; // no-op if legacy ctx unavailable
   let frame=0;
   const ripple=()=>{
     if(frame>8) return;
-    ctx.save();
-    ctx.strokeStyle=`rgba(201,162,39,${0.8-frame*0.1})`;
-    ctx.lineWidth=1.5;
-    ctx.beginPath();
-    ctx.arc(cx,cy,frame*4+4,0,Math.PI*2);
-    ctx.stroke();
-    ctx.restore();
+    _ctx.save();
+    _ctx.strokeStyle=`rgba(201,162,39,${0.8-frame*0.1})`;
+    _ctx.lineWidth=1.5;
+    _ctx.beginPath();
+    _ctx.arc(cx,cy,frame*4+4,0,Math.PI*2);
+    _ctx.stroke();
+    _ctx.restore();
     frame++;
     requestAnimationFrame(ripple);
   };
@@ -6263,7 +6266,8 @@ function csLoadCharacter(idx){
   document.getElementById('screen-charselect').classList.remove('active');
   document.getElementById('screen-game').classList.add('active');
 
-  // Start engine — fires engine-ready → registerInput() attaches keyboard/click
+  // Register input immediately — don't rely on async engine startup
+  registerInput();
   window.engineReady = true;
   window.startEngine();
 
@@ -6960,7 +6964,7 @@ initFirebase();
 
 // Wait for main.js (ES module) to finish loading RACES/CLASSES before showing char select.
 // main.js dispatches 'module-ready' immediately after all imports resolve.
-// ── Guaranteed input registration — fires whenever engine starts ─────────────
+// ── Input registration — called once, safe to call multiple times ─────────────
 function registerInput() {
   if (window._inputRegistered) return;
   window._inputRegistered = true;
@@ -6969,9 +6973,8 @@ function registerInput() {
   const _wc = document.getElementById('world-cv');
   if (_wc) _wc.addEventListener('click', onCanvasClick);
   window.addEventListener('resize', resizeCanvas);
-  console.log('[input] Listeners registered');
+  console.log('[input] Listeners registered ✓');
 }
-window.addEventListener('engine-ready', registerInput);
 
 window.addEventListener('module-ready', () => {
   showCharSelect();
