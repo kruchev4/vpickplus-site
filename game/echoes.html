@@ -1509,8 +1509,31 @@ const SLOT_ACCEPTS = {
 
 // Types that go in each slot
 const SLOT_FOR_TYPE = {
-  weapon:'weapon', armor:'armor', accessory:'accessory', boots:'boots',
-  potion:null, misc:null,
+  // item.type  →  G.equipped key
+  weapon:    'mainhand',
+  sword:     'mainhand',
+  axe:       'mainhand',
+  bow:       'mainhand',
+  staff:     'mainhand',
+  wand:      'mainhand',
+  dagger:    'mainhand',
+  offhand:   'offhand',
+  shield:    'offhand',
+  armor:     'chest',
+  chest:     'chest',
+  helmet:    'head',
+  head:      'head',
+  shoulders: 'shoulders',
+  pants:     'pants',
+  boots:     'boots',
+  ring:      'ring1',
+  ring1:     'ring1',
+  ring2:     'ring2',
+  necklace:  'necklace',
+  accessory: 'ring1',
+  potion:    null,
+  misc:      null,
+  food:      null,
 };
 
 
@@ -1646,7 +1669,8 @@ function openItemModal(idx){
 
   // Action buttons
   const slot = SLOT_FOR_TYPE[item.type]||null;
-  const isEquipped = slot && G.equipped[slot]===item;
+  const isEquipped = slot && G.equipped?.[slot] &&
+    (G.equipped[slot]===item || G.equipped[slot]?.name===item?.name);
   const acts = document.getElementById('im-actions');
   acts.innerHTML='';
 
@@ -1692,7 +1716,10 @@ function closeItemModal(){
 }
 
 function equipItem(idx){
-  if(!G.equipped) G.equipped={weapon:null,armor:null,accessory:null,boots:null};
+  if(!G.equipped) G.equipped={
+    mainhand:null,offhand:null,head:null,chest:null,
+    shoulders:null,pants:null,boots:null,ring1:null,ring2:null,necklace:null
+  };
   const item=G.inventory[idx];
   if(!item)return;
   const slot=SLOT_FOR_TYPE[item.type];
