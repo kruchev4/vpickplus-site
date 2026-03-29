@@ -8,7 +8,7 @@ export async function loadMap(mapId) {
     .from("maps")
     .select("json")
     .eq("id", mapId)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error(`[mapLoader] Supabase error loading "${mapId}":`, error.message, error);
