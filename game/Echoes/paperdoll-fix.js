@@ -10,14 +10,21 @@
 
 (function fixPaperdoll() {
 
+  // G and PD_SLOTS are closure vars in index.html — access via window
+  const getG       = () => window.G;
+  const getPDSlots = () => window.PD_SLOTS || [];
+
   // ══════════════════════════════════════════════════════════════
   // FIX 1: buildPaperDoll — hide default icon/label when slot filled
   // ══════════════════════════════════════════════════════════════
 
   window.buildPaperDoll = function buildPaperDoll() {
+    const G = getG(); if (!G) return;
+    const G = getG();
+    if (!G) return;
     if (!G.equipped) G.equipped = {};
 
-    PD_SLOTS.forEach(slot => {
+    getPDSlots().forEach(slot => {
       const el = document.getElementById('pd-' + slot.id);
       if (!el) return;
 
@@ -108,6 +115,7 @@
   // ══════════════════════════════════════════════════════════════
 
   window.equipItem = function equipItem(idx) {
+    const G = getG(); if (!G) return;
     if (!G.equipped) G.equipped = {};
     const item = G.inventory[idx];
     if (!item) return;
@@ -154,6 +162,7 @@
   // ══════════════════════════════════════════════════════════════
 
   window.unequipItem = function unequipItem(slot) {
+    const G = getG(); if (!G) return;
     if (!G.equipped?.[slot]) return;
     if (G.inventory.filter(Boolean).length >= 20) {
       toast('Inventory full!', 'err');
@@ -177,6 +186,7 @@
   // ══════════════════════════════════════════════════════════════
 
   window.buildInventoryUI = function buildInventoryUI() {
+    const G = getG(); if (!G) return;
     buildLeftPanelActiveSlots();
     // If inventory overlay is open, do full rebuild
     if (document.getElementById('ov-inventory')?.classList.contains('active')) {
@@ -194,6 +204,7 @@
   // ══════════════════════════════════════════════════════════════
 
   window.pdSlotClick = function pdSlotClick(slotId) {
+    const G = getG(); if (!G) return;
     const item = G.equipped?.[slotId] || null;
 
     // Highlight the clicked slot
@@ -211,7 +222,7 @@
     const btnsEl = document.getElementById('iap-btns');
     if (!iconEl || !nameEl || !metaEl || !btnsEl) return;
 
-    const slotDef = (window.PD_SLOTS || []).find(s => s.id === slotId);
+    const slotDef = getPDSlots().find(s => s.id === slotId);
     const slotLabel = slotDef?.label || slotId;
 
     if (!item) {
@@ -277,6 +288,7 @@
   // ══════════════════════════════════════════════════════════════
 
   window.selectCarrySlot = function selectCarrySlot(idx) {
+    const G = getG(); if (!G) return;
     const item = G.inventory[idx] || null;
 
     // Deselect old carry selection
