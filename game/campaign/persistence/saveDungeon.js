@@ -1,5 +1,5 @@
 // campaign/persistence/saveDungeon.js
-import { supabase } from "../../Echo/engine/supabase/client.js";
+import { supabase } from "../../Echoes/engine/supabase/client.js";
 
 export async function saveDungeonToSupabase(dungeon) {
   const { data, error } = await supabase
