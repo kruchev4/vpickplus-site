@@ -365,7 +365,7 @@
     const GS = window.GameState;
     if (!G) return;
 
-    // If we're inside a town map, use town movement logic
+    // ── INSIDE a town map ─────────────────────────────────────
     if (GS?.mode === 'town') {
       const map = GS.activeMap;
       if (!map) return;
@@ -374,33 +374,52 @@
       if (nx<0||nx>=map.width||ny<0||ny>=map.height) return;
 
       const tileType = map.getTile(nx, ny);
-
-      // Check passability
       if (!TOWN_PASSABLE.has(tileType)) return;
 
       G.prevX = G.x; G.prevY = G.y;
       G.x = nx; G.y = ny;
       GS.player = G;
 
-      // Handle special tiles
       window.handleTownTile(tileType, nx, ny);
 
       if (!G._stepCount) G._stepCount = 0; G._stepCount++;
       if (G._stepCount % 4 === 0) window.playSound?.('step');
-
       window.render?.();
       window.updateHUD?.();
       return;
     }
 
-    // World/dungeon movement — use original
+    // ── WORLD mode: intercept tile 5 (TOWN) before closure tryMove ──
+    // index.html's tryMove calls `enterTown(town)` which is a closure
+    // reference and ignores window.enterTown overrides. We intercept here.
+    if (GS?.mode === 'world' || !GS?.mode) {
+      const map = GS?.activeMap;
+      if (map) {
+        const nx = G.x + dx, ny = G.y + dy;
+        const tileType = map.getTile?.(nx, ny);
+        if (tileType === 5) { // TOWN tile
+          // Find which town this is
+          const towns = map.towns || window.TOWNS || [];
+          const town  = towns.find(t => Math.abs(t.x - nx) <= 1 && Math.abs(t.y - ny) <= 1);
+          if (town && !G.inCombat) {
+            // Move player onto the tile first
+            G.prevX = G.x; G.prevY = G.y;
+            G.x = nx; G.y = ny;
+            GS.player = G;
+            enterTownMap(town);
+            return;
+          }
+        }
+      }
+    }
+
+    // All other movement — pass to original (patch-v3 → index.html closure)
     _origTryMove?.(dx, dy);
   };
 
-  // Also patch enterTown (called from world tryMove on tile 5)
+  // Also override window.enterTown as a fallback for any direct calls
   window.enterTown = function enterTown(town) {
     if (!town) return;
-    // Use new map system
     enterTownMap(town);
   };
 
