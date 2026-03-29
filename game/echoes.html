@@ -1849,6 +1849,13 @@ let moveAccum=0;const MOVE_MS=150;
 
 
 function onKey(e){
+  // Movement
+  if(!G.inCombat && !G.inTown){
+    if(e.key==='ArrowUp'   ||e.key==='w'||e.key==='W'){e.preventDefault();tryMove(0,-1);return;}
+    if(e.key==='ArrowDown' ||e.key==='s'||e.key==='S'){e.preventDefault();tryMove(0, 1);return;}
+    if(e.key==='ArrowLeft' ||e.key==='a'||e.key==='A'){e.preventDefault();tryMove(-1,0);return;}
+    if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){e.preventDefault();tryMove(1, 0);return;}
+  }
   // Combat hotkeys
   if(G.inCombat && !combat.playerCasting && ['1','2','3','4','5','6'].includes(e.key)){
     const btns=document.querySelectorAll('#action-grid .action-btn:not(:disabled)');
