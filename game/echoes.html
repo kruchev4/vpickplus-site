@@ -16,6 +16,58 @@
   <link rel="stylesheet" href="./Echoes/styles/inventory.css">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <ul id="campaign-list"></ul>
+
+<script>
+  // EXISTING campaign definitions (unchanged)
+  const CAMPAIGNS = {
+    goblin_warrens:  { id:'goblin_warrens',  name:'The Goblin Warrens', icon:'👺', desc:'A fetid network of tunnels.' },
+    bandit_cave:     { id:'bandit_cave',     name:"Bandit's Cave",     icon:'🗡️', desc:'A notorious hideout.' },
+    sunken_throne:   { id:'sunken_throne',   name:'The Sunken Throne',  icon:'🌊', desc:'An ancient palace.' },
+    duskwood_siege:  { id:'duskwood_siege',  name:'Siege of Duskwood',  icon:'🌲', desc:'A town under siege.' },
+    glacial_tomb:    { id:'glacial_tomb',    name:'The Glacial Tomb',   icon:'❄️', desc:'A frozen vault.' },
+    ashspire:        { id:'ashspire',        name:'Ashspire',          icon:'🔥', desc:'A volcanic tower.' },
+    irondeep:        { id:'irondeep',        name:'Irondeep Mine',     icon:'⛏️', desc:'A silent mine.' },
+    drowned_citadel: { id:'drowned_citadel', name:'The Drowned Citadel',icon:'💀', desc:'A sunken fortress.' }
+  };
+
+  // ✅ TEMPORARY: map campaigns → real dungeon map IDs
+  const DUNGEON_MAPS = {
+    goblin_warrens:  "goblin_warrens",
+    bandit_cave:    "crypt_of_bones",
+    sunken_throne:  "sunken_ruins",
+    duskwood_siege: "forest_glades",
+    glacial_tomb:   "frostbound_keep",
+    ashspire:       "magma_pit",
+    irondeep:       "mossy_hollows",
+    drowned_citadel:"elders_grove"
+  };
+
+  const list = document.getElementById("campaign-list");
+
+  Object.values(CAMPAIGNS).forEach(c => {
+    const dungeonId = DUNGEON_MAPS[c.id];
+    const li = document.createElement("li");
+
+    li.innerHTML = `
+      <strong>${c.icon} ${c.name}</strong><br/>
+      <small>${c.desc}</small><br/>
+      <small>Dungeon: ${dungeonId ?? "Unavailable"}</small>
+    `;
+
+    if (!dungeonId) {
+      li.style.opacity = "0.4";
+    } else {
+      li.onclick = () => {
+        // ✅ THIS is the critical fix
+        window.pendingPortalId = dungeonId;
+        window.startCampaign();
+      };
+    }
+
+    list.appendChild(li);
+  });
+</script>
 
 
 
@@ -979,14 +1031,9 @@ const PORTALS=[
   {x:208,y:152,campaignId:'drowned_citadel'},
 ];
 
-</script>
 
-// ── Campaign definitions (keyed by campaignId) ───────────────────────────────
-<ul id="campaign-list"></ul>
-
-<script>
   // EXISTING campaign definitions (unchanged)
-  const CAMPAIGNS = {
+/*  const CAMPAIGNS = {
     goblin_warrens:  { id:'goblin_warrens',  name:'The Goblin Warrens', icon:'👺', desc:'A fetid network of tunnels.' },
     bandit_cave:     { id:'bandit_cave',     name:"Bandit's Cave",     icon:'🗡️', desc:'A notorious hideout.' },
     sunken_throne:   { id:'sunken_throne',   name:'The Sunken Throne',  icon:'🌊', desc:'An ancient palace.' },
@@ -995,45 +1042,9 @@ const PORTALS=[
     ashspire:        { id:'ashspire',        name:'Ashspire',          icon:'🔥', desc:'A volcanic tower.' },
     irondeep:        { id:'irondeep',        name:'Irondeep Mine',     icon:'⛏️', desc:'A silent mine.' },
     drowned_citadel: { id:'drowned_citadel', name:'The Drowned Citadel',icon:'💀', desc:'A sunken fortress.' }
-  };
+  };*/
 
-  // ✅ TEMPORARY: map campaigns → real dungeon map IDs
-  const DUNGEON_MAPS = {
-    goblin_warrens:  "goblin_warrens",
-    bandit_cave:    "crypt_of_bones",
-    sunken_throne:  "sunken_ruins",
-    duskwood_siege: "forest_glades",
-    glacial_tomb:   "frostbound_keep",
-    ashspire:       "magma_pit",
-    irondeep:       "mossy_hollows",
-    drowned_citadel:"elders_grove"
-  };
-
-  const list = document.getElementById("campaign-list");
-
-  Object.values(CAMPAIGNS).forEach(c => {
-    const dungeonId = DUNGEON_MAPS[c.id];
-    const li = document.createElement("li");
-
-    li.innerHTML = `
-      <strong>${c.icon} ${c.name}</strong><br/>
-      <small>${c.desc}</small><br/>
-      <small>Dungeon: ${dungeonId ?? "Unavailable"}</small>
-    `;
-
-    if (!dungeonId) {
-      li.style.opacity = "0.4";
-    } else {
-      li.onclick = () => {
-        // ✅ THIS is the critical fix
-        window.pendingPortalId = dungeonId;
-        window.startCampaign();
-      };
-    }
-
-    list.appendChild(li);
-  });
-</script>
+ 
 
   
 
