@@ -69,6 +69,10 @@ Object.assign(window, {
 /* Legacy HUD compatibility stub */
 window.worldMap = { width: 0, height: 0, getTile() { return null; } };
 
+// Signal that all ES module imports (RACES, CLASSES, etc.) are resolved.
+// echoes.html listens for this before calling showCharSelect().
+window.dispatchEvent(new Event('module-ready'));
+
 /* ===============================
   MULTIPLAYER (MultiEngine)
   =============================== */
