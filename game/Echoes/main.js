@@ -16,6 +16,7 @@ import { CRAFT_RECIPES }                    from "./engine/data/crafting/recipes
 
 import { GameState }    from "./engine/state/GameState.js";
 import { loadMap }      from "./engine/supabase/mapLoader.js";
+import { supabase }    from "./engine/supabase/client.js";
 import { renderMap }    from "./engine/render/renderer.js";
 import { updateCamera } from "./engine/camera/camera.js";
 import { playSound, toggleSound } from "./engine/audio/SoundEngine.js";
@@ -51,8 +52,9 @@ Object.assign(window, {
 
 window.worldMap = { width: 0, height: 0, getTile() { return null; } };
 
-// Expose loadMap so echo.html can load dungeons on the same canvas
-window.loadMapById = loadMap;
+// Expose loadMap and supabase so echo.html can load dungeons on the same canvas
+window.loadMapById    = loadMap;
+window.supabaseClient = supabase;
 
 /* ===============================
   MULTIPLAYER
