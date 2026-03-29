@@ -30,17 +30,7 @@
 <title>Realm of Echoes v2.4</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="icon"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBoxsheet" href="./Echotyles/overlays.css
 
-
-
-
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-
-<title>Realm of Echoes v2.4</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@400;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap');
 :root{
@@ -1208,14 +1198,13 @@ function startGame() {
   // Switch UI screens
   document.getElementById("screen-create")?.classList.remove("active");
   document.getElementById("screen-game")?.classList.add("active");
-  
-console.log("about to start loop");
-window.startEngine();
 
- 
-
-  // Signal engine readiness
+  // Signal engine readiness BEFORE startEngine so render guards pass on first frame
   window.engineReady = true;
+
+  console.log("about to start loop");
+  window.startEngine(); // called ONCE only
+
   console.log("✅ Engine started with player:", GameState.player);
 }
 
@@ -6172,9 +6161,11 @@ GameState.player.y = Number(G.y);
 
 function csNewCharacter(){
   document.getElementById('screen-charselect').classList.remove('active');
+  document.getElementById('screen-game').classList.remove('active');
   document.getElementById('screen-create').classList.add('active');
   document.getElementById('screen-create').scrollTop=0;
-  showCharSelect();
+  buildCC();
+  gotoStep(1);
 }
 
 async function csDeleteSave(idx, btn){
@@ -6752,6 +6743,59 @@ console.log('%c Realm of Echoes v2.4 %c built ' + new Date().toISOString().slice
   'color:#888;');
 
 // PeerJS broker removed — using Firebase WebRTC signaling (no broker needed)
+
+// ── Co-op compatibility shims ─────────────────────────────────────────────────
+// Makes old render functions (renderDungeonPartyBar, renderDungeonPartyCol etc.)
+// transparently read from MultiEngine without rewriting them right now.
+// Remove each shim as you refactor those functions to use `multi` directly.
+(function installCoopShims(){
+  // Guard: if MultiEngine not yet imported, retry after a short delay
+  function tryInstall(){
+    if(typeof multi === 'undefined'){
+      setTimeout(tryInstall, 200);
+      return;
+    }
+    Object.defineProperties(window, {
+      coopActive:   { get: () => multi.active,    configurable: true, enumerable: true },
+      coopIsHost:   { get: () => multi.isHost,    configurable: true, enumerable: true },
+      coopParty:    { get: () => multi.partyArray, configurable: true, enumerable: true },
+      coopRoomCode: { get: () => multi.roomCode,  configurable: true, enumerable: true },
+      PARTY_COLORS: {
+        get: () => ['#c9a227','#4a9eff','#ff6b6b','#6bff6b'],
+        configurable: true, enumerable: true
+      },
+      // coopConns is used to call .send() on individual peers
+      coopConns: {
+        get: () => multi._peers.map(p => ({
+          _partyIdx: p.partyIdx,
+          send: (d) => p.conn?.send(d),
+        })),
+        configurable: true, enumerable: true
+      },
+    });
+
+    // coopBroadcast → multi.broadcast
+    window.coopBroadcast = (data) => multi.broadcast(data);
+
+    // coopBroadcastWorldState → manual world sync trigger (heal events etc.)
+    window.coopBroadcastWorldState = () => {
+      if (!multi.active) return;
+      multi.broadcast({
+        type: 'world_sync',
+        members: multi.party.buildWorldSnapshot().members,
+      });
+    };
+
+    // coopDisconnect → multi.disconnect (used in lobby close button)
+    window.coopDisconnect = () => {
+      multi.disconnect();
+      closeCoopLobby();
+    };
+
+    console.log('[Echoes] Co-op shims installed.');
+  }
+  tryInstall();
+})();
 
 //buildCC();
 initFirebase();
