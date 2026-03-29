@@ -3660,7 +3660,18 @@ function doCraft(ri){
   saveGame();
 }
 
-
+function buildPortalShortcuts(){
+  const box = document.getElementById('portal-shortcut-list');
+  if(!box) return;
+  box.innerHTML = PORTALS.map(p=>{
+    const camp = CAMPAIGNS[p.campaignId];
+    if(!camp) return '';
+    const type = camp.type==='lair'?'⚔':'🌟';
+    return `<button class="portal-shortcut" onclick="fastTravelToPortal(${p.x},${p.y})" title="${camp.name} — Lv${camp.levelRange[0]}-${camp.levelRange[1]}">
+      ${type} ${camp.name} <span class="ps-level">Lv${camp.levelRange[0]}-${camp.levelRange[1]}</span>
+    </button>`;
+  }).join('');
+}
 
 
 
