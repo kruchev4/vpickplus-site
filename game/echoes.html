@@ -3814,14 +3814,19 @@ const RTC_CONFIG = {
   iceServers: [
     {urls:'stun:stun.l.google.com:19302'},
     {urls:'stun:stun1.l.google.com:19302'},
+    {urls:'stun:stun2.l.google.com:19302'},
+    {urls:'stun:stun3.l.google.com:19302'},
+    {urls:'stun:stun4.l.google.com:19302'},
+    {urls:'stun:stun.cloudflare.com:3478'},
+    // TURN fallback — only used if direct/STUN fails
     {urls:'turn:openrelay.metered.ca:80',
-     username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turn:openrelay.metered.ca:443',
      username:'openrelayproject',credential:'openrelayproject'},
     {urls:'turn:openrelay.metered.ca:443?transport=tcp',
      username:'openrelayproject',credential:'openrelayproject'},
   ],
-  iceTransportPolicy: 'relay',
+  // 'all' = try direct first, then STUN, then TURN (much more reliable)
+  iceTransportPolicy: 'all',
+  iceCandidatePoolSize: 10,
 };
 
 function loadPeerJS(cb){ cb(); } // no-op — no PeerJS needed
@@ -3916,8 +3921,16 @@ function coopStartHost(){
       };
     };
 
-    pc.onconnectionstatechange = ()=>console.log('[Host] connectionState:', pc.connectionState);
-    pc.oniceconnectionstatechange = ()=>console.log('[Host] iceConnectionState:', pc.iceConnectionState);
+    pc.onconnectionstatechange = ()=>{
+      console.log('[Host] connectionState:', pc.connectionState);
+      if(pc.connectionState==='connected') setCoopStatus('host','ok','✅ Player '+(idx+1)+' connected!');
+      if(pc.connectionState==='failed') setCoopStatus('host','err','❌ Connection failed — try again.');
+    };
+    pc.oniceconnectionstatechange = ()=>{
+      console.log('[Host] iceConnectionState:', pc.iceConnectionState);
+      if(pc.iceConnectionState==='checking') setCoopStatus('host','warn','🔄 Connecting to player '+(idx+1)+'…');
+      if(pc.iceConnectionState==='failed') setCoopStatus('host','err','❌ ICE failed — both players try again.');
+    };
     pc.onicegatheringstatechange = ()=>console.log('[Host] iceGatheringState:', pc.iceGatheringState);
 
     pc.onicecandidate = e=>{
@@ -3929,6 +3942,22 @@ function coopStartHost(){
       }
     };
 
+    // Watch peer ICE FIRST (before negotiation so we don't miss early candidates)
+    const seenIce = new Set();
+    roomRef.child('peer_ice').on('value', snap=>{
+      const cs = snap.val(); if(!cs) return;
+      Object.entries(cs).forEach(async ([key,ic])=>{
+        if(seenIce.has(key)) return; // deduplicate
+        seenIce.add(key);
+        if(remoteReady){
+          try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }
+          catch(e){ console.warn('[Host] addIceCandidate failed:', e.message); }
+        } else {
+          iceQueue.push(ic);
+        }
+      });
+    });
+
     // Set remote desc THEN flush ICE
     try{
       console.log('[Host] setRemoteDescription...');
@@ -3938,22 +3967,10 @@ function coopStartHost(){
       await pc.setLocalDescription(answer);
       console.log('[Host] writing answer to Firebase...');
       await roomRef.child('answer').set({sdp:answer.sdp, type:answer.type});
-      console.log('[Host] answer written, flushing ICE...');
+      console.log('[Host] answer written, flushing ICE queue ('+iceQueue.length+' candidates)...');
       await flushIceQueue();
-      console.log('[Host] negotiation complete');
+      console.log('[Host] negotiation complete — waiting for data channel...');
     }catch(e){ console.error('[Host] negotiation FAILED:', e.name, e.message); }
-
-    // Watch peer ICE — queue if not ready
-    roomRef.child('peer_ice').on('value', snap=>{
-      const cs = snap.val(); if(!cs) return;
-      Object.values(cs).forEach(async ic=>{
-        if(remoteReady){
-          try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
-        } else {
-          iceQueue.push(ic);
-        }
-      });
-    });
 
     coopPeer = pc;
   });
@@ -4017,8 +4034,20 @@ async function coopJoin(){
   };
 
   // Log connection state changes
-  pc.onconnectionstatechange = ()=>console.log('[Peer] connectionState:', pc.connectionState);
-  pc.oniceconnectionstatechange = ()=>console.log('[Peer] iceConnectionState:', pc.iceConnectionState);
+  pc.onconnectionstatechange = ()=>{
+    console.log('[Peer] connectionState:', pc.connectionState);
+    if(pc.connectionState==='connected') setCoopStatus('join','ok','✅ Connected to host!');
+    if(pc.connectionState==='failed') setCoopStatus('join','err','❌ Connection failed — try again.');
+  };
+  pc.oniceconnectionstatechange = ()=>{
+    console.log('[Peer] iceConnectionState:', pc.iceConnectionState);
+    if(pc.iceConnectionState==='checking') setCoopStatus('join','warn','🔄 Establishing connection…');
+    if(pc.iceConnectionState==='failed'){
+      setCoopStatus('join','err','❌ ICE failed — both players try again.');
+      // Try ICE restart
+      pc.restartIce();
+    }
+  };
   pc.onicegatheringstatechange = ()=>console.log('[Peer] iceGatheringState:', pc.iceGatheringState);
 
   // Send our ICE candidates to Firebase
@@ -4031,10 +4060,21 @@ async function coopJoin(){
     }
   };
 
-  // Create and send offer
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  await roomRef.child('offer').set({sdp:offer.sdp, type:offer.type});
+  // Watch for host ICE candidates FIRST — queue if remote not ready yet
+  const seenHostIce = new Set();
+  roomRef.child('host_ice').on('value', snap=>{
+    const cs = snap.val(); if(!cs) return;
+    Object.entries(cs).forEach(async ([key,ic])=>{
+      if(seenHostIce.has(key)) return;
+      seenHostIce.add(key);
+      if(remoteReady){
+        try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }
+        catch(e){ console.warn('[Peer] addIceCandidate failed:', e.message); }
+      } else {
+        iceQueue.push(ic);
+      }
+    });
+  });
 
   // Watch for host answer — set remote desc THEN flush ICE queue
   roomRef.child('answer').on('value', async snap=>{
@@ -4042,23 +4082,20 @@ async function coopJoin(){
     if(!answer||!answer.sdp) return;
     if(pc.signalingState !== 'have-local-offer') return;
     try{
+      console.log('[Peer] setRemoteDescription (answer)...');
       await pc.setRemoteDescription(new RTCSessionDescription(answer));
       roomRef.child('answer').off();
-      await flushIceQueue(); // now safe to add ICE
-    }catch(e){ console.warn('[Peer] setRemoteDescription failed:', e); }
+      console.log('[Peer] flushing ICE queue ('+iceQueue.length+' candidates)...');
+      await flushIceQueue();
+      console.log('[Peer] negotiation complete — waiting for channel open...');
+    }catch(e){ console.warn('[Peer] setRemoteDescription failed:', e.message); }
   });
 
-  // Watch for host ICE candidates — queue if remote not ready yet
-  roomRef.child('host_ice').on('value', snap=>{
-    const cs = snap.val(); if(!cs) return;
-    Object.values(cs).forEach(async ic=>{
-      if(remoteReady){
-        try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
-      } else {
-        iceQueue.push(ic);
-      }
-    });
-  });
+  // Create and send offer
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  console.log('[Peer] offer sent, waiting for answer...');
+  await roomRef.child('offer').set({sdp:offer.sdp, type:offer.type});
 
   setTimeout(()=>{
     if(!coopActive) setCoopStatus('join','err','Timed out. Make sure host has room open.');
