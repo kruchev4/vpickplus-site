@@ -1321,21 +1321,67 @@ function addLog(msg,type=''){
   while(box.children.length>80)box.removeChild(box.firstChild);
   box.scrollTop=box.scrollHeight;
 }
- function showCharSelect() {
-  
-  
+ async function showCharSelect() {
+  const el = document.getElementById('screen-charselect');
+  if (!el) return;
 
- 
+  // Activate this screen only
+  document.querySelectorAll('.screen')
+    .forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
 
-  document.getElementById("screen-game")?.classList.remove("active");
-  document.getElementById("screen-menu")?.classList.remove("active");
-  document.getElementById("screen-create")?.classList.add("active");
-  console.log("about to build");
+  document.getElementById('screen-create')?.classList.remove('active');
+  document.getElementById('screen-game')?.classList.remove('active');
+
+  // Token display
+  const tok = getPlayerToken();
+  const td  = document.getElementById('cs-token-display');
+  if (td) td.textContent = tok.slice(0,8) + '…' + tok.slice(-4);
+
+  // Loading UI
+  const loading = document.getElementById('cs-loading');
+  const slots   = document.getElementById('cs-slots');
+  if (loading) {
+    loading.style.display = 'block';
+    loading.textContent = 'Checking for saved characters…';
+  }
+  if (slots) slots.style.display = 'none';
+
+  // Load saves
+  const saves = await csLoadAllSaves();
+
+  console.log('[CharSelect]',
+    'token:', tok.slice(0,8),
+    '| saves:', saves.length,
+    saves.map(s => s.name + '(' + s.source + ')')
+  );
+
+  // Update UI
+  if (loading) loading.style.display = 'none';
+
+  if (saves.length > 0) {
+    // ✅ Show saved character slots
+    if (slots) slots.style.display = 'flex';
+    renderCharSlots(saves);
+  } else {
+    // ✅ No saves → go straight to character creation
+    startCharacterCreation();
+  }
+}
+
+window.showCharSelect = showCharSelect;
+
+  function startCharacterCreation() {
+  document.getElementById('screen-charselect')?.classList.remove('active');
+  document.getElementById('screen-create')?.classList.add('active');
+  document.getElementById('screen-game')?.classList.remove('active');
+
   buildCC();
   gotoStep(1);
 }
 
-window.showCharSelect = showCharSelect;
+window.startCharacterCreation = startCharacterCreation;
+
 
 const EQUIP_SLOTS = ['head','shoulders','chest','pants','boots','mainhand','offhand','ring1','ring2','necklace'];
 const EQUIP_SLOT_LABELS = {
