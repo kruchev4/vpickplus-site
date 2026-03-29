@@ -1242,9 +1242,35 @@ let vpW,vpH,mmImgData;
 let _mmTerrainCache = null; // pre-rendered terrain, never changes
 */
 function initGame(){
-  
-if (window.IS_NEW_ENGINE) {
-    console.warn("Legacy initGame skipped — new engine active");
+  // Always register input handlers — even when new engine is active
+  // (Guard against double-registration)
+  if (!window._inputRegistered) {
+    window._inputRegistered = true;
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('keyup', e => { keys[e.key] = false; });
+    // Attach click handler to the world canvas
+    const _wc = document.getElementById('world-cv');
+    if (_wc) _wc.addEventListener('click', onCanvasClick);
+    window.addEventListener('resize', resizeCanvas);
+  }
+
+  if (window.IS_NEW_ENGINE) {
+    // Still do the non-rendering init the new engine needs
+    if(!G.equipped||!G.equipped.mainhand) G.equipped={
+      head:null,shoulders:null,chest:null,pants:null,boots:null,
+      mainhand:null,offhand:null,ring1:null,ring2:null,necklace:null
+    };
+    if(!G.activeSlots) G.activeSlots=[null,null,null,null,null,null];
+    if(!G.abilities)G.abilities=[];
+    if(!G.passives)G.passives={};
+    recalcStats();
+    buildInventoryUI();
+    updateHUD();
+    buildPortalShortcuts();
+    initWorldBosses();
+    addLog('Welcome to the Realm of Echoes, '+G.name+'.', 'disc');
+    addLog(`You are a Level ${G.level} ${G.cls.name}. Explore the realm!`, 'sys');
+    addLog('Walk into towns to find services. Beware danger zones!');
     return;
   }
 
@@ -1256,19 +1282,15 @@ if (window.IS_NEW_ENGINE) {
   if(!G.abilities)G.abilities=[];
   if(!G.passives)G.passives={};
   recalcStats();
-  if(typeof reapplyAbilities==='function') reapplyAbilities(); // optional ability reapplication
+  if(typeof reapplyAbilities==='function') reapplyAbilities();
   resizeCanvas();
   buildInventoryUI();
   updateHUD();
   buildPortalShortcuts();
-  addLog('Welcome to the Realm of Echoes, '+G.name+'.',  'disc');
-  initWorldBosses(); // load boss positions from Supabase
+  addLog('Welcome to the Realm of Echoes, '+G.name+'.', 'disc');
+  initWorldBosses();
   addLog(`You are a Level ${G.level} ${G.cls.name}. Explore the realm!`,'sys');
   addLog('Walk into towns to find services. Beware danger zones!');
-  window.addEventListener('resize',resizeCanvas);
-  document.addEventListener('keydown',onKey);
-  document.addEventListener('keyup',e=>{keys[e.key]=false;});
-  canvas.addEventListener('click', onCanvasClick);
   //requestAnimationFrame(gameLoop);
 }
 
@@ -1658,19 +1680,28 @@ let _clickMoveTimer = null;
 
 function onCanvasClick(e){
   if(G.inCombat||G.inTown) return;
-  const rect = canvas.getBoundingClientRect();
-  const cx = e.clientX - rect.left;
-  const cy = e.clientY - rect.top;
-  const camX = G.x*TILE-vpW/2+TILE/2;
-  const camY = G.y*TILE-vpH/2+TILE/2;
-  const tx = Math.floor((cx + camX) / TILE);
-  const ty = Math.floor((cy + camY) / TILE);
-  if(tx<0||tx>=MAP_W||ty<0||ty>=MAP_H) return;
-  const type = worldMap[ty*MAP_W+tx];
+  const wc   = document.getElementById('world-cv');
+  const rect = wc.getBoundingClientRect();
+  const cx   = e.clientX - rect.left;
+  const cy   = e.clientY - rect.top;
+  // Use new engine camera from GameState
+  const _cam = window.GameState?.camera;
+  const _TS  = window.GameState?.TILE || 32;
+  const _map = window.GameState?.activeMap;
+  const _W   = _map?.width  || window.MAP_W || 240;
+  const _H   = _map?.height || window.MAP_H || 180;
+  const camX = _cam ? _cam.x : (G.x*_TS - wc.width/2  + _TS/2);
+  const camY = _cam ? _cam.y : (G.y*_TS - wc.height/2 + _TS/2);
+  const tx = Math.floor((cx + camX) / _TS);
+  const ty = Math.floor((cy + camY) / _TS);
+  if(tx<0||tx>=_W||ty<0||ty>=_H) return;
+  const type = _map ? _map.getTile(tx,ty) : null;
+  const _T_TOWN = 5;
 
-  // Click on TOWN → walk there then enter
-  if(type===T.TOWN){
-    const t=TOWNS.find(t=>Math.abs(tx-t.x)<=1&&Math.abs(ty-t.y)<=1);
+  // Click on TOWN tile → walk there then enter
+  if(type === _T_TOWN){
+    const towns = (_map?.towns || window.TOWNS || []);
+    const t = towns.find(t=>Math.abs(tx-t.x)<=1&&Math.abs(ty-t.y)<=1);
     if(t){
       if(Math.abs(G.x-t.x)<=2&&Math.abs(G.y-t.y)<=2){ enterTown(t); }
       else { const p=bfsPath(G.x,G.y,t.x,t.y,500); if(p) startClickPath(p,cx,cy,()=>enterTown(t),t.x,t.y); }
@@ -1678,13 +1709,12 @@ function onCanvasClick(e){
     }
   }
   // Click on PORTAL → walk there then open
-  if(type===T.PORTAL){
-    const p=PORTALS.find(p=>p.x===tx&&p.y===ty);
-    if(p){
-      if(Math.abs(G.x-tx)<=2&&Math.abs(G.y-ty)<=2){ openPortal(p.campaignId); }
-      else { const path=bfsPath(G.x,G.y,tx,ty,500); if(path) startClickPath(path,cx,cy,()=>openPortal(p.campaignId),tx,ty); }
-      return;
-    }
+  const portals = (_map?.portals || window.PORTALS || []);
+  const portal  = portals.find(p=>p.x===tx&&p.y===ty);
+  if(portal){
+    if(Math.abs(G.x-tx)<=2&&Math.abs(G.y-ty)<=2){ openPortal(portal.campaignId); }
+    else { const path=bfsPath(G.x,G.y,tx,ty,500); if(path) startClickPath(path,cx,cy,()=>openPortal(portal.campaignId),tx,ty); }
+    return;
   }
   // Click on world boss → show info
   if(typeof worldBosses!=='undefined'){
@@ -1752,6 +1782,11 @@ function showPlayerInteraction(member){
 
 function bfsPath(sx, sy, tx, ty, maxSteps){
   if(sx===tx&&sy===ty) return [];
+  const _map = window.GameState?.activeMap;
+  const _getTile = (x,y) => _map ? _map.getTile(x,y) : null;
+  const _PASSABLE = new Set([0,1,4,5,6,7]);
+  const _W = _map?.width  || window.MAP_W || 240;
+  const _H = _map?.height || window.MAP_H || 180;
   const visited = new Set();
   const queue   = [[sx,sy,[]]];
   visited.add(sx+','+sy);
@@ -1763,15 +1798,15 @@ function bfsPath(sx, sy, tx, ty, maxSteps){
       const nx=x+dx, ny=y+dy;
       const key=nx+','+ny;
       if(visited.has(key)) continue;
-      if(nx<0||nx>=MAP_W||ny<0||ny>=MAP_H) continue;
-      if(!PASSABLE.has(worldMap[ny*MAP_W+nx])) continue;
+      if(nx<0||nx>=_W||ny<0||ny>=_H) continue;
+      if(!_PASSABLE.has(_getTile(nx,ny))) continue;
       visited.add(key);
       const newPath=[...path,[dx,dy]];
       if(nx===tx&&ny===ty) return newPath;
       queue.push([nx,ny,newPath]);
     }
   }
-  return null; // no path
+  return null;
 }
  let appStarted = false;
 
