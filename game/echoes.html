@@ -6989,8 +6989,7 @@ initFirebase();
 // main.js dispatches 'module-ready' immediately after all imports resolve.
 // Input registration — called from initGame, safe to call multiple times
 function registerInput() {
-  if (window._inputRegistered) return;
-  window._inputRegistered = true;
+  // No guard — always attach. Duplicate events are harmless.
   document.addEventListener('keydown', onKey);
   document.addEventListener('keyup', e => { keys[e.key] = false; });
   const _wc = document.getElementById('world-cv');
