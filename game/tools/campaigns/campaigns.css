@@ -169,6 +169,150 @@ section {
 /* ================================
    Status Tags (future-proof)
    ================================ */
+/* ================================
+   Dungeon Preview Card
+   ================================ */
+
+.dungeon-card {
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.dungeon-card:hover {
+  border-color: var(--accent);
+  background: #222a36;
+}
+
+/* ================================
+   Header
+   ================================ */
+
+.dungeon-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.dungeon-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.dungeon-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.dungeon-id {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.dungeon-tier {
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #2c3b55;
+  color: var(--accent);
+}
+
+/* ================================
+   Body
+   ================================ */
+
+.dungeon-body {
+  display: flex;
+  gap: 12px;
+}
+
+.dungeon-preview {
+  width: 160px;
+  height: 160px;
+  background: #0b0e12;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  image-rendering: pixelated;
+}
+
+/* ================================
+   Stats
+   ================================ */
+
+.dungeon-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 4px 10px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.dungeon-stats span {
+  white-space: nowrap;
+}
+
+.boss-flag {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* ================================
+   Actions
+   ================================ */
+
+.dungeon-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.dungeon-actions button {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.dungeon-actions button:hover {
+  border-color: var(--accent);
+}
+
+.dungeon-actions .danger {
+  color: var(--danger);
+  border-color: #553333;
+}
+
+.dungeon-actions .danger:hover {
+  background: #402323;
+}
+
+/* ================================
+   Difficulty Accents
+   ================================ */
+
+.dungeon-difficulty-easy {
+  border-left: 4px solid var(--accent-good);
+}
+
+.dungeon-difficulty-hard {
+  border-left: 4px solid var(--accent-warn);
+}
+
+.dungeon-difficulty-mythic {
+  border-left: 4px solid var(--danger);
+}
+``
 
 .tag {
   display: inline-block;
