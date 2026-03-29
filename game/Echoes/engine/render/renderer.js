@@ -38,7 +38,17 @@ export function renderMap(ctx, map, camera, entities = []) {
   }
 
   // Draw entities (player, peers, etc.)
-  for (const e of entities) {
+ for (const e of entities) {
+  if (e.type === "player" && PlayerSprite.complete) {
+    ctx.drawImage(
+      PlayerSprite,
+      Math.round(e.x * TILE_SIZE - camera.x),
+      Math.round(e.y * TILE_SIZE - camera.y),
+      TILE_SIZE,
+      TILE_SIZE
+    );
+  } else {
+    // fallback
     ctx.fillStyle = e.color || "#ff69b4";
     ctx.fillRect(
       Math.round(e.x * TILE_SIZE - camera.x),
