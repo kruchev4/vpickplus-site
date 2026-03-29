@@ -3,7 +3,7 @@ import { supabase } from "../../Echoes/engine/supabase/client.js";
 
 export async function saveDungeonToSupabase(dungeon) {
   const { data, error } = await supabase
-    .from("dungeons")
+    .from("dungeon_instances")
     .upsert(
       {
         id: dungeon.id,
