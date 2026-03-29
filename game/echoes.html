@@ -1262,8 +1262,8 @@ function initGame(){
     updateHUD();
     buildPortalShortcuts();
     initWorldBosses();
-    addLog('Welcome to the Realm of Echoes, '+G.name+'.', 'disc');
-    addLog(`You are a Level ${G.level} ${G.cls.name}. Explore the realm!`, 'sys');
+    addLog('Welcome to the Realm of Echoes, '+(G.name||'Hero')+'.', 'disc');
+    if (G.cls) addLog(`You are a Level ${G.level} ${G.cls.name}. Explore the realm!`, 'sys');
     addLog('Walk into towns to find services. Beware danger zones!');
     return;
   }
@@ -5952,6 +5952,20 @@ function _applyRawSave(save) {
 
     Object.assign(window.G, gData);
 
+    // If cls/race are already full objects (not just IDs), keep them as-is
+    // They were saved as full objects in older versions
+    if (window.G.cls && typeof window.G.cls === 'object' && window.G.cls.pri) {
+      // Re-link to CLASSES array if possible, otherwise keep saved object
+      const linked = window.CLASSES?.find(c => c.id === window.G.cls.id);
+      if (linked) window.G.cls = linked;
+      // else keep window.G.cls as-is — it has all the data we need
+    }
+    if (window.G.race && typeof window.G.race === 'object' && window.G.race.mods) {
+      const linked = window.RACES?.find(r => r.id === window.G.race.id);
+      if (linked) window.G.race = linked;
+      // else keep window.G.race as-is
+    }
+
     // ---------- Normalize legacy race ----------
 
 // race stored as string
@@ -6007,13 +6021,31 @@ if (!window.G.cls && window.G.cls?.name) {
     window.G.cls =
       window.CLASSES.find(c => c.id === window.G.cls?.id) || window.G.cls;
 
+    // Last-ditch: cls/race stored as full objects with .id — try matching by name too
+    if (!window.G.cls && gData.cls) {
+      const saved = gData.cls;
+      window.G.cls = window.CLASSES.find(c =>
+        c.id === saved.id || c.id === saved || c.name === saved.name
+      ) || null;
+    }
+    if (!window.G.race && gData.race) {
+      const saved = gData.race;
+      window.G.race = window.RACES.find(r =>
+        r.id === saved.id || r.id === saved || r.name === saved.name
+      ) || null;
+    }
+
+    // If still not found, use the saved object directly — it may be complete enough
+    if (!window.G.cls  && gData.cls?.pri)  window.G.cls  = gData.cls;
+    if (!window.G.race && gData.race?.mods) window.G.race = gData.race;
+
     // Validation
     if (!window.G.race || !window.G.cls) {
       console.error("[Load] Invalid race/class after restore", {
-        race: window.G.race,
-        cls: window.G.cls,
-        races: window.RACES.map(r => r.id),
-        classes: window.CLASSES.map(c => c.id)
+        race: window.G.race, cls: window.G.cls,
+        savedCls: gData.cls, savedRace: gData.race,
+        races: window.RACES?.map(r => r.id),
+        classes: window.CLASSES?.map(c => c.id)
       });
       return false;
     }
