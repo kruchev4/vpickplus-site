@@ -152,16 +152,8 @@ async function startEngine() {
 }
 
 function setupInput() {
-  // WASD/arrows call echo.html's tryMove via window
-  // echo.html's tryMove reads GameState.activeMap safely
-  window.addEventListener("keydown", e => {
-    const tm = window.tryMove; // set by echo.html after it defines tryMove
-    if(!tm) return;
-    if(e.key==="ArrowUp"    ||e.key==="w"||e.key==="W"){e.preventDefault();tm(0,-1);}
-    if(e.key==="ArrowDown"  ||e.key==="s"||e.key==="S"){e.preventDefault();tm(0, 1);}
-    if(e.key==="ArrowLeft"  ||e.key==="a"||e.key==="A"){e.preventDefault();tm(-1,0);}
-    if(e.key==="ArrowRight" ||e.key==="d"||e.key==="D"){e.preventDefault();tm(1, 0);}
-  });
+  // WASD movement is handled by onKey() in echo.html via registerInput()
+  // Nothing needed here — kept as hook for future engine input
 }
 
 window.startEngine = startEngine;
