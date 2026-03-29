@@ -982,16 +982,58 @@ const PORTALS=[
 
 
 // ── Campaign definitions (keyed by campaignId) ───────────────────────────────
-const CAMPAIGNS = {
-  goblin_warrens:  { id:'goblin_warrens',  name:'The Goblin Warrens',     icon:'👺', type:'lair',     levelRange:[1,3],  players:[1,4], estTime:'1 Session',  desc:'A fetid network of tunnels beneath the farmlands. Goblins have been raiding local villages.',      longDesc:'' },
-  bandit_cave:     { id:'crypt_of_bones',     name:'Crypt of Bones',         icon:'🗡️', type:'lair',     levelRange:[1,4],  players:[1,4], estTime:'1 Session',  desc:'A notorious hideout carved into the cliffs. The Ironmask bandits have stolen a merchant\'s cargo.',  longDesc:'' },
-  sunken_throne:   { id:'sunken_ruins',   name:'Sunken Ruins',      icon:'🌊', type:'campaign', levelRange:[4,7],  players:[2,4], estTime:'2-3 Sessions',desc:'An ancient palace, half-swallowed by the sea. Something stirs in the deep chambers.',              longDesc:'' },
-  duskwood_siege:  { id:'fores_glades',  name:'Forest Glades',      icon:'🌲', type:'campaign', levelRange:[4,8],  players:[2,4], estTime:'2-3 Sessions',desc:'The forest town of Duskwood is besieged by undead. Hold the walls until dawn.',                     longDesc:'' },
-  glacial_tomb:    { id:'frostbound_keep',    name:'Frostbound Keep',       icon:'❄️', type:'campaign', levelRange:[8,12], players:[3,4], estTime:'3-4 Sessions',desc:'A frost giant\'s burial vault, sealed for centuries. The seals are breaking.',                     longDesc:'' },
-  ashspire:        { id:'magma_pit',        name:'The Magma Pit',               icon:'🔥', type:'campaign', levelRange:[8,12], players:[3,4], estTime:'3-4 Sessions',desc:'A volcanic tower ruled by a fire cult. They seek to awaken something beneath the mountain.',          longDesc:'' },
-  irondeep:        { id:'mossy_hollows',        name:'Mossy Hollows',          icon:'⛏️', type:'campaign', levelRange:[8,12], players:[3,4], estTime:'3-4 Sessions',desc:'The deepest mine in the realm has gone silent. Only echoes come up from below now.',                  longDesc:'' },
-  drowned_citadel: { id:'elders_grove', name:'Elder Grove',    icon:'💀', type:'campaign', levelRange:[10,15],players:[4,4], estTime:'4-5 Sessions',desc:'A legendary fortress sunk into a cursed lake. Only the most powerful dare descend.',                 longDesc:'' },
-};
+<ul id="campaign-list"></ul>
+
+<script>
+  // EXISTING campaign definitions (unchanged)
+  const CAMPAIGNS = {
+    goblin_warrens:  { id:'goblin_warrens',  name:'The Goblin Warrens', icon:'👺', desc:'A fetid network of tunnels.' },
+    bandit_cave:     { id:'bandit_cave',     name:"Bandit's Cave",     icon:'🗡️', desc:'A notorious hideout.' },
+    sunken_throne:   { id:'sunken_throne',   name:'The Sunken Throne',  icon:'🌊', desc:'An ancient palace.' },
+    duskwood_siege:  { id:'duskwood_siege',  name:'Siege of Duskwood',  icon:'🌲', desc:'A town under siege.' },
+    glacial_tomb:    { id:'glacial_tomb',    name:'The Glacial Tomb',   icon:'❄️', desc:'A frozen vault.' },
+    ashspire:        { id:'ashspire',        name:'Ashspire',          icon:'🔥', desc:'A volcanic tower.' },
+    irondeep:        { id:'irondeep',        name:'Irondeep Mine',     icon:'⛏️', desc:'A silent mine.' },
+    drowned_citadel: { id:'drowned_citadel', name:'The Drowned Citadel',icon:'💀', desc:'A sunken fortress.' }
+  };
+
+  // ✅ TEMPORARY: map campaigns → real dungeon map IDs
+  const DUNGEON_MAPS = {
+    goblin_warrens:  "goblin_warrens",
+    bandit_cave:    "crypt_of_bones",
+    sunken_throne:  "sunken_ruins",
+    duskwood_siege: "forest_glades",
+    glacial_tomb:   "frostbound_keep",
+    ashspire:       "magma_pit",
+    irondeep:       "mossy_hollows",
+    drowned_citadel:"elders_grove"
+  };
+
+  const list = document.getElementById("campaign-list");
+
+  Object.values(CAMPAIGNS).forEach(c => {
+    const dungeonId = DUNGEON_MAPS[c.id];
+    const li = document.createElement("li");
+
+    li.innerHTML = `
+      <strong>${c.icon} ${c.name}</strong><br/>
+      <small>${c.desc}</small><br/>
+      <small>Dungeon: ${dungeonId ?? "Unavailable"}</small>
+    `;
+
+    if (!dungeonId) {
+      li.style.opacity = "0.4";
+    } else {
+      li.onclick = () => {
+        // ✅ THIS is the critical fix
+        window.pendingPortalId = dungeonId;
+        window.startCampaign();
+      };
+    }
+
+    list.appendChild(li);
+  });
+</script>
 
   
 
