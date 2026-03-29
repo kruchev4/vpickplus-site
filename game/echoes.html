@@ -1892,7 +1892,7 @@ function tryMove(dx,dy){
 
   // Tile type constants (match constants.js)
   const _T = { GRASS:0, FOREST:1, MOUNTAIN:2, DEEP_WATER:3, SHALLOW:4, TOWN:5, DANGER:6, SAND:7 };
-  const _PASSABLE = new Set([0,1,4,5,6,7]); // grass,forest,shallow,town,danger,sand
+  const _PASSABLE = new Set([0,1,4,5,6,7,9,10,11,12,13]); // world tiles + dungeon: floor,door,chest,stairs
 
   // If map not loaded yet, allow movement but skip encounters
   const _mapReady = !!_map;
@@ -1924,6 +1924,12 @@ function tryMove(dx,dy){
     const town = window.TOWNS?.find(t=>t.x===nx&&t.y===ny) ||
                  (window.GameState?.activeMap?.towns||[]).find(t=>t.x===nx&&t.y===ny);
     if(town){ enterTown(town); return; }
+  }
+
+  // ── Dungeon stairs ─────────────────────────────────────────────────────────
+  if(type === 13){ // STAIRS_DOWN = exit dungeon
+    if(window.GameState?.mode === 'dungeon') exitDungeon();
+    return;
   }
 
   // ── World boss check ───────────────────────────────────────────────────────
@@ -2890,7 +2896,8 @@ function enterTown(town){
 
   // Tavern rumours
   const tr=document.getElementById('tavern-rumours');
-  tr.innerHTML=town.rumours.map(r=>`<div style="padding:8px;border-bottom:1px solid rgba(74,53,32,.4);font-size:.8rem;font-style:italic;color:var(--parch-dk)">"${r}"</div>`).join('');
+  const rumours = town.rumours || ['The roads are dangerous — travel with care.','Strange lights seen near the old ruins.','A bounty has been posted for goblin ears.'];
+  tr.innerHTML=rumours.map(r=>`<div style="padding:8px;border-bottom:1px solid rgba(74,53,32,.4);font-size:.8rem;font-style:italic;color:var(--parch-dk)">"${r}"</div>`).join('');
 
   document.getElementById('ov-town').classList.add('active');
   // Portal hints near this town
@@ -5283,33 +5290,64 @@ const DUNGEON_FILES = {
   'drowned_citadel': 'dungeons/dungeon-drowned-citadel.html',
 };
 
+// ── Dungeon entry/exit on same canvas ────────────────────────────────────────
+async function enterDungeon(campaignId) {
+  const GS = window.GameState;
+  // Save world state so we can return
+  GS.returnMap    = GS.activeMap;
+  GS.returnX      = G.x;
+  GS.returnY      = G.y;
+  GS.mode         = 'dungeon';
+
+  try {
+    const dungeonMap = await window.loadMapById(campaignId);
+    GS.activeMap = dungeonMap;
+    // Spawn player at dungeon entry
+    G.x = dungeonMap.entry?.x ?? 5;
+    G.y = dungeonMap.entry?.y ?? 5;
+    G.prevX = G.x; G.prevY = G.y;
+    GS.player = G;
+    addLog(`You descend into ${campaignId.replace(/_/g,' ')}. Watch your step.`, 'disc');
+    toast('⚔ Dungeon entered!');
+    // Spawn dungeon monsters into worldBosses-style array
+    window._dungeonMonsters = (dungeonMap.monsters || []).map(m => ({...m, alive:true}));
+  } catch(e) {
+    addLog('Dungeon entrance crumbled — cannot enter.', 'err');
+    toast('Dungeon not found in database', 'err');
+    console.error('[dungeon] load failed:', e);
+    GS.mode = 'world';
+    GS.returnMap = null;
+  }
+}
+
+function exitDungeon() {
+  const GS = window.GameState;
+  if(!GS.returnMap) return;
+  GS.activeMap = GS.returnMap;
+  GS.returnMap = null;
+  G.x = GS.returnX;
+  G.y = GS.returnY;
+  G.prevX = G.x; G.prevY = G.y;
+  GS.player = G;
+  GS.mode = 'world';
+  window._dungeonMonsters = [];
+  addLog('You emerge from the dungeon, blinking in the light.', 'disc');
+  toast('Returned to world');
+}
+window.exitDungeon = exitDungeon;
+
 function startCampaign(){
   const campaignId = pendingPortalId;
   document.getElementById('ov-portal').classList.remove('active');
   G.inTown = false;
 
-  // ── New dungeon engine: navigate to standalone dungeon file ──
+  // ── New dungeon engine: load dungeon map on same canvas ──
   if(DUNGEON_FILES[campaignId]){
     pendingPortalId = null;
     saveGame();
     addLog(`Entering ${campaignId.replace(/_/g,' ')}…`,'disc');
     toast('Entering dungeon…');
-    // Broadcast dungeon invite to co-op party members
-    if(coopActive && coopIsHost && coopConns.length>0){
-      coopBroadcast({type:'dungeon_invite', dungeonId:campaignId});
-      addLog(`Sent dungeon invite to party.`,'sys');
-      // Save room code so we can rejoin after returning from dungeon
-      localStorage.setItem('realmCoopResume', JSON.stringify({
-        code:coopRoomCode, isHost:true, partySize:coopParty.length
-      }));
-    } else if(coopActive && !coopIsHost) {
-      localStorage.setItem('realmCoopResume', JSON.stringify({
-        code:coopRoomCode, isHost:false
-      }));
-    }
-    setTimeout(()=>{
-      window.location.href = 'dungeons/dungeon-engine.html?dungeon='+campaignId;
-    }, 600);
+    enterDungeon(campaignId);
     return;
   }
 
