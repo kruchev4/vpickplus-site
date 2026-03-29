@@ -51,6 +51,15 @@ import {
   LEGACY GLOBAL BRIDGES (INTENTIONAL)
   =============================== */
 
+// Expose UI module functions so echo.html inline scripts can call them
+window.openCharSheet    = openCharSheet;
+window.closeCharSheet   = closeCharSheet;
+window.populateCharSheet= populateCharSheet;
+window.openGameMenu     = openGameMenu;
+window.closeGameMenu    = closeGameMenu;
+window.menuResume       = menuResume;
+window.menuSave         = menuSave;
+
 Object.assign(window, {
   openGameMenu, closeGameMenu, menuResume, menuSave,
   menuShowSyncInfo, menuPauseCampaign, menuExitCampaign,
