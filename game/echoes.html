@@ -6266,18 +6266,12 @@ function csLoadCharacter(idx){
   document.getElementById('screen-charselect').classList.remove('active');
   document.getElementById('screen-game').classList.add('active');
 
-  // Register input immediately — don't rely on async engine startup
-  registerInput();
+  // Mirror new-character startup path exactly
   window.engineReady = true;
-  window.startEngine();
+  registerInput();  // attach keyboard + click listeners
+  initGame();       // HUD, inventory, bosses, logs
+  window.startEngine(); // starts loop if not running, always re-syncs player
 
-  // Post-load UI setup (G is fully loaded at this point)
-  buildInventoryUI();
-  updateHUD();
-  buildPortalShortcuts();
-  initWorldBosses();
-  addLog(`Welcome back, ${G.name}!`, 'disc');
-  addLog(`You are a Level ${G.level} ${G.cls.name}. Explore the realm!`, 'sys');
   toast(`Playing as ${G.name}`);
 }
 
