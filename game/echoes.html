@@ -2373,10 +2373,13 @@ function tryMove(dx,dy){
 
   // ── Town entry ─────────────────────────────────────────────────────────────
   if(type === _T.TOWN){
-    const town = window.TOWNS?.find(t=>t.x===nx&&t.y===ny) ||
-                 (window.GameState?.activeMap?.towns||[]).find(t=>t.x===nx&&t.y===ny);
-    if(town){ enterTown(town); return; }
-  }
+  // Town entry is handled by town-map-system.js which intercepts
+  // at the window.tryMove level before this closure runs.
+  // This branch should never fire, but kept as fallback.
+  const town = window.TOWNS?.find(t=>t.x===nx&&t.y===ny) ||
+               (window.GameState?.activeMap?.towns||[]).find(t=>t.x===nx&&t.y===ny);
+  if(town){ window.enterTownMap ? window.enterTownMap(town) : enterTown(town); return; }
+}
 
   // ── Dungeon boss check ────────────────────────────────────────────────────
   if(window.GameState?.mode === 'dungeon'){
