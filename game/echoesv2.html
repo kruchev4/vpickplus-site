@@ -1712,19 +1712,39 @@ function pdSlotClick(slot){
     d.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
       'z-index:300;background:#0a0612;border:1px solid rgba(74,53,32,.6);' +
       'padding:20px 24px;min-width:220px;text-align:center;font-family:Cinzel,serif;';
-    d.innerHTML =
-      '<div style="color:var(--gold-b);font-size:.8rem;margin-bottom:8px;">'+item.icon+' '+item.name+'</div>' +
-      '<div style="color:var(--parch-dk);font-size:.65rem;margin-bottom:14px;">'+( item.desc||'Equipped item')+'</div>' +
-      '<div style="display:flex;gap:8px;justify-content:center;">' +
-      '<button onclick="unequipItem(''+slot+'');updatePaperDoll();buildInventoryUI();this.closest('div[style]').remove();" ' +
-      'style="padding:6px 14px;border:1px solid #c0392b;color:#c0392b;background:transparent;' +
-      'font-family:Cinzel,serif;font-size:.65rem;cursor:pointer;">↩ Unequip</button>' +
-      '<button onclick="this.closest('div[style]').remove();" ' +
-      'style="padding:6px 14px;border:1px solid rgba(74,53,32,.4);color:var(--parch-dk);background:transparent;' +
-      'font-family:Cinzel,serif;font-size:.65rem;cursor:pointer;">✕ Close</button>' +
-      '</div>';
-    document.body.appendChild(d);
-  }
+    d.innerHTML = `
+  <div style="color:var(--gold-b);font-size:.8rem;margin-bottom:8px;">
+    ${item.icon} ${item.name}
+  </div>
+
+  <div style="color:var(--parch-dk);font-size:.65rem;margin-bottom:14px;">
+    ${item.desc || 'Equipped item'}
+  </div>
+
+  <div style="display:flex;gap:8px;justify-content:center;">
+    <button
+      style="padding:6px 14px;border:1px solid #c0392b;color:#c0392b;background:transparent;
+             font-family:Cinzel,serif;font-size:.65rem;cursor:pointer;"
+      onclick="
+        unequipItem('${slot}');
+        updatePaperDoll();
+        buildInventoryUI();
+        this.closest('div').remove();
+      "
+    >
+      ↩ Unequip
+    </button>
+
+    <button
+      style="padding:6px 14px;border:1px solid rgba(74,53,32,.4);color:var(--parch-dk);background:transparent;
+             font-family:Cinzel,serif;font-size:.65rem;cursor:pointer;"
+      onclick="this.closest('div').remove();"
+    >
+      ✕ Close
+    </button>
+  </div>
+`;
+document.body.appendChild(d);
 }
 
 let _modalItemIdx = null;
