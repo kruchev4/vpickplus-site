@@ -21,8 +21,8 @@ import { GameState }    from "./engine/state/GameState.js";
 import { loadMap }      from "./engine/supabase/mapLoader.js";
 import { renderMap }    from "./engine/render/renderer.js";
 import { updateCamera } from "./engine/camera/camera.js";
-import { tryMove }      from "./engine/movement/movement.js";
 import { playSound, toggleSound } from "./engine/audio/SoundEngine.js";
+import { tryMove } from "./engine/movement/movement.js";
 
 /* ---------- Multiplayer ---------- */
 import { MultiEngine } from "./engine/multi/MultiEngine.js";
@@ -51,15 +51,6 @@ import {
   LEGACY GLOBAL BRIDGES (INTENTIONAL)
   =============================== */
 
-// Expose UI module functions so echo.html inline scripts can call them
-window.openCharSheet    = openCharSheet;
-window.closeCharSheet   = closeCharSheet;
-window.populateCharSheet= populateCharSheet;
-window.openGameMenu     = openGameMenu;
-window.closeGameMenu    = closeGameMenu;
-window.menuResume       = menuResume;
-window.menuSave         = menuSave;
-
 Object.assign(window, {
   openGameMenu, closeGameMenu, menuResume, menuSave,
   menuShowSyncInfo, menuPauseCampaign, menuExitCampaign,
@@ -78,17 +69,10 @@ Object.assign(window, {
 /* Legacy HUD compatibility stub */
 window.worldMap = { width: 0, height: 0, getTile() { return null; } };
 
-// Signal that all ES module imports (RACES, CLASSES, etc.) are resolved.
-// echoes.html listens for this before calling showCharSelect().
-window.dispatchEvent(new Event('module-ready'));
-
 /* ===============================
   MULTIPLAYER (MultiEngine)
   =============================== */
 
-// ── Firebase config ───────────────────────────────────────────────────────────
-// NOTE: Firebase SDK is loaded via <script> tags in echoes.html (compat build).
-// MultiEngine.init() will call firebase.initializeApp() using this config.
 const FIREBASE_CONFIG = {
   apiKey:            "YOUR_API_KEY",
   authDomain:        "YOUR_PROJECT.firebaseapp.com",
@@ -99,16 +83,10 @@ const FIREBASE_CONFIG = {
   appId:             "YOUR_APP_ID",
 };
 
-// Create engine — G is set as window.G by echoes.html before startEngine() runs
 const multi = new MultiEngine(FIREBASE_CONFIG, window.G || {});
-window.multi = multi; // expose globally so echoes.html shims can reach it
+window.multi = multi;
 
-// ── Callbacks ─────────────────────────────────────────────────────────────────
-
-multi.onPartyUpdate = (party) => {
-  // renderLobbyList() + renderHUD() are called internally by the engine.
-  // Add any extra game-side reactions here (e.g. peer sprites on map).
-};
+multi.onPartyUpdate = (party) => {};
 
 multi.onData = (type, data) => {
   switch (type) {
@@ -118,24 +96,18 @@ multi.onData = (type, data) => {
         window.G.y = data.worldState.hostY;
       }
       break;
-
     case MSG.WORLD_SYNC:
     case MSG.PLAYER_MOVE:
-      // Positions updated in party array by engine — just redraw
       break;
-
     case MSG.COMBAT_START:
       if (typeof startCombat === 'function') startCombat(data.enemies);
       break;
-
     case MSG.CHAT:
       if (typeof addLog === 'function') addLog(`${data.name}: ${data.text}`, 'chat');
       break;
-
     case MSG.DUNGEON_INVITE:
       if (typeof showDungeonInvitePopup === 'function') showDungeonInvitePopup(data);
       break;
-
     case MSG.START_CAMPAIGN:
       window.location.href = data.url;
       break;
@@ -150,12 +122,6 @@ multi.onLog = (text, tag) => {
   if (typeof addLog === 'function') addLog(text, tag);
 };
 
-// ── Lobby UI wiring ───────────────────────────────────────────────────────────
-// The lobby buttons in echoes.html call coopStartHost() / coopJoin() /
-// coopDisconnect() — those are shimmed in echoes.html to call multi directly.
-// Nothing extra needed here unless you add new UI elements.
-
-// ── Game-system broadcast helpers (call these from echoes.html game code) ─────
 window.multiOnPlayerMoved = (x, y) => {
   if (multi.active) {
     multi.broadcast({ type: MSG.PLAYER_MOVE, partyIdx: multi.myPartyIdx, x, y });
@@ -190,54 +156,44 @@ let ctx;
 let engineRunning = false;
 let lastFrame = 0;
 
-function resizeCanvasToDisplaySize(canvas) {
-  const rect = canvas.getBoundingClientRect();
-  const dpr  = window.devicePixelRatio || 1;
-  const w    = Math.floor(rect.width  * dpr);
-  const h    = Math.floor(rect.height * dpr);
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width  = w;
-    canvas.height = h;
-    return true;
-  }
-  return false;
+function resizeCanvasToDisplaySize(c) {
+  const dpr = window.devicePixelRatio || 1;
+  const w   = Math.floor(c.getBoundingClientRect().width  * dpr);
+  const h   = Math.floor(c.getBoundingClientRect().height * dpr);
+  if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
 }
 
 /* ===============================
-  GAME LOOP (SOLE RAF OWNER)
+  GAME LOOP
   =============================== */
 
 function gameLoop(ts) {
   resizeCanvasToDisplaySize(canvas);
 
-  // Keep camera dimensions in sync with the actual canvas buffer size
+  // Keep camera dimensions in sync with actual canvas size
   GameState.camera.w = canvas.width;
   GameState.camera.h = canvas.height;
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const dt = Math.min(ts - lastFrame, 250);
   lastFrame = ts;
 
   updateCamera();
 
   if (GameState.activeMap && GameState.camera && GameState.player) {
-    // Build entity list — player + alive world bosses
+    // Build entity list: player + alive world bosses
     const entities = [{
       x:   GameState.player.x,
       y:   GameState.player.y,
       cls: GameState.player.cls,
     }];
-
-    // Add world bosses
     const bosses = window.worldBosses;
     if (Array.isArray(bosses)) {
       for (const b of bosses) {
         if (b.alive) entities.push({ x: b.x, y: b.y, cls: 'boss', icon: b.icon, name: b.name, isBoss: true });
       }
     }
-
     renderMap(ctx, GameState.activeMap, GameState.camera, entities);
   }
 
@@ -249,16 +205,12 @@ function gameLoop(ts) {
   =============================== */
 
 async function startEngine() {
-  // Always sync player — even if engine already running
-  if (window.G && window.G.name) {
-    GameState.player = window.G;
-  }
+  // Always sync player to latest window.G
+  if (window.G && window.G.name) GameState.player = window.G;
   if (window.multi) window.multi.G = window.G || GameState.player;
 
-  // Engine already running — just re-sync player, don't restart
   if (engineRunning) {
-    console.log("[startEngine] Already running — player synced:", GameState.player?.name);
-    setupInput(); // ensure input is registered
+    console.log("[startEngine] already running — player synced:", GameState.player?.name);
     return;
   }
   engineRunning = true;
@@ -275,7 +227,7 @@ async function startEngine() {
 
   try {
     GameState.activeMap = await loadMap("overworld_generated");
-  } catch (e) {
+  } catch(e) {
     console.error("[startEngine] Map load failed:", e.message);
   }
 
@@ -286,7 +238,7 @@ async function startEngine() {
     window.MAP_H = GameState.activeMap.height;
   }
 
-  setupInput();
+  setupInput(); // register WASD → engine tryMove
 
   window.engineReady = true;
   console.log("✅ Engine ready, player:", GameState.player?.name);
@@ -294,19 +246,27 @@ async function startEngine() {
   requestAnimationFrame(gameLoop);
 }
 
+window.startEngine = startEngine;
+window.tryMove = tryMove; // expose so echo.html inline code can still call it
+
 /* ===============================
   INPUT (ENGINE-OWNED)
   =============================== */
 
 function setupInput() {
-  // Movement is handled by onKey() in echo.html (registered via initGame).
-  // This function is kept as a hook for future engine-level input needs.
-  window.__ENGINE_READY__ = true;
-  window.dispatchEvent(new Event("engine-ready"));
+  if (window._inputRegistered) return;
+  window._inputRegistered = true;
+  window.addEventListener("keydown", e => {
+    if (window.G?.inCombat || window.G?.inTown) return;
+    if (e.key === "ArrowUp"    || e.key === "w" || e.key === "W") { e.preventDefault(); tryMove(0, -1); }
+    if (e.key === "ArrowDown"  || e.key === "s" || e.key === "S") { e.preventDefault(); tryMove(0,  1); }
+    if (e.key === "ArrowLeft"  || e.key === "a" || e.key === "A") { e.preventDefault(); tryMove(-1, 0); }
+    if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") { e.preventDefault(); tryMove(1,  0); }
+  });
 }
 
 /* ===============================
-  EXPOSE ENGINE START
+  MODULE READY SIGNAL
   =============================== */
 
-window.startEngine = startEngine;
+window.dispatchEvent(new Event('module-ready'));
