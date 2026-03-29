@@ -286,13 +286,8 @@ async function startEngine() {
   =============================== */
 
 function setupInput() {
-  window.addEventListener("keydown", e => {
-    if (e.key === "ArrowUp"    || e.key === "w" || e.key === "W") tryMove(0, -1);
-    if (e.key === "ArrowDown"  || e.key === "s" || e.key === "S") tryMove(0,  1);
-    if (e.key === "ArrowLeft"  || e.key === "a" || e.key === "A") tryMove(-1, 0);
-    if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") tryMove(1,  0);
-  });
-
+  // Movement is handled by onKey() in echo.html (registered via initGame).
+  // This function is kept as a hook for future engine-level input needs.
   window.__ENGINE_READY__ = true;
   window.dispatchEvent(new Event("engine-ready"));
 }
