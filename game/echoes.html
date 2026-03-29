@@ -5292,6 +5292,13 @@ const DUNGEON_FILES = {
 
 // ── Dungeon entry/exit on same canvas ────────────────────────────────────────
 async function enterDungeon(campaignId) {
+  
+console.log(
+  "[enterDungeon] forwarding to loadMap:",
+  dungeon,
+  "tiles?",
+  dungeon?.tiles?.length
+
   const GS = window.GameState;
   // Save world state so we can return
   GS.returnMap    = GS.activeMap;
