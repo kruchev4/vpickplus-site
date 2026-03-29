@@ -1848,11 +1848,22 @@ function onKey(e){
 
 function tryMove(dx,dy){
   if(G.inCombat||G.inTown)return;
+
+  // ── Read tile from new engine map ──────────────────────────────────────────
+  const _map = window.GameState?.activeMap;
+  const _getTile = (x, y) => _map ? _map.getTile(x, y) : null;
+  const _W = _map?.width  || window.MAP_W || 240;
+  const _H = _map?.height || window.MAP_H || 180;
+
+  // Tile type constants (match constants.js)
+  const _T = { GRASS:0, FOREST:1, MOUNTAIN:2, DEEP_WATER:3, SHALLOW:4, TOWN:5, DANGER:6, SAND:7 };
+  const _PASSABLE = new Set([0,1,4,5,6,7]); // grass,forest,shallow,town,danger,sand
+
   // Peers: optimistic local move (client-side prediction) + notify host
   if(!coopIsHost && coopActive && coopConns.length>0){
     const nx=G.x+dx, ny=G.y+dy;
-    if(nx<0||nx>=MAP_W||ny<0||ny>=MAP_H) return;
-    if(!PASSABLE.has(worldMap[ny*MAP_W+nx])) return;
+    if(nx<0||nx>=_W||ny<0||ny>=_H) return;
+    if(!_PASSABLE.has(_getTile(nx,ny))) return;
     G.prevX=G.x; G.prevY=G.y; G.x=nx; G.y=ny;
     coopSendMove(dx,dy);
     if(!G._stepCount) G._stepCount=0; G._stepCount++;
@@ -1861,28 +1872,43 @@ function tryMove(dx,dy){
     return;
   }
   const nx=G.x+dx,ny=G.y+dy;
-  if(nx<0||nx>=MAP_W||ny<0||ny>=MAP_H)return;
-  const type=worldMap[ny*MAP_W+nx];
-  if(!PASSABLE.has(type))return;
+  if(nx<0||nx>=_W||ny<0||ny>=_H)return;
+  const type=_getTile(nx,ny);
+  if(!_PASSABLE.has(type))return;
   G.prevX=G.x;G.prevY=G.y;G.x=nx;G.y=ny;
 
-  // Towns are click-to-enter only — no proximity auto-entry
+  // ── Town entry ─────────────────────────────────────────────────────────────
+  if(type === _T.TOWN){
+    const town = window.TOWNS?.find(t=>t.x===nx&&t.y===ny) ||
+                 (window.GameState?.activeMap?.towns||[]).find(t=>t.x===nx&&t.y===ny);
+    if(town){ enterTown(town); return; }
+  }
 
-  // Encounter check
-  const prevType = worldMap[G.prevY*MAP_W+G.prevX];
+  // ── World boss check ───────────────────────────────────────────────────────
+  if(typeof worldBosses!=='undefined'){
+    const boss=worldBosses.find(b=>b.alive&&Math.abs(nx-b.x)<=1&&Math.abs(ny-b.y)<=1);
+    if(boss){ triggerBossCombat(boss); return; }
+  }
+
+  // ── Portal check ───────────────────────────────────────────────────────────
+  if(typeof checkPortal==='function' && checkPortal(nx,ny)) return;
+
+  // ── Encounter check ────────────────────────────────────────────────────────
+  const prevType = _getTile(G.prevX, G.prevY);
   if(G.encounterCooldown<=0){
     let chance=0;
-    if     (type===T.DANGER)  chance=.30;
-    else if(type===T.FOREST)  chance=.12;
-    else if(type===T.MOUNTAIN)chance=.10;
-    else if(type===T.GRASS)   chance=.04;  // bandits/wolves on open road
-    else if(type===T.SAND)    chance=.06;  // desert creatures
+    if     (type===_T.DANGER)   chance=.30;
+    else if(type===_T.FOREST)   chance=.12;
+    else if(type===_T.MOUNTAIN) chance=.10;
+    else if(type===_T.GRASS)    chance=.04;
+    else if(type===_T.SAND)     chance=.06;
     if(chance>0 && Math.random()<chance){
       if(!checkEncounterAvoid()){ triggerCombat(type); return; }
     }
   }
   G.encounterCooldown=Math.max(0,G.encounterCooldown-1);
-  // Show zone level hint when entering new area
+
+  // Zone level hint based on distance from spawn
   const _zl=Math.min(15,Math.floor(Math.sqrt((G.x-120)**2+(G.y-90)**2)/15));
   if(G._lastZone !== _zl){
     G._lastZone=_zl;
@@ -1897,9 +1923,14 @@ function tryMove(dx,dy){
 
   // Flavour logs on biome change
   if(type!==prevType){
-    const msgs={[T.FOREST]:'You enter a dense, shadowed forest.',[T.MOUNTAIN]:'The path grows steep and rocky.',
-      [T.DANGER]:'⚠ A chill runs through you. Something lurks here.',[T.SAND]:'Hot sand crunches underfoot.',
-      [T.GRASS]:'You emerge onto open grassland.'};
+    const msgs={
+      [_T.FOREST]:'You enter a dense, shadowed forest.',
+      [_T.MOUNTAIN]:'The path grows steep and rocky.',
+      [_T.DANGER]:'⚠ A chill runs through you. Something lurks here.',
+      [_T.SAND]:'Hot sand crunches underfoot.',
+      [_T.GRASS]:'You emerge onto open grassland.',
+      [_T.SHALLOW]:'You wade through shallow waters.'
+    };
     if(msgs[type])addLog(msgs[type]);
   }
   if(!G._stepCount)G._stepCount=0;
@@ -1962,8 +1993,8 @@ function getZoneLevel(){
 }
 
 function pickMonster(tileType){
-  const tMap={[T.DANGER]:'DANGER',[T.FOREST]:'FOREST',
-    [T.MOUNTAIN]:'MOUNTAIN',[T.GRASS]:'GRASS',[T.SAND]:'SAND'};
+  // Tile numbers match constants.js: 0=GRASS,1=FOREST,2=MOUNTAIN,3=DEEP_WATER,4=SHALLOW,5=TOWN,6=DANGER,7=SAND
+  const tMap={0:'GRASS',1:'FOREST',2:'MOUNTAIN',4:'SHALLOW',6:'DANGER',7:'SAND'};
   const tName = tMap[tileType] || 'GRASS';
   let eligible=MONSTERS.filter(m=>
     m.habitat.includes(tName)&&G.level>=m.lvlRange[0]-1&&G.level<=m.lvlRange[1]+2
@@ -1992,6 +2023,7 @@ function makeEnemy(mon, zoneLevel, startDelayMs){
 }
 
 
+function triggerBossCombat(boss){ triggerWorldBossCombat(boss); }
 function triggerWorldBossCombat(boss){
   // Spawn the world boss as a single very powerful enemy
   combat.enemies=[{
