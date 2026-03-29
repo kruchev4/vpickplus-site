@@ -1245,15 +1245,7 @@ let _mmTerrainCache = null; // pre-rendered terrain, never changes
 function initGame(){
   // Always register input handlers — even when new engine is active
   // (Guard against double-registration)
-  if (!window._inputRegistered) {
-    window._inputRegistered = true;
-    document.addEventListener('keydown', onKey);
-    document.addEventListener('keyup', e => { keys[e.key] = false; });
-    // Attach click handler to the world canvas
-    const _wc = document.getElementById('world-cv');
-    if (_wc) _wc.addEventListener('click', onCanvasClick);
-    window.addEventListener('resize', resizeCanvas);
-  }
+  // Input registration is handled by registerInput() called from engine-ready event
 
   if (window.IS_NEW_ENGINE) {
     // Still do the non-rendering init the new engine needs
@@ -6271,7 +6263,8 @@ function csLoadCharacter(idx){
 
   // Same startup path as new character
   window.engineReady = true;
-  window.startEngine();
+  initGame();          // inventory, HUD, bosses, logs
+  window.startEngine(); // fires engine-ready → registerInput()
 
   addLog(`Welcome back, ${G.name}!`,'disc');
   updateHUD();
@@ -6961,6 +6954,19 @@ initFirebase();
 
 // Wait for main.js (ES module) to finish loading RACES/CLASSES before showing char select.
 // main.js dispatches 'module-ready' immediately after all imports resolve.
+// ── Guaranteed input registration — fires whenever engine starts ─────────────
+function registerInput() {
+  if (window._inputRegistered) return;
+  window._inputRegistered = true;
+  document.addEventListener('keydown', onKey);
+  document.addEventListener('keyup', e => { keys[e.key] = false; });
+  const _wc = document.getElementById('world-cv');
+  if (_wc) _wc.addEventListener('click', onCanvasClick);
+  window.addEventListener('resize', resizeCanvas);
+  console.log('[input] Listeners registered');
+}
+window.addEventListener('engine-ready', registerInput);
+
 window.addEventListener('module-ready', () => {
   showCharSelect();
 }, { once: true });
