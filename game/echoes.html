@@ -1212,8 +1212,10 @@ function startGame() {
     necklace: null
   };
 
-  // TEMP legacy save compatibility (remove later)
-  window.G = GameState.player;
+  // Sync all G references to the same object
+  Object.assign(G, GameState.player); // update local G in-place
+  window.G = G;
+  GameState.player = G;
   saveGame();
 
   // Switch UI screens
@@ -6293,9 +6295,12 @@ function csLoadCharacter(idx){
     return;
   }
 
-  // Sync GameState.player and multi.G to the loaded window.G
-  GameState.player = window.G;
-  if(window.multi) window.multi.G = window.G;
+  // Sync ALL references to the loaded character
+  // G (local let), window.G, and GameState.player must all point to same object
+  Object.assign(G, window.G); // update local G in-place
+  GameState.player = G;       // renderer uses GameState.player
+  window.G = G;               // keep window.G in sync
+  if(window.multi) window.multi.G = G;
 
   try{ localStorage.setItem('realmSave', JSON.stringify(data)); }catch(e){}
   document.getElementById('screen-charselect').classList.remove('active');
