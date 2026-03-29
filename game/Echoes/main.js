@@ -111,6 +111,18 @@ function gameLoop(ts) {
   updateCamera();
   if(GameState.activeMap && GameState.camera && GameState.player){
     const entities = [{x:GameState.player.x, y:GameState.player.y, cls:GameState.player.cls}];
+
+    // Co-op party members
+    if(window.coopActive && Array.isArray(window.coopParty)){
+      window.coopParty.forEach(p=>{
+        if(!p || p.id===window.coopMyId) return;
+        if(p.x==null||p.y==null) return;
+        entities.push({x:p.x, y:p.y, cls:(p.cls||'fighter').toLowerCase(),
+          isPartyMember:true, color:p.color||'#c090ff', name:p.name});
+      });
+    }
+
+    // World bosses
     if(Array.isArray(window.worldBosses)){
       for(const b of window.worldBosses)
         if(b.alive) entities.push({x:b.x,y:b.y,cls:'boss',icon:b.icon,name:b.name,isBoss:true});
