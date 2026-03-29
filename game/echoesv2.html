@@ -2179,8 +2179,8 @@ function buildCombatUI(){
     btn.onclick=()=>queueAction(a,mpCost,btn);
     btn.dataset.action=a;btn.dataset.mp=mpCost;
     ag.appendChild(btn);
-  });
-}*/
+  });*/
+}
 
 function queueAction(action,mpCost,btn){
   if(mpCost>0&&G.mp<mpCost){toast('Not enough MP!','err');return;}
