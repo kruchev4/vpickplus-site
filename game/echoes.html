@@ -1457,6 +1457,8 @@ function reapplyAbilities(){
   });
 }
 function recalcStats(){
+  // Guard — bail if G or G.cls not ready yet
+  if (!G || !G.cls || !G.cls.pri) return;
   // Start from base character values
   const cls = G.cls;
   G.atkBonus = 2 + Math.floor(G.level/4) + modOf(G.stats[cls.pri]);
@@ -6261,13 +6263,17 @@ function csLoadCharacter(idx){
   document.getElementById('screen-charselect').classList.remove('active');
   document.getElementById('screen-game').classList.add('active');
 
-  // Same startup path as new character
+  // Start engine — fires engine-ready → registerInput() attaches keyboard/click
   window.engineReady = true;
-  initGame();          // inventory, HUD, bosses, logs
-  window.startEngine(); // fires engine-ready → registerInput()
+  window.startEngine();
 
-  addLog(`Welcome back, ${G.name}!`,'disc');
+  // Post-load UI setup (G is fully loaded at this point)
+  buildInventoryUI();
   updateHUD();
+  buildPortalShortcuts();
+  initWorldBosses();
+  addLog(`Welcome back, ${G.name}!`, 'disc');
+  addLog(`You are a Level ${G.level} ${G.cls.name}. Explore the realm!`, 'sys');
   toast(`Playing as ${G.name}`);
 }
 
