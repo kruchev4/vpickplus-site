@@ -623,6 +623,68 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 
 
     <!-- Character Sheet Overlay (press C) -->
+    <style>
+#ov-charsheet {
+  position:fixed;inset:0;z-index:120;display:none;
+  align-items:center;justify-content:center;
+  background:rgba(4,2,10,.85);backdrop-filter:blur(4px);
+}
+#ov-charsheet.active{display:flex;}
+.cs-box {
+  background:linear-gradient(160deg,#0e0918 0%,#08050f 100%);
+  border:1px solid rgba(201,162,39,.35);
+  border-radius:6px;width:min(820px,96vw);max-height:88vh;
+  overflow-y:auto;padding:20px 24px;font-family:'Cinzel',serif;
+}
+.cs-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;border-bottom:1px solid rgba(201,162,39,.2);padding-bottom:12px;}
+.cs-char-name{font-size:1.2rem;color:var(--gold-b,#c9a227);letter-spacing:2px;}
+.cs-char-sub{font-size:.7rem;color:var(--parch-dk,#9a8a6a);margin-top:3px;}
+.cs-close-btn{background:transparent;border:1px solid rgba(74,53,32,.6);color:var(--parch-dk,#9a8a6a);font-family:'Cinzel',serif;font-size:.65rem;padding:5px 12px;cursor:pointer;border-radius:3px;}
+.cs-close-btn:hover{border-color:var(--gold-b,#c9a227);color:var(--gold-b,#c9a227);}
+.cs-body{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.cs-col{display:flex;flex-direction:column;gap:10px;}
+.cs-sec{font-size:.6rem;letter-spacing:2px;color:var(--gold-b,#c9a227);text-transform:uppercase;border-bottom:1px solid rgba(201,162,39,.2);padding-bottom:4px;margin-top:4px;}
+/* Vitals */
+.cs-vital{margin-bottom:6px;}
+.cs-vital-row{display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px;}
+.cs-vital-lbl{color:var(--parch-dk,#9a8a6a);}
+.cs-vital-val{color:var(--parch-lt,#d4c4a0);}
+.cs-vbar{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+.cs-vbar-fill{height:100%;border-radius:3px;transition:width .4s;}
+.cs-hp-fill{background:linear-gradient(90deg,#8b1a1a,#c0392b);}
+.cs-mp-fill{background:linear-gradient(90deg,#1a3a8b,#2980b9);}
+.cs-xp-fill{background:linear-gradient(90deg,#6b3a8b,#9b59b6);}
+/* Combat stat boxes */
+.cs-combat-row{display:flex;flex-wrap:wrap;gap:6px;}
+.cs-stat-box{background:rgba(255,255,255,.03);border:1px solid rgba(74,53,32,.4);border-radius:4px;padding:5px 8px;text-align:center;min-width:44px;}
+.cs-stat-val{font-size:.85rem;color:var(--parch-lt,#d4c4a0);}
+.cs-stat-lbl{font-size:.52rem;color:var(--parch-dk,#9a8a6a);letter-spacing:1px;text-transform:uppercase;margin-top:1px;}
+/* Ability scores */
+.cs-abilities{display:flex;flex-wrap:wrap;gap:6px;}
+.cs-ab-box{background:rgba(255,255,255,.03);border:1px solid rgba(74,53,32,.4);border-radius:4px;padding:6px 8px;text-align:center;min-width:48px;}
+.cs-ab-name{font-size:.52rem;color:var(--parch-dk,#9a8a6a);letter-spacing:1px;}
+.cs-ab-val{font-size:.95rem;color:var(--parch-lt,#d4c4a0);margin:2px 0;}
+.cs-ab-mod{font-size:.65rem;color:var(--gold-b,#c9a227);}
+/* Traits */
+.cs-trait-row{display:flex;justify-content:space-between;font-size:.7rem;padding:3px 0;border-bottom:1px solid rgba(74,53,32,.15);}
+.cs-trait-lbl{color:var(--parch-dk,#9a8a6a);}
+.cs-trait-val{color:var(--parch-lt,#d4c4a0);text-align:right;}
+/* Equipment */
+.cs-equip-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;}
+.cs-equip-slot{background:rgba(255,255,255,.02);border:1px solid rgba(74,53,32,.35);border-radius:4px;padding:5px 3px;text-align:center;}
+.cs-equip-icon{font-size:.9rem;}
+.cs-equip-name{font-size:.5rem;color:var(--parch-dk,#9a8a6a);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* Inventory */
+.cs-inv-grid{display:flex;flex-direction:column;gap:3px;max-height:120px;overflow-y:auto;}
+.cs-inv-item{display:flex;align-items:center;gap:6px;font-size:.7rem;padding:3px 4px;border-bottom:1px solid rgba(74,53,32,.15);}
+.cs-inv-icon{font-size:.9rem;}
+.cs-inv-name{color:var(--parch-lt,#d4c4a0);}
+@media(max-width:600px){
+  .cs-body{grid-template-columns:1fr;}
+  .cs-equip-grid{grid-template-columns:repeat(4,1fr);}
+}
+    </style>
+
     <div id="ov-charsheet">
       <div class="cs-box">
         <div class="cs-header">
@@ -1844,6 +1906,125 @@ function drawClickRipple(cx, cy){
   requestAnimationFrame(ripple);
 }
 
+// ── CHARACTER SHEET POPULATION ──────────────────────────────────────────────
+function fillCharSheet(){
+  if(!G || !G.cls) return;
+  const mod = v => { const m=Math.floor((v-10)/2); return m>=0?'+'+m:String(m); };
+
+  // Header
+  const nameEl = document.getElementById('cs-name');
+  const subEl  = document.getElementById('cs-sub');
+  if(nameEl) nameEl.textContent = G.name || 'Unknown';
+  if(subEl)  subEl.textContent  =
+    `${G.race?.name||'?'} ${G.cls?.name||'?'} · Level ${G.level} · ${G.gold}gp`;
+
+  // Vitals
+  const hpVal = document.getElementById('cs-hp-val');
+  const mpVal = document.getElementById('cs-mp-val');
+  const xpVal = document.getElementById('cs-xp-val');
+  const hpBar = document.getElementById('cs-hp-bar');
+  const mpBar = document.getElementById('cs-mp-bar');
+  const xpBar = document.getElementById('cs-xp-bar');
+  if(hpVal) hpVal.textContent = `${G.hp} / ${G.hpMax}`;
+  if(mpVal) mpVal.textContent = `${G.mp} / ${G.mpMax}`;
+  if(xpVal) xpVal.textContent = `${G.xp} / ${G.xpNext}`;
+  if(hpBar) hpBar.style.width = Math.round(100*G.hp/Math.max(1,G.hpMax))+'%';
+  if(mpBar) mpBar.style.width = Math.round(100*G.mp/Math.max(1,G.mpMax))+'%';
+  if(xpBar) xpBar.style.width = Math.round(100*G.xp/Math.max(1,G.xpNext))+'%';
+
+  // Combat stats
+  const combatRow = document.getElementById('cs-combat-row');
+  if(combatRow) combatRow.innerHTML = [
+    ['AC',     G.ac||10],
+    ['ATK',    (G.atkBonus>=0?'+':'')+( G.atkBonus||0)],
+    ['DMG',    (G.dmgBonus>=0?'+':'')+( G.dmgBonus||0)],
+    ['Init',   mod(G.stats?.DEX||10)],
+    ['Speed',  (G.race?.speed||30)+' ft'],
+    ['HD',     'd'+(G.cls?.hd||8)],
+  ].map(([l,v])=>`<div class="cs-stat-box"><div class="cs-stat-val">${v}</div><div class="cs-stat-lbl">${l}</div></div>`).join('');
+
+  // Ability scores
+  const abEl = document.getElementById('cs-abilities');
+  if(abEl && G.stats) abEl.innerHTML = Object.entries(G.stats).map(([k,v])=>
+    `<div class="cs-ab-box">
+      <div class="cs-ab-name">${k}</div>
+      <div class="cs-ab-val">${v}</div>
+      <div class="cs-ab-mod">${mod(v)}</div>
+    </div>`
+  ).join('');
+
+  // Character traits
+  const traitsEl = document.getElementById('cs-traits');
+  if(traitsEl) traitsEl.innerHTML = `
+    <div class="cs-trait-row"><span class="cs-trait-lbl">Race</span><span class="cs-trait-val">${G.race?.name||'?'}</span></div>
+    <div class="cs-trait-row"><span class="cs-trait-lbl">Class</span><span class="cs-trait-val">${G.cls?.name||'?'}</span></div>
+    <div class="cs-trait-row"><span class="cs-trait-lbl">Level</span><span class="cs-trait-val">${G.level}</span></div>
+    <div class="cs-trait-row"><span class="cs-trait-lbl">Gold</span><span class="cs-trait-val">${G.gold} gp</span></div>
+    <div class="cs-trait-row"><span class="cs-trait-lbl">Background</span><span class="cs-trait-val">${G.background||G.cls?.flavour||'Adventurer'}</span></div>
+    ${G.race?.traits?.map(t=>`<div class="cs-trait-row"><span class="cs-trait-lbl">Trait</span><span class="cs-trait-val">${t}</span></div>`).join('')||''}
+  `;
+
+  // Equipment
+  const equipEl = document.getElementById('cs-equip-grid');
+  if(equipEl){
+    const slots = ['mainhand','offhand','head','chest','shoulders','pants','boots','ring1','ring2','necklace'];
+    const icons = {mainhand:'⚔️',offhand:'🛡️',head:'🪖',chest:'🥋',shoulders:'🧥',pants:'👖',boots:'👢',ring1:'💍',ring2:'💍',necklace:'📿'};
+    equipEl.innerHTML = slots.map(s=>{
+      const item = G.equipped?.[s];
+      return `<div class="cs-equip-slot" title="${s}">
+        <div class="cs-equip-icon">${item?.icon||icons[s]||'—'}</div>
+        <div class="cs-equip-name">${item?.name||'<span style="opacity:.3">Empty</span>'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Inventory
+  const invEl = document.getElementById('cs-inv-grid');
+  if(invEl){
+    const items = G.inventory||[];
+    if(!items.length){
+      invEl.innerHTML = '<div style="opacity:.4;font-size:.7rem;padding:4px;">Empty</div>';
+    } else {
+      invEl.innerHTML = items.map(item=>
+        `<div class="cs-inv-item">
+          <span class="cs-inv-icon">${item.icon||'📦'}</span>
+          <span class="cs-inv-name">${item.name}${item.qty>1?' x'+item.qty:''}</span>
+        </div>`
+      ).join('');
+    }
+  }
+
+  // Class actions
+  const actEl = document.getElementById('cs-actions');
+  if(actEl){
+    const actions = G.cls?.actions||[];
+    actEl.innerHTML = actions.map(a=>
+      `<div style="padding:3px 8px;border:1px solid rgba(74,53,32,.5);border-radius:3px;font-size:.65rem;color:var(--parch-dk);">${a}</div>`
+    ).join('') || '<span style="opacity:.4;font-size:.7rem;">None</span>';
+  }
+
+  // Proficiency
+  const profEl = document.getElementById('cs-proficiency');
+  if(profEl){
+    const profs = [...(G.cls?.proficiencies||[]), ...(G.race?.languages||[])];
+    profEl.innerHTML = profs.length
+      ? profs.map(p=>`<span style="display:inline-block;margin-right:8px;">✦ ${p}</span>`).join('')
+      : '<span style="opacity:.4;">None listed</span>';
+  }
+
+  // Abilities (passives/active)
+  const ablListEl = document.getElementById('cs-abilities-list');
+  if(ablListEl){
+    const abls = G.abilities||[];
+    ablListEl.innerHTML = abls.length
+      ? abls.map(a=>`<div style="padding:4px 0;border-bottom:1px solid rgba(74,53,32,.2);font-size:.7rem;">
+          <span style="color:var(--gold-b);">${a.name||a}</span>
+          ${a.desc?`<span style="color:var(--parch-dk);margin-left:6px;">${a.desc}</span>`:''}
+        </div>`).join('')
+      : '<div style="opacity:.4;font-size:.7rem;padding:4px;">No abilities yet</div>';
+  }
+}
+
 // ── INPUT ──
 const keys={};
 let moveAccum=0;const MOVE_MS=150;
@@ -1878,7 +2059,13 @@ function onKey(e){
     document.getElementById('ov-inventory')?.classList.contains('active')?closeInventory():openInventory(); return;
   }
   if((e.key==='c'||e.key==='C')&&!G.inCombat&&!document.getElementById('ov-item')?.classList.contains('active')){
-    document.getElementById('ov-charsheet')?.classList.contains('active')?window.closeCharSheet?.():window.openCharSheet?.(); return;
+    if(document.getElementById('ov-charsheet')?.classList.contains('active')){
+      window.closeCharSheet?.();
+    } else {
+      fillCharSheet();
+      window.openCharSheet?.();
+    }
+    return;
   }
   keys[e.key]=true;
 }
