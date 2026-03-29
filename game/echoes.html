@@ -6840,7 +6840,22 @@ initFirebase();
   }
 })();
 
-// Show character select — wrapped in rAF to ensure DOM is ready
+// Wait for main.js (ES module) to finish loading RACES/CLASSES before showing char select.
+// main.js dispatches 'module-ready' immediately after all imports resolve.
+window.addEventListener('module-ready', () => {
+  showCharSelect();
+}, { once: true });
+
+// Fallback — if module-ready never fires (e.g. module load error), show after 3s
+setTimeout(() => {
+  const el = document.getElementById('screen-charselect');
+  if (el && !el.classList.contains('active') &&
+      !document.getElementById('screen-game')?.classList.contains('active') &&
+      !document.getElementById('screen-create')?.classList.contains('active')) {
+    console.warn('[Echoes] module-ready timeout — showing char select anyway');
+    showCharSelect();
+  }
+}, 3000);
 
 function showLoadingScreen(msg){
   let el = document.getElementById('loading-screen');
