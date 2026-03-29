@@ -3792,51 +3792,27 @@ function checkWorldBossCombat(tx, ty){
 //  • Host broadcasts: world_state (positions+hp), combat_state, chat
 //  • Peers render host's world_state — they see themselves + others
 
-// PeerJS replaced with Firebase WebRTC signaling
+// ── CO-OP via Firebase Realtime Database (no WebRTC/TURN needed) ─────────────
+// Architecture: Firebase is the message bus. Players write state, others read it.
+// rooms/{code}/players/{playerId} = player state
+// rooms/{code}/events = action queue (combat, moves, etc.)
 
-// ── CO-OP STATE ──
-let coopPeer      = null;  // local RTCPeerConnection
-let _coopBroadcastTimer = null;
-const PARTY_COLORS = ['#c9a227','#4a9eff','#ff6b6b','#6bff6b'];
-let coopActive    = false;
-let coopIsHost    = false;
-let coopRoomCode  = null;
-let coopConns     = [];    // array of RTCDataChannels
-let coopParty     = [];
-let _fbRoomRef    = null;  // Firebase room reference listener
+let coopActive   = false;
+let coopIsHost   = false;
+let coopRoomCode = null;
+let coopConns    = [];   // kept for legacy compat — not used in Firebase mode
+let coopParty    = [];   // [{name,cls,level,hp,hpMax,x,y,color,id}]
+let coopMyId     = null; // my Firebase player id
+let _fbRoomRef   = null;
+let _coopListeners = []; // Firebase listeners to clean up on disconnect
 
-// ── Firebase WebRTC Signaling ──
-// Uses Firebase Realtime Database as the signaling server
-// Data flows: Firebase → ICE/SDP exchange → direct WebRTC P2P data channel
-// The data channel sends the exact same messages as before (coopHandleData unchanged)
+const PARTY_COLORS = ['#c090ff','#60c0ff','#60ff90','#ffb060'];
 
-const RTC_CONFIG = {
-  iceServers: [
-    {urls:'stun:stun.l.google.com:19302'},
-    {urls:'stun:stun1.l.google.com:19302'},
-    {urls:'stun:stun2.l.google.com:19302'},
-    {urls:'stun:stun3.l.google.com:19302'},
-    {urls:'stun:stun4.l.google.com:19302'},
-    {urls:'stun:stun.cloudflare.com:3478'},
-    // TURN fallback — only used if direct/STUN fails
-    {urls:'turn:openrelay.metered.ca:80',
-     username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turn:openrelay.metered.ca:443?transport=tcp',
-     username:'openrelayproject',credential:'openrelayproject'},
-  ],
-  // 'all' = try direct first, then STUN, then TURN (much more reliable)
-  iceTransportPolicy: 'all',
-  iceCandidatePoolSize: 10,
-};
+// ── Lobby UI ──────────────────────────────────────────────────────────────────
 
-function loadPeerJS(cb){ cb(); } // no-op — no PeerJS needed
-
-
-
-
-// ── Co-op Lobby UI ──
 function openCoopLobby(){
   if(!G.cls||!G.name){ toast('Create your character first!','err'); return; }
+  if(!_db){ toast('Firebase not connected — check config','err'); return; }
   document.getElementById('ov-coop').classList.add('active');
   coopHidePanels();
 }
@@ -3855,971 +3831,324 @@ function coopShowHost(){
   document.getElementById('coop-host-panel').classList.add('open');
   document.getElementById('coop-join-panel').classList.remove('open');
 }
-// ── HOST: Create room ──
+
+function setCoopStatus(panel,type,msg){
+  const id = panel==='host' ? 'coop-host-status' : 'coop-join-status';
+  const el = document.getElementById(id);
+  if(el) el.innerHTML = `<span class="${type}">${msg}</span>`;
+}
+
+function buildMyPlayerData(idx){
+  return {
+    id:       coopMyId,
+    name:     G.name,
+    cls:      G.cls?.name || '?',
+    level:    G.level,
+    hp:       G.hp,
+    hpMax:    G.hpMax,
+    x:        G.x,
+    y:        G.y,
+    color:    PARTY_COLORS[idx % PARTY_COLORS.length],
+    partyIdx: idx,
+    ts:       Date.now(),
+  };
+}
+
+function refreshPartyList(){
+  const list = document.getElementById('coop-player-list');
+  if(!list) return;
+  list.innerHTML = coopParty.filter(Boolean).map(p=>
+    `<div class="party-member" style="border-left:3px solid ${p.color||'#c090ff'}">
+      <span class="pm-name">${p.name}</span>
+      <span class="pm-cls">${p.cls} Lv${p.level}</span>
+      <span class="pm-hp" style="color:${p.color}">${p.hp}/${p.hpMax} HP</span>
+    </div>`
+  ).join('');
+  const startBtn = document.getElementById('coop-start-btn');
+  if(startBtn) startBtn.disabled = coopParty.filter(Boolean).length < 2;
+}
+
+function updatePartyHUD(){
+  const hudEl = document.getElementById('hud-party');
+  if(!hudEl||!coopActive||coopParty.length<2) return;
+  hudEl.innerHTML = coopParty.filter((p,i)=>i>0&&p).map(p=>
+    `<div style="display:flex;align-items:center;gap:4px;margin-top:3px;">
+      <span style="color:${p.color};font-size:.65rem;">◆ ${p.name}</span>
+      <span style="font-size:.6rem;color:var(--parch-dk);">${p.hp}/${p.hpMax}HP</span>
+    </div>`
+  ).join('');
+}
+
+// ── HOST ──────────────────────────────────────────────────────────────────────
+
 function coopStartHost(){
   if(!G.cls||!G.name){ toast('Create your character first!','err'); return; }
-  if(!_db){ toast('Not connected to Firebase','err'); return; }
-  coopIsHost = true;
-  const code = Array.from({length:6},()=>Math.floor(Math.random()*10)).join('');
+  if(!_db){ toast('Firebase not connected','err'); return; }
+
+  coopIsHost  = true;
+  coopMyId    = 'host';
+  const code  = Array.from({length:6},()=>Math.floor(Math.random()*10)).join('');
   coopRoomCode = code;
+
   document.getElementById('coop-room-code').textContent = code;
   document.getElementById('coop-host-panel').classList.add('open');
   document.getElementById('coop-join-panel').classList.remove('open');
   setCoopStatus('host','warn','Room <strong>'+code+'</strong> open — share this code!');
-  document.getElementById('coop-start-btn').disabled = false;
-  coopParty = [buildMyPlayerData(0)];
-  refreshPartyList();
 
   const roomRef = _db.ref('rooms/'+code);
   _fbRoomRef = roomRef;
 
-  roomRef.remove().then(()=>{
-    roomRef.child('host').set({name:G.name, ts:Date.now()});
-  });
+  // Write host presence
+  roomRef.child('players/host').set(buildMyPlayerData(0));
+  roomRef.child('meta').set({host:G.name, ts:Date.now(), open:true});
 
-  // Watch for peer offer
-  roomRef.child('offer').on('value', async snap=>{
-    const offer = snap.val();
-    if(!offer||!offer.sdp) return;
+  // Remove room when host disconnects
+  roomRef.child('players/host').onDisconnect().remove();
+  roomRef.child('meta').onDisconnect().remove();
 
-    const pc = new RTCPeerConnection(RTC_CONFIG);
-    const idx = coopParty.length;
+  coopParty = [buildMyPlayerData(0)];
+  refreshPartyList();
 
-    // ICE buffer for this peer
-    const iceQueue = [];
-    let remoteReady = false;
-
-    async function flushIceQueue(){
-      remoteReady = true;
-      for(const ic of iceQueue){
-        try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
-      }
-      iceQueue.length = 0;
-    }
-
-    pc.ondatachannel = e=>{
-      const ch = e.channel;
-      const conn = {
-        send: d => ch.readyState==='open' && ch.send(JSON.stringify(d)),
-        _partyIdx: idx,
-        peer: 'peer'+idx,
-      };
-      ch.onopen = ()=>{
-        coopConns.push(conn);
-        setCoopStatus('host','ok','Party: '+(idx+1)+' player(s). Connected!');
-        startCoopBroadcastLoop();
-      };
-      ch.onmessage = e=>{ try{ coopHandleData(JSON.parse(e.data), conn); }catch(err){} };
-      ch.onclose = ()=>{
-        const name = coopParty[conn._partyIdx]?.name||'Player';
-        coopConns = coopConns.filter(x=>x!==conn);
-        coopParty = coopParty.map((p,i)=>i===conn._partyIdx?null:p).filter(Boolean);
-        refreshPartyList();
-        coopBroadcast({type:'party_update',party:coopParty});
-        addLog(name+' left the party.','sys');
-        updatePartyHUD();
-      };
-    };
-
-    pc.onconnectionstatechange = ()=>{
-      console.log('[Host] connectionState:', pc.connectionState);
-      if(pc.connectionState==='connected') setCoopStatus('host','ok','✅ Player '+(idx+1)+' connected!');
-      if(pc.connectionState==='failed') setCoopStatus('host','err','❌ Connection failed — try again.');
-    };
-    pc.oniceconnectionstatechange = ()=>{
-      console.log('[Host] iceConnectionState:', pc.iceConnectionState);
-      if(pc.iceConnectionState==='checking') setCoopStatus('host','warn','🔄 Connecting to player '+(idx+1)+'…');
-      if(pc.iceConnectionState==='failed') setCoopStatus('host','err','❌ ICE failed — both players try again.');
-    };
-    pc.onicegatheringstatechange = ()=>console.log('[Host] iceGatheringState:', pc.iceGatheringState);
-
-    pc.onicecandidate = e=>{
-      if(e.candidate){
-        console.log('[Host] sending ICE candidate');
-        roomRef.child('host_ice').push(e.candidate.toJSON());
-      } else {
-        console.log('[Host] ICE gathering complete');
-      }
-    };
-
-    // Watch peer ICE FIRST (before negotiation so we don't miss early candidates)
-    const seenIce = new Set();
-    roomRef.child('peer_ice').on('value', snap=>{
-      const cs = snap.val(); if(!cs) return;
-      Object.entries(cs).forEach(async ([key,ic])=>{
-        if(seenIce.has(key)) return; // deduplicate
-        seenIce.add(key);
-        if(remoteReady){
-          try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }
-          catch(e){ console.warn('[Host] addIceCandidate failed:', e.message); }
-        } else {
-          iceQueue.push(ic);
-        }
-      });
+  // Watch for peers joining
+  const peerRef = roomRef.child('players');
+  const peerListener = peerRef.on('value', snap=>{
+    const players = snap.val();
+    if(!players) return;
+    const ids = Object.keys(players).filter(k=>k!=='host');
+    // Rebuild party: host always index 0
+    coopParty = [buildMyPlayerData(0)];
+    ids.forEach((id,i)=>{
+      const p = players[id];
+      p.color    = PARTY_COLORS[(i+1) % PARTY_COLORS.length];
+      p.partyIdx = i+1;
+      coopParty.push(p);
     });
-
-    // Set remote desc THEN flush ICE
-    try{
-      console.log('[Host] setRemoteDescription...');
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-      console.log('[Host] createAnswer...');
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      console.log('[Host] writing answer to Firebase...');
-      await roomRef.child('answer').set({sdp:answer.sdp, type:answer.type});
-      console.log('[Host] answer written, flushing ICE queue ('+iceQueue.length+' candidates)...');
-      await flushIceQueue();
-      console.log('[Host] negotiation complete — waiting for data channel...');
-    }catch(e){ console.error('[Host] negotiation FAILED:', e.name, e.message); }
-
-    coopPeer = pc;
+    if(ids.length > 0){
+      coopActive = true;
+      setCoopStatus('host','ok','✅ Party: '+coopParty.length+' player(s) connected');
+    }
+    refreshPartyList();
+    updatePartyHUD();
   });
+  _coopListeners.push(()=>peerRef.off('value', peerListener));
 
+  // Watch for events from peers
+  _coopWatchEvents(roomRef);
+
+  coopActive = true; // host is always active
   addLog('Co-op room opened: '+code,'sys');
+  toast('Room '+code+' open — share with friends!');
 }
 
+// ── PEER ──────────────────────────────────────────────────────────────────────
 
-// ── PEER: Join room ──
 async function coopJoin(){
   const code = document.getElementById('coop-join-input').value.trim();
   if(!/^[0-9]{6}$/.test(code)){ setCoopStatus('join','err','Enter a 6-digit room code.'); return; }
-  if(!_db){ toast('Not connected to Firebase','err'); return; }
-  coopIsHost = false;
-  coopRoomCode = code;
+  if(!_db){ toast('Firebase not connected','err'); return; }
+
   setCoopStatus('join','warn','Looking for room '+code+'…');
 
   const roomRef = _db.ref('rooms/'+code);
   _fbRoomRef = roomRef;
 
-  // Verify room exists
-  const hostData = await roomRef.child('host').get().then(s=>s.val());
-  if(!hostData){ setCoopStatus('join','err','Room '+code+' not found.'); return; }
-  setCoopStatus('join','warn','Found room — connecting…');
+  // Check room exists
+  const meta = await roomRef.child('meta').get().then(s=>s.val());
+  if(!meta||!meta.open){ setCoopStatus('join','err','Room '+code+' not found or closed.'); return; }
 
-  const pc = new RTCPeerConnection(RTC_CONFIG);
-  coopPeer = pc;
+  coopIsHost   = false;
+  coopRoomCode = code;
+  coopMyId     = 'peer_'+Date.now().toString(36);
 
-  // ICE candidate buffer — holds candidates until remote desc is set
-  const iceQueue = [];
-  let remoteReady = false;
+  // Count existing peers to assign index
+  const existingPlayers = await roomRef.child('players').get().then(s=>s.val()||{});
+  const myIdx = Object.keys(existingPlayers).length; // 0=host,1=first peer,etc
 
-  async function flushIceQueue(){
-    remoteReady = true;
-    for(const ic of iceQueue){
-      try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
-    }
-    iceQueue.length = 0;
-  }
+  // Write my presence
+  const myData = buildMyPlayerData(myIdx);
+  roomRef.child('players/'+coopMyId).set(myData);
+  roomRef.child('players/'+coopMyId).onDisconnect().remove();
 
-  // Create data channel
-  const ch = pc.createDataChannel('game', {ordered:true});
-  const conn = {
-    send: d => ch.readyState==='open' && ch.send(JSON.stringify(d)),
-    _partyIdx: 0,
-    peer: 'host',
-  };
-  coopConns = [conn];
+  setCoopStatus('join','ok','✅ Joined party! Room: '+code);
+  coopActive = true;
 
-  ch.onopen = ()=>{
-    setCoopStatus('join','ok','Connected! Joining party…');
-    conn.send({type:'player_join', player:buildMyPlayerData(0)});
-    coopActive = true;
-  };
-  ch.onmessage = e=>{ try{ coopHandleData(JSON.parse(e.data), conn); }catch(err){} };
-  ch.onclose = ()=>{
-    coopActive=false; coopConns=[];
-    setCoopStatus('join','warn','Disconnected from host.');
-    updatePartyHUD();
-    addLog('Disconnected from party.','sys');
-  };
-
-  // Log connection state changes
-  pc.onconnectionstatechange = ()=>{
-    console.log('[Peer] connectionState:', pc.connectionState);
-    if(pc.connectionState==='connected') setCoopStatus('join','ok','✅ Connected to host!');
-    if(pc.connectionState==='failed') setCoopStatus('join','err','❌ Connection failed — try again.');
-  };
-  pc.oniceconnectionstatechange = ()=>{
-    console.log('[Peer] iceConnectionState:', pc.iceConnectionState);
-    if(pc.iceConnectionState==='checking') setCoopStatus('join','warn','🔄 Establishing connection…');
-    if(pc.iceConnectionState==='failed'){
-      setCoopStatus('join','err','❌ ICE failed — both players try again.');
-      // Try ICE restart
-      pc.restartIce();
-    }
-  };
-  pc.onicegatheringstatechange = ()=>console.log('[Peer] iceGatheringState:', pc.iceGatheringState);
-
-  // Send our ICE candidates to Firebase
-  pc.onicecandidate = e=>{
-    if(e.candidate){
-      console.log('[Peer] sending ICE candidate');
-      roomRef.child('peer_ice').push(e.candidate.toJSON());
-    } else {
-      console.log('[Peer] ICE gathering complete');
-    }
-  };
-
-  // Watch for host ICE candidates FIRST — queue if remote not ready yet
-  const seenHostIce = new Set();
-  roomRef.child('host_ice').on('value', snap=>{
-    const cs = snap.val(); if(!cs) return;
-    Object.entries(cs).forEach(async ([key,ic])=>{
-      if(seenHostIce.has(key)) return;
-      seenHostIce.add(key);
-      if(remoteReady){
-        try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }
-        catch(e){ console.warn('[Peer] addIceCandidate failed:', e.message); }
-      } else {
-        iceQueue.push(ic);
-      }
+  // Watch all players
+  const peerRef = roomRef.child('players');
+  const peerListener = peerRef.on('value', snap=>{
+    const players = snap.val();
+    if(!players) return;
+    const ids = Object.keys(players);
+    coopParty = ids.map((id,i)=>{
+      const p = players[id];
+      p.color    = PARTY_COLORS[i % PARTY_COLORS.length];
+      p.partyIdx = i;
+      return p;
     });
+    refreshPartyList();
+    updatePartyHUD();
   });
+  _coopListeners.push(()=>peerRef.off('value', peerListener));
 
-  // Watch for host answer — set remote desc THEN flush ICE queue
-  roomRef.child('answer').on('value', async snap=>{
-    const answer = snap.val();
-    if(!answer||!answer.sdp) return;
-    if(pc.signalingState !== 'have-local-offer') return;
-    try{
-      console.log('[Peer] setRemoteDescription (answer)...');
-      await pc.setRemoteDescription(new RTCSessionDescription(answer));
-      roomRef.child('answer').off();
-      console.log('[Peer] flushing ICE queue ('+iceQueue.length+' candidates)...');
-      await flushIceQueue();
-      console.log('[Peer] negotiation complete — waiting for channel open...');
-    }catch(e){ console.warn('[Peer] setRemoteDescription failed:', e.message); }
-  });
+  // Watch for events from host
+  _coopWatchEvents(roomRef);
 
-  // Create and send offer
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  console.log('[Peer] offer sent, waiting for answer...');
-  await roomRef.child('offer').set({sdp:offer.sdp, type:offer.type});
-
-  setTimeout(()=>{
-    if(!coopActive) setCoopStatus('join','err','Timed out. Make sure host has room open.');
-  }, 30000);
+  addLog('Joined party in room '+code+'!','sys');
+  closeCoopLobby();
+  toast('Joined '+meta.host+"'s party!");
 }
 
+// ── EVENT BUS ─────────────────────────────────────────────────────────────────
 
-function coopHandleData(data, fromConn){
-  switch(data.type){
+let _lastEventKey = null;
 
-    case 'player_join':{
-      if(coopIsHost){
-        const idx = coopParty.length;
-        fromConn._partyIdx = idx;
-        data.player.peerId   = fromConn.peer;
-        data.player.color    = PARTY_COLORS[idx % PARTY_COLORS.length];
-        data.player.partyIdx = idx;
-        data.player.x        = G.x; // spawn near host
-        data.player.y        = G.y;
-        coopParty[idx] = data.player;
-        refreshPartyList();
-        // NOW send welcome with their index + full world state
-        fromConn.send({type:'welcome', partyIdx:idx, party:coopParty,
-          worldState:buildWorldSnapshot()});
-        // Tell everyone else about the new party member
-        coopBroadcast({type:'party_update', party:coopParty});
-        addLog(`⚔ ${data.player.name} (${data.player.cls}) joined the party!`,'disc');
-        updatePartyHUD();
-        setCoopStatus('host','ok',`Party: ${coopParty.length} player(s).`);
-      }
-      break;
-    }
+function _coopWatchEvents(roomRef){
+  // Use .on('child_added') so we only process new events
+  const evRef = roomRef.child('events');
+  const evListener = evRef.limitToLast(20).on('child_added', snap=>{
+    const ev = snap.val();
+    if(!ev || snap.key === _lastEventKey) return;
+    _lastEventKey = snap.key;
+    _coopHandleEvent(ev);
+  });
+  _coopListeners.push(()=>evRef.off('child_added', evListener));
+}
 
-    case 'dungeon_invite':{
-      // Party member received dungeon invite from host
-      const _dId=data.dungeonId;
-      addLog(`⚔ Party is entering ${_dId.replace(/_/g,' ')}…`,'disc');
-      toast('Following party into dungeon…');
-      saveGame();
-      setTimeout(()=>{
-        window.location.href='dungeons/dungeon-engine.html?dungeon='+_dId;
-      },800);
-      break;}
+function coopBroadcast(data){
+  if(!coopActive||!_fbRoomRef) return;
+  // Write my player state with every broadcast
+  if(coopMyId){
+    _fbRoomRef.child('players/'+coopMyId).update({
+      hp:G.hp, hpMax:G.hpMax, x:G.x, y:G.y, ts:Date.now()
+    });
+  }
+  // Push event for others to process
+  const ev = {...data, _from:coopMyId, _ts:Date.now()};
+  _fbRoomRef.child('events').push(ev);
+}
 
-    case 'welcome':
-      coopParty = data.party;
-      coopActive = true;
-      G.partyIdx = data.partyIdx;
-      closeCoopLobby();
-      applyWorldSnapshot(data.worldState);
-      // Make sure the game screen is showing (peer might be on create screen
-      // if they haven't started a character yet — in that case we
-      // need to check if G has a valid character)
-      if(G.cls && G.race && G.name){
-        document.getElementById('screen-create').classList.remove('active');
-        document.getElementById('screen-game').classList.add('active');
-        // Re-init if not already done
-        if(!document.getElementById('world-cv').width){
-          initGame();
-        } else {
-          buildInventoryUI();
-          buildPortalShortcuts();
-          updateHUD();
-        }
-      }
-      refreshPartyList();
-      updatePartyHUD();
-      addLog(`⚔ Joined ${coopParty[0]?.name||'host'}'s party as Player ${data.partyIdx+1}!`,'disc');
-      addLog(`Party: ${coopParty.filter(Boolean).map(p=>p.name).join(', ')}`,'sys');
-      addLog('WASD or click to move. Your position is shown on the map.','sys');
-      render();
-      break;
+function _coopHandleEvent(ev){
+  if(!ev) return;
+  // Ignore events from myself
+  if(ev._from === coopMyId) return;
 
-    case 'party_update':
-      coopParty = data.party;
-      refreshPartyList();
+  switch(ev.type){
+    case 'player_move':
+    case 'peer_move':
+    case 'world_sync': {
+      // Update that player's position in coopParty
+      const p = coopParty.find(p=>p&&p.id===ev._from);
+      if(p){ p.x=ev.x||p.x; p.y=ev.y||p.y; }
       updatePartyHUD();
       break;
-
-    case 'world_state':
-      // Peer receives authoritative world snapshot from host
-      if(!coopIsHost) applyWorldSnapshot(data.state);
+    }
+    case 'player_stat':
+    case 'stat_update': {
+      const p = coopParty.find(p=>p&&p.id===ev._from);
+      if(p){ p.hp=ev.hp||p.hp; p.hpMax=ev.hpMax||p.hpMax; }
       updatePartyHUD();
-      render();
-      break;
-
-    case 'combat_start':
-      if(!coopIsHost){
-        G.inCombat = true;
-        // Ensure enemy object has all fields tickCombat needs
-        combat.enemy = {
-          def:  data.enemy.def,
-          hp:   data.enemy.hp,
-          hpMax:data.enemy.hpMax,
-          ac:   data.enemy.ac,
-          atk:  data.enemy.atk,
-          dmg:  data.enemy.dmg,
-          isCampBoss: data.enemy.isCampBoss||false,
-          phaseTwo: null, phaseFired: false,
-          stunned:0, intimidated:false,
-        };
-        combat.round      = 1;
-        combat.active     = true;
-        combat.playerTurn = true;
-        combat.queuedAction = null;
-        combat.playerTimer  = combat.playerTimerMax;
-        combat.enemyTimer   = combat.enemyTimerMax;
-        buildCombatUI();
-        document.getElementById('ov-combat').classList.add('active');
-        addCombatLog('The party engages: '+data.enemy.def.name+'!');
-        addLog(`⚔ ${data.enemy.def.name} attacks the party!`,'combat');
-        combat.lastTick = performance.now();
-        if(combat.animFrame) cancelAnimationFrame(combat.animFrame);
-        combat.animFrame = requestAnimationFrame(tickCombat);
-      }
-      break;
-
-    case 'combat_state':
-      // Host broadcasts updated combat bars to all peers
-      if(!coopIsHost && combat.enemy){
-        combat.enemy.hp = data.enemyHp;
-        combat.round    = data.round;
-        updateCombatBars();
-        if(data.log) addCombatLog(data.log, data.logType||'');
-        if(data.playerHp !== undefined){ G.hp=data.playerHp; updateHUD(); }
-      }
-      // Also update party member HP in the HUD
-      if(data.partyHp) updatePartyHpFromData(data.partyHp);
-      break;
-
-    case 'combat_action':{
-      // Peer sends their action to the host
-      if(coopIsHost && combat.active && combat.enemy){
-        const pName = coopParty[fromConn._partyIdx]?.name || 'Ally';
-        // Execute as a simplified hit on behalf of the peer
-        const roll  = d20();
-        const toHit = roll + 3; // peer's atk bonus (simplified — use their stored stats)
-        const peer  = coopParty[fromConn._partyIdx];
-        const hit   = toHit >= combat.enemy.ac || roll===20;
-        const dmg   = hit ? rollDice(8,1)+2 : 0;
-        if(hit){ combat.enemy.hp -= dmg; playSound('hit'); }
-        else    { playSound('miss'); }
-        const msg = hit
-          ? `${pName}: ${data.action} for ${dmg}!`
-          : `${pName}: ${data.action} — misses!`;
-        addCombatLog(msg, hit?'player-hit':'miss');
-        updateCombatBars();
-        coopBroadcastCombatState(msg, hit?'player-hit':'miss');
-        checkCombatEnd();
-      }
       break;
     }
-
-    case 'combat_end':
-      if(!coopIsHost){
-        if(combat.animFrame){ cancelAnimationFrame(combat.animFrame); combat.animFrame=null; }
-        combat.active = false; combat.playerTurn = false;
-        hideHealTargetPicker();
-        document.getElementById('ov-combat').classList.remove('active');
-        G.inCombat = false;
-        if(data.victory){
-          addLog(`Party victory! +${data.xp} XP, +${data.gold} gp`,'loot');
-          G.xp   += data.xp;
-          G.gold += data.gold;
-          if(G.mpMax>0){
-            const r=Math.max(1,Math.floor(G.mpMax*0.3));
-            G.mp=Math.min(G.mpMax,G.mp+r);
-          }
-          while(G.xp>=G.xpNext) doLevelUp();
-        } else {
-          addLog('The party was defeated.','combat');
-        }
-        updateHUD(); saveGame(); render();
-      }
-      break;
-
-    case 'peer_move':{
-      if(coopIsHost){
-        const pIdx = fromConn._partyIdx;
-        if(pIdx!=null && coopParty[pIdx]){
-          const px = coopParty[pIdx].x||30;
-          const py = coopParty[pIdx].y||22;
-          const nx = px + data.dx;
-          const ny = py + data.dy;
-          if(nx>=0&&nx<MAP_W&&ny>=0&&ny<MAP_H&&PASSABLE.has(worldMap[ny*MAP_W+nx])){
-            coopParty[pIdx].x = nx;
-            coopParty[pIdx].y = ny;
-            // Portal
-            if(worldMap[ny*MAP_W+nx]===T.PORTAL){
-              const portal=PORTALS.find(p=>p.x===nx&&p.y===ny);
-              if(portal) fromConn.send({type:'portal_prompt',campaignId:portal.campaignId});
-            }
-            // Town — tell peer to enter
-            for(const t of TOWNS){
-              if(Math.abs(nx-t.x)<=1&&Math.abs(ny-t.y)<=1){
-                fromConn.send({type:'enter_town', town:t}); break;
-              }
-            }
-            // Encounter — host triggers combat and broadcasts to all
-            if(!G.inCombat && G.encounterCooldown<=0){
-              const type=worldMap[ny*MAP_W+nx];
-              let chance=type===T.DANGER?.35:type===T.FOREST?.1:0;
-              if(chance>0&&Math.random()<chance){ triggerCombat(type); }
-            }
-          }
-          // Send world_state immediately back to the mover for responsive feel
-          fromConn.send({type:'world_state', state:buildWorldSnapshot()});
-          // Also broadcast to others (less urgently)
-          coopBroadcastWorldState();
-        }
-      }
+    case 'chat': {
+      if(typeof addLog==='function') addLog(`${ev.name}: ${ev.text}`,'chat');
       break;
     }
-
-    case 'start_campaign':{
-      if(!coopIsHost){
-        // Show dungeon invite popup with accept/decline + 15s timer
-        const _hostName = coopParty[0]?.name || 'Your party leader';
-        showDungeonInvite(data.campaignId, _hostName);
-      }
-      break;    }
-
-    case 'portal_prompt':
-      // Peer walked into a portal tile — show dungeon invite if party is active,
-      // otherwise show the normal portal info screen
-      if(!coopIsHost){
-        if(coopActive && coopParty.length > 1){
-          showDungeonInvite(data.campaignId, 'You found a portal');
-        } else {
-          openPortal(data.campaignId);
-        }
-      }
-      break;
-    case 'enter_town':
-      if(!coopIsHost) enterTown(data.town);
-      break;
-    case 'hp_update':
-      // Direct HP update sent to a specific peer (e.g. after being healed)
-      if(!coopIsHost){
-        G.hp = data.hp; G.hpMax = data.hpMax;
-        if(data.msg) addCombatLog(data.msg, 'player-hit');
-        updateCombatBars(); updateHUD(); updatePartyHUD();
-        playSound('heal');
-      }
-      break;
-
-    case 'member_queued':
-      // Another party member queued an action — update their entry in panel
-      if(!coopIsHost){
-        if(!partyTimers[data.partyIdx])
-          partyTimers[data.partyIdx]={timer:combat.playerTimerMax,timerMax:combat.playerTimerMax,queued:false,action:''};
-        partyTimers[data.partyIdx].queued = true;
-        partyTimers[data.partyIdx].action = data.action;
-        buildPartyCombatPanel();
-      } else {
-        // Other peers queued — tell all
-        coopBroadcast({type:'member_queued', partyIdx:data.partyIdx||fromConn._partyIdx, action:data.action, name:data.name});
-      }
-      break;
-
-    case 'camp_combat_start':
-      // Host started campaign combat — peer closes campaign overlay and enters combat
-      if(!coopIsHost){
-        document.getElementById('ov-campaign').classList.remove('active');
-        G.inCombat = true;
-        combat.enemy = {
-          def:  data.enemy.def,
-          hp:   data.enemy.hp, hpMax:data.enemy.hpMax,
-          ac:   data.enemy.ac, atk:data.enemy.atk, dmg:data.enemy.dmg,
-          isCampBoss:true, campRoom:null,
-          phaseTwo:data.enemy.phaseTwo||null, phaseFired:false,
-          stunned:0, intimidated:false,
-        };
-        combat.round=1; combat.active=true;
-        combat.playerTurn=true; combat.queuedAction=null;
-        combat.playerTimer=combat.playerTimerMax;
-        combat.enemyTimer=combat.enemyTimerMax;
-        buildCombatUI();
-        document.getElementById('ov-combat').classList.add('active');
-        addCombatLog('⚔ '+data.enemy.def.name+' — the party engages!');
-        addLog('⚔ Campaign combat: '+data.enemy.def.name+'!','combat');
-        combat.lastTick=performance.now();
-        if(combat.animFrame) cancelAnimationFrame(combat.animFrame);
-        combat.animFrame=requestAnimationFrame(tickCombat);
-      }
-      break;
-
-    case 'engage_request':
-      if(coopIsHost && campState && campState.pendingRoom){
-        if(!combat.active){
-          startCampCombat();
-        } else {
-          coopOnCampCombatStart(campState.pendingRoom);
-        }
-      }
-      break;
-
-    case 'room_advance':{
-      // Host advanced to next room — peer follows
-      if(!coopIsHost && campState){
-        const _room = campState.camp.rooms.find(r=>r.id===data.roomId);
-        if(_room){
-          campState.prog.roomIdx = campState.camp.rooms.indexOf(_room);
-          campState.prog.completedRooms.push(data.roomId);
-          document.getElementById('ov-combat').classList.remove('active');
-          G.inCombat=false; combat.active=false;
-          if(combat.animFrame){cancelAnimationFrame(combat.animFrame);combat.animFrame=null;}
-          showRoom(_room);
-        }
-      }
+    case 'combat_start': {
+      if(!coopIsHost && typeof startCombat==='function') startCombat(ev.enemies);
       break;
     }
-
-    case 'field_rest':{
-      if(coopIsHost){
-        // Peer rested — update their HP/MP and broadcast
-        const pIdx = fromConn._partyIdx;
-        if(coopParty[pIdx]){
-          coopParty[pIdx].hp = Math.min(coopParty[pIdx].hpMax,
-            (coopParty[pIdx].hp||0) + Math.floor((coopParty[pIdx].hpMax||10)*0.05));
-          coopParty[pIdx].mp = Math.min(coopParty[pIdx].mpMax||0,
-            (coopParty[pIdx].mp||0) + Math.floor((coopParty[pIdx].mpMax||10)*0.2));
-          coopBroadcastWorldState();
-        }
-      }
+    case 'dungeon_invite': {
+      if(typeof showDungeonInvitePopup==='function') showDungeonInvitePopup(ev);
+      else if(ev.dungeonId) enterDungeon(ev.dungeonId);
       break;
     }
-
-    case 'chat':
-      addLog(`[${data.from}]: ${data.msg}`);
+    case 'start_campaign': {
+      window.location.href = ev.url;
       break;
+    }
+    case 'party_update': {
+      if(ev.party) coopParty = ev.party;
+      refreshPartyList(); updatePartyHUD();
+      break;
+    }
+    case 'field_rest': {
+      if(typeof fieldRest==='function') fieldRest();
+      break;
+    }
+    case 'member_queued': {
+      // Show in party bar that someone queued an action
+      const p = coopParty.find(p=>p&&p.id===ev._from);
+      if(p) addLog(`${p.name} queues: ${ev.action}`,'sys');
+      break;
+    }
   }
 }
 
-// ── BROADCAST HELPERS ──
-function coopBroadcast(data){
-  coopConns.forEach(conn=>{ try{ conn.send(data); }catch(e){} });
-}
-
-function buildWorldSnapshot(){
-  // Snapshot of all party positions + vital stats
-  const members = coopParty.map((p,i)=>p?{
-    partyIdx:i, name:p.name, cls:p.cls, color:p.color||PARTY_COLORS[i],
-    x:i===0?G.x:p.x||30, y:i===0?G.y:p.y||22,
-    hp:i===0?G.hp:p.hp||10, hpMax:i===0?G.hpMax:p.hpMax||10,
-    mp:i===0?G.mp:p.mp||10, mpMax:i===0?G.mpMax:p.mpMax||10,
-    level:i===0?G.level:p.level||1,
-  }:null).filter(Boolean);
-  return {members, hostX:G.x, hostY:G.y};
-}
-
-function applyWorldSnapshot(state){
-  if(!state||!state.members) return;
-  const now = Date.now();
-  state.members.forEach(m=>{
-    if(coopParty[m.partyIdx]) Object.assign(coopParty[m.partyIdx], m);
-    else coopParty[m.partyIdx] = m;
-    // Update G stats for this peer — but don't snap position if we moved very recently
-    // (avoids rubber-band from network latency)
-    if(!coopIsHost && m.partyIdx === G.partyIdx){
-      const recentMove = G._lastMoveTime && (now - G._lastMoveTime) < 400;
-      if(!recentMove){
-        G.x = m.x; G.y = m.y;
-      }
-      // Always sync hp/mp from host (these are authoritative)
-      G.hp = m.hp; G.hpMax = m.hpMax;
-      G.mp = m.mp; G.mpMax = m.mpMax;
-    }
-  });
-}
+// ── BROADCAST HELPERS (legacy compat) ────────────────────────────────────────
 
 function coopBroadcastWorldState(){
-  if(!coopIsHost||!coopConns.length) return;
-  coopBroadcast({type:'world_state', state:buildWorldSnapshot()});
+  if(!coopActive) return;
+  coopBroadcast({type:'world_sync', x:G.x, y:G.y, hp:G.hp, hpMax:G.hpMax});
 }
 
 function coopBroadcastCombatState(log, logType){
-  if(!coopIsHost) return;
-  const partyHp = coopParty.map((p,i)=>({
-    idx:i, hp:i===0?G.hp:p?.hp||0, hpMax:i===0?G.hpMax:p?.hpMax||1
-  }));
-  coopBroadcast({type:'combat_state',
-    enemyHp:combat.enemy?.hp||0,
-    round:combat.round,
-    log, logType, partyHp,
-    playerHp:G.hp,
-  });
+  if(!coopActive||!coopIsHost) return;
+  coopBroadcast({type:'combat_state', log, logType});
 }
 
-function coopBroadcastCombatEnd(victory, xp, gold){
-  coopBroadcast({type:'combat_end', victory, xp:xp||0, gold:gold||0});
+function coopBroadcastCombatEnd(victory,xp,gold){
+  if(!coopActive||!coopIsHost) return;
+  coopBroadcast({type:'combat_end', victory, xp, gold});
 }
 
-// ── HOST sends combat_start when a fight begins ──
-// ── Hooked into triggerCombat ──
-function coopOnCombatStart(){
-  if(!coopIsHost||!coopConns.length) return;
-  coopBroadcast({type:'combat_start', enemy:{
-    def:{name:combat.enemy.def.name,icon:combat.enemy.def.icon,xp:combat.enemy.def.xp},
-    hp:combat.enemy.hp, hpMax:combat.enemy.hpMax,
-    ac:combat.enemy.ac, atk:combat.enemy.atk, dmg:combat.enemy.dmg,
-    isCampBoss:combat.enemy.isCampBoss||false,
-  }, round:1});
-}
-
-function coopOnCampCombatStart(room){
-  if(!coopIsHost||!coopConns.length) return;
-  // Send campaign-specific combat_start with room context
-  // so peers close their campaign overlay and open combat
-  coopBroadcast({type:'camp_combat_start', enemy:{
-    def:{name:combat.enemy.def.name, icon:combat.enemy.def.icon,
-         xp:combat.enemy.def.xp||150},
-    hp:combat.enemy.hp, hpMax:combat.enemy.hpMax,
-    ac:combat.enemy.ac, atk:combat.enemy.atk, dmg:combat.enemy.dmg,
-    isCampBoss:true,
-    phaseTwo:combat.enemy.phaseTwo||null,
-  }, roomId:room.id, round:1});
-}
-
-// ── Patching checkCombatEnd to broadcast result ──
-// co-op wrapper removed
-
-// ── PEER SENDS MOVES/ACTIONS TO HOST ──
 function coopSendMove(dx,dy){
-  if(coopIsHost||!coopConns.length) return;
-  G._lastMoveTime = Date.now();
-  coopConns[0].send({type:'peer_move', dx, dy});
+  if(!coopActive) return;
+  coopBroadcast({type:'peer_move', dx, dy, x:G.x, y:G.y});
 }
 
 function coopSendAction(action){
-  if(coopIsHost||!coopConns.length) return;
-  coopConns[0].send({type:'combat_action', action, playerName:G.name});
+  if(!coopActive) return;
+  coopBroadcast({type:'combat_action', action});
 }
 
 function coopSendFieldRest(){
-  if(coopIsHost||!coopConns.length) return;
-  coopConns[0].send({type:'field_rest'});
-}
-
-// ── PARTY HUD ── (strip below/above main view)
-
-// ── Minimap mode switch (world vs dungeon) ──
-function updateMinimapMode(){
-  const worldCv   = document.getElementById('minimap-cv');
-  const dungeonCv = document.getElementById('minimap-dungeon-cv');
-  const label     = document.getElementById('minimap-label');
-  if(!worldCv||!dungeonCv) return;
-  const inDungeon = window.GameState?.mode === 'dungeon';
-  worldCv.style.display   = inDungeon ? 'none'  : 'block';
-  dungeonCv.style.display = inDungeon ? 'block' : 'none';
-  if(label) label.textContent = inDungeon ? '⬟ Dungeon Map' : '⬡ Minimap';
-  if(inDungeon) drawNewDungeonMinimap(dungeonCv);
-  else drawWorldMinimap(worldCv);
-}
-
-// ── Fog of war — tracks which tiles player has visited ──────────────────────
-if(!window._visitedTiles) window._visitedTiles = new Set();
-
-function markVisited(cx, cy, radius) {
-  const map = window.GameState?.activeMap;
-  if(!map) return;
-  for(let dy=-radius; dy<=radius; dy++){
-    for(let dx=-radius; dx<=radius; dx++){
-      if(dx*dx+dy*dy <= radius*radius)
-        window._visitedTiles.add(`${cx+dx},${cy+dy}`);
-    }
-  }
-}
-
-function drawNewDungeonMinimap(cv) {
-  const map = window.GameState?.activeMap;
-  if(!map || !cv) return;
-  const W=cv.width||170, H=cv.height||128;
-  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
-  const ctx2=cv.getContext('2d');
-  ctx2.fillStyle='#060308'; ctx2.fillRect(0,0,W,H);
-
-  // Scale to fit dungeon in minimap
-  const scaleX = W / map.width;
-  const scaleY = H / map.height;
-  const tileColors = {8:'#0a0a14',9:'#3a3028',10:'#7a4a20',11:'#c9a227',12:'#6080a0',13:'#405060'};
-
-  for(let y=0;y<map.height;y++){
-    for(let x=0;x<map.width;x++){
-      const visited = window._visitedTiles.has(`${x},${y}`);
-      if(!visited) continue; // fog of war
-      const tile = map.getTile(x,y);
-      ctx2.fillStyle = tileColors[tile] || '#3a3028';
-      ctx2.fillRect(
-        Math.floor(x*scaleX), Math.floor(y*scaleY),
-        Math.max(1,Math.ceil(scaleX)), Math.max(1,Math.ceil(scaleY))
-      );
-    }
-  }
-
-  // Player dot
-  ctx2.fillStyle = '#c090ff';
-  const px2 = Math.floor(G.x*scaleX);
-  const py2 = Math.floor(G.y*scaleY);
-  ctx2.fillRect(px2-1, py2-1, 3, 3);
-
-  // Dungeon monsters
-  (window._dungeonMonsters||[]).forEach(m=>{
-    if(!m.alive) return;
-    if(!window._visitedTiles.has(`${m.x},${m.y}`)) return;
-    ctx2.fillStyle = m.isBoss ? '#ff4040' : '#ff8040';
-    ctx2.fillRect(Math.floor(m.x*scaleX), Math.floor(m.y*scaleY), 2, 2);
-  });
-
-  // Exit marker
-  const exit = window.GameState?.activeMap?.exit;
-  if(exit) {
-    ctx2.fillStyle='#60ff60';
-    ctx2.fillRect(Math.floor(exit.x*scaleX)-1, Math.floor(exit.y*scaleY)-1, 3, 3);
-  }
-}
-
-function drawWorldMinimap(cv) {
-  const map = window.GameState?.activeMap;
-  if(!map || !cv) return;
-  const W=cv.width||170, H=cv.height||128;
-  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
-  const ctx2=cv.getContext('2d');
-  ctx2.fillStyle='#071e3d'; ctx2.fillRect(0,0,W,H);
-
-  const scaleX = W / map.width;
-  const scaleY = H / map.height;
-  const worldColors = {0:'#3a6b30',1:'#1a3d16',2:'#5a5045',3:'#071e3d',4:'#1a5a8a',5:'#8b6914',6:'#3c0e0e',7:'#c8a870'};
-
-  for(let y=0;y<map.height;y++){
-    for(let x=0;x<map.width;x++){
-      const tile = map.getTile(x,y);
-      ctx2.fillStyle = worldColors[tile] || '#3a6b30';
-      ctx2.fillRect(Math.floor(x*scaleX), Math.floor(y*scaleY), Math.max(1,Math.ceil(scaleX)), Math.max(1,Math.ceil(scaleY)));
-    }
-  }
-
-  // Player dot
-  ctx2.fillStyle='#ffffff';
-  ctx2.fillRect(Math.floor(G.x*scaleX)-1, Math.floor(G.y*scaleY)-1, 3, 3);
-
-  // Towns
-  (map.towns||[]).forEach(t=>{
-    ctx2.fillStyle='#c9a227';
-    ctx2.fillRect(Math.floor(t.x*scaleX)-1, Math.floor(t.y*scaleY)-1, 3, 3);
-  });
-}
-
-function drawDungeonMapSmall(cv){
-  if(!cv||!campState) return;
-  const camp=campState.camp, prog=campState.prog;
-  const W=170,H=128;
-  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
-  const ctx=cv.getContext('2d');
-  ctx.clearRect(0,0,W,H);
-  ctx.fillStyle='#060308';ctx.fillRect(0,0,W,H);
-  const rooms=camp.rooms, done=new Set(prog.completedRooms||[]);
-  const cur=rooms[prog.roomIdx];
-  const nodeR=6, colW=W/3;
-  const rowH=Math.min(26,(H-10)/Math.max(rooms.length,1));
-  const pos={};
-  rooms.forEach((r,i)=>{
-    const prev=rooms[i-1];let col=1;
-    if(prev&&prev.type==='choice'&&prev.choices){
-      const mc=prev.choices.findIndex(ch=>ch.next===r.id);
-      if(mc===0)col=0;else if(mc===1)col=2;
-    }
-    pos[r.id]={x:(col+0.5)*colW,y:8+i*rowH};
-  });
-  ctx.lineWidth=1;
-  rooms.forEach(r=>{
-    const from=pos[r.id];if(!from)return;
-    const targets=r.next?[r.next]:[];
-    if(r.choices)r.choices.forEach(ch=>ch.next&&targets.push(ch.next));
-    targets.forEach(tid=>{
-      const to=pos[tid];if(!to)return;
-      ctx.strokeStyle=done.has(r.id)?'#2a4a2a':'#1a0830';
-      ctx.beginPath();ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);ctx.stroke();
-    });
-  });
-  rooms.forEach((r,i)=>{
-    const p=pos[r.id];if(!p)return;
-    const isCur=r===cur,isDone=done.has(r.id),isBoss=r.type==='boss';
-    ctx.fillStyle=isDone?'#1a3a1a':isBoss?'#2a0808':isCur?'#3a1870':'#1a0830';
-    ctx.beginPath();ctx.arc(p.x,p.y,nodeR,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle=isDone?'#3a6a3a':isBoss?'#8b1a1a':isCur?'#c090ff':'#2a1040';
-    ctx.lineWidth=isCur?2:1;
-    ctx.beginPath();ctx.arc(p.x,p.y,nodeR,0,Math.PI*2);ctx.stroke();
-    ctx.font=`${nodeR}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillStyle=isCur?'#d0a0ff':isDone?'#5a9a5a':isBoss?'#c47b7b':'#4a2060';
-    ctx.fillText(isDone?'✓':isBoss?'💀':isCur?'●':'·',p.x,p.y);
-  });
-}
-
-function updatePartyHUD(){
-  let hud = document.getElementById('party-hud');
-  if(!hud) return;
-  if(!coopActive || coopParty.filter(Boolean).length < 2){
-    hud.style.display='none'; return;
-  }
-  hud.style.display='flex';
-  hud.innerHTML = coopParty.filter(Boolean).map((p,i)=>{
-    const hp    = i===0 ? G.hp    : (p.hp||0);
-    const hpMax = i===0 ? G.hpMax : (p.hpMax||1);
-    const pct   = Math.max(0,hp/hpMax*100);
-    const color = p.color||PARTY_COLORS[i];
-    const isMe  = (!coopIsHost && i===G.partyIdx) || (coopIsHost && i===0);
-    return `<div style="display:flex;align-items:center;gap:5px;padding:3px 6px;
-        border:1px solid ${isMe?color:'#3a2010'};background:rgba(0,0,0,.4);min-width:110px;">
-      <span style="color:${color};font-size:.6rem;">●</span>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:.58rem;color:${color};font-family:Cinzel,serif;
-          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}${isMe?' ★':''}</div>
-        <div style="height:4px;background:#1a0e06;margin-top:2px;">
-          <div style="width:${pct}%;height:100%;background:${color};opacity:.8;transition:width .3s;"></div>
-        </div>
-      </div>
-      <span style="font-size:.56rem;color:#7a6050;">${hp}/${hpMax}</span>
-    </div>`;
-  }).join('');
-}
-
-function updatePartyHpFromData(partyHp){
-  partyHp.forEach(p=>{
-    if(coopParty[p.idx]) { coopParty[p.idx].hp=p.hp; coopParty[p.idx].hpMax=p.hpMax; }
-  });
-  updatePartyHUD();
-}
-
-// ── OTHER PLAYERS ON MAP ──
-// Called at end of render() to draw party member sprites
-function drawCoopPlayers(stX,stY,offX,offY){
   if(!coopActive) return;
-  coopParty.forEach((p,i)=>{
-    if(!p) return;
-    const isSelf = (coopIsHost && i===0) || (!coopIsHost && i===G.partyIdx);
-    if(isSelf) return; // self is drawn by main player render
-    const px = (p.x||30), py = (p.y||22);
-    const sx = (px-stX)*TILE+offX, sy = (py-stY)*TILE+offY;
-    if(sx<-TILE||sx>vpW+TILE||sy<-TILE||sy>vpH+TILE) return;
-    const color = p.color||PARTY_COLORS[i];
-    ctx.save();
-    // Shadow
-    ctx.fillStyle='rgba(0,0,0,.35)';
-    ctx.beginPath();ctx.ellipse(sx+TILE/2,sy+TILE-5,8,4,0,0,Math.PI*2);ctx.fill();
-    // Body — different colour per player
-    ctx.fillStyle=color;
-    ctx.beginPath();ctx.arc(sx+TILE/2,sy+TILE/2-2,10,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#2a1a5a';
-    ctx.fillRect(sx+TILE/2-5,sy+TILE/2+6,10,10);
-    ctx.strokeStyle='#1a0e06';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.arc(sx+TILE/2,sy+TILE/2-2,10,0,Math.PI*2);ctx.stroke();
-    ctx.strokeRect(sx+TILE/2-5,sy+TILE/2+6,10,10);
-    // Name tag
-    ctx.font="bold 8px 'Cinzel',serif";
-    ctx.fillStyle=color; ctx.textAlign='center';
-    ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=3;
-    ctx.fillText(p.name.slice(0,8),sx+TILE/2,sy-3);
-    ctx.restore();
-  });
+  coopBroadcast({type:'field_rest'});
 }
 
-// ── PERIODIC STATE BROADCAST (host → peers, every 200ms) ──
 function startCoopBroadcastLoop(){
-  if(_coopBroadcastTimer) clearInterval(_coopBroadcastTimer);
-  _coopBroadcastTimer = setInterval(()=>{
-    if(coopIsHost && coopConns.length>0 && !G.inCombat){
-      if(coopParty[0]){ coopParty[0].x=G.x; coopParty[0].y=G.y;
-        coopParty[0].hp=G.hp; coopParty[0].mp=G.mp; }
-      coopBroadcastWorldState();
-    }
-  }, 500); // 500ms — plenty for world movement, reduces traffic
+  // State is pushed via coopBroadcast on each action — no polling loop needed
 }
+
+// ── DISCONNECT ────────────────────────────────────────────────────────────────
 
 function coopDisconnect(){
-  if(_coopBroadcastTimer){ clearInterval(_coopBroadcastTimer); _coopBroadcastTimer=null; }
-  if(coopPeer){ try{ coopPeer.close(); }catch(e){} coopPeer=null; }
-  if(_fbRoomRef){ _fbRoomRef.off(); _fbRoomRef=null; }
-  if(coopRoomCode&&_db) _db.ref('rooms/'+coopRoomCode).remove();
-  coopConns=[]; coopParty=[]; coopIsHost=false; coopRoomCode=null; coopActive=false;
+  if(_fbRoomRef && coopMyId){
+    _fbRoomRef.child('players/'+coopMyId).remove();
+    if(coopIsHost) _fbRoomRef.child('meta').remove();
+  }
+  _coopListeners.forEach(off=>{ try{off();}catch(e){} });
+  _coopListeners = [];
+  coopActive   = false;
+  coopIsHost   = false;
+  coopRoomCode = null;
+  coopConns    = [];
+  coopParty    = [];
+  coopMyId     = null;
+  _fbRoomRef   = null;
   coopHidePanels();
-  setCoopStatus('host','warn','Disconnected.');
+  setCoopStatus('host','','');
+  setCoopStatus('join','','');
   updatePartyHUD();
-  addLog('Left co-op session.','sys');
-}
-
-// ── Host: on click "Start Campaign" after all joined ──
-function coopStartCampaign(){
-  if(!coopIsHost) return;
+  addLog('Left party.','sys');
+  toast('Disconnected from party');
   closeCoopLobby();
-  coopActive = true;
-  coopParty[0] = buildMyPlayerData(0);
-  coopBroadcast({type:'party_update', party:coopParty});
-  startCoopBroadcastLoop();
-  updatePartyHUD();
-  addLog('Party ready! Find a portal to begin a campaign.','disc');
 }
 
-// ── Refresh lobby list ──
-function refreshPartyList(){
-  const list=document.getElementById('coop-player-list');
-  if(!list) return;
-  list.innerHTML=coopParty.filter(Boolean).map((p,i)=>`
-    <div class="player-row">
-      <div class="player-dot" style="background:${p.color||PARTY_COLORS[i]}"></div>
-      <div class="player-name-display">${p.name}</div>
-      <div class="player-class-display">${p.race} ${p.cls} · Lv.${p.level}</div>
-    </div>`).join('');
-}
-
-function buildMyPlayerData(idx){
-  return{
-    partyIdx:idx, peerId:coopPeer?.id||'',
-    name:G.name||'Adventurer', cls:G.cls?.name||'?', race:G.race?.name||'?',
-    level:G.level||1, hp:G.hp, hpMax:G.hpMax, mp:G.mp, mpMax:G.mpMax,
-    x:G.x, y:G.y,
-    color:PARTY_COLORS[idx%PARTY_COLORS.length],
-  };
-}
-
-function setCoopStatus(panel,type,msg){
-  const id=panel==='host'?'coop-host-status':'coop-join-status';
-  const el=document.getElementById(id);
-  if(el) el.innerHTML=`<span class="${type}">${msg}</span>`;
+function coopStartCampaign(){
+  if(!coopIsHost){ toast('Only the host can start campaigns','err'); return; }
+  // Opens portal selection — host picks dungeon, it broadcasts to party
+  toast('Select a portal to enter with your party!');
+  closeCoopLobby();
 }
 
 
