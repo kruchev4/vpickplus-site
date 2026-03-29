@@ -2598,10 +2598,18 @@ function triggerDungeonEncounter(){
   document.getElementById('ov-combat').classList.add('active');
   const names = combat.enemies.map(e=>e.def.name).join(', ');
   addLog(`⚔ ${def.isBoss?'👑 BOSS: ':''}Encountered: ${names}!`,'combat');
-  // Notify all party members
-  if(coopActive && coopParty.length > 1){
-    coopBroadcast({type:'combat_invite', from:G.name, enemyNames:names,
-      hostX:G.x, hostY:G.y, isDungeon:true});
+  // Notify nearby party members
+  if(coopActive){
+    const PROX = 6;
+    coopParty.forEach(p=>{
+      if(!p||p.id===coopMyId) return;
+      const dist = Math.abs((p.x||0)-G.x)+Math.abs((p.y||0)-G.y);
+      if(dist <= PROX){
+        coopBroadcast({type:'combat_invite',
+          from:G.name, enemyNames:names, dist
+        });
+      }
+    });
   }
   addCombatLog(count>1?`${count} enemies attack!`:`A ${def.name} attacks!`);
   combat.lastTick=performance.now();
@@ -2665,10 +2673,13 @@ function triggerCombat(tileType){
   document.getElementById('ov-combat').classList.add('active');
   const names = combat.enemies.map(e=>e.def.name).join(', ');
   addLog(`⚔ Encountered: ${names}!`,'combat');
-  // Notify ALL party members (let them decide based on distance)
-  if(coopActive && coopParty.length > 1){
-    coopBroadcast({type:'combat_invite', from:G.name, enemyNames:names,
-      hostX:G.x, hostY:G.y});
+  // Notify nearby party members
+  if(coopActive){
+    coopParty.forEach(p=>{
+      if(!p||p.id===coopMyId) return;
+      const dist = Math.abs((p.x||0)-G.x)+Math.abs((p.y||0)-G.y);
+      if(dist <= 6) coopBroadcast({type:'combat_invite', from:G.name, enemyNames:names, dist});
+    });
   }
   coopOnCombatStart();
   addCombatLog(count>1 ? `${count} enemies attack!` : `A ${combat.enemies[0].def.name} attacks!`);
@@ -4055,12 +4066,7 @@ function showCoopCombatInvite(ev){
   document.getElementById('coop-combat-invite')?.remove();
   const from = ev.from || 'A party member';
   const enemies = ev.enemyNames || 'enemies';
-  // Calculate distance from combat location if we have it
-  let distStr = 'nearby';
-  if(ev.hostX != null){
-    const d = Math.abs(ev.hostX - G.x) + Math.abs(ev.hostY - G.y);
-    distStr = d <= 3 ? 'right next to you!' : d+' tiles away';
-  }
+  const dist = ev.dist != null ? ev.dist+' tiles away' : 'nearby';
   const fromId = ev._from;
   const d = document.createElement('div');
   d.id = 'coop-combat-invite';
@@ -4347,8 +4353,7 @@ function _coopHandleEvent(ev){
       break;
     }
     case 'dungeon_invite': {
-      // Show to everyone who isn't already in that dungeon
-      if(window.GameState?.mode !== 'dungeon') showCoopDungeonInvite(ev);
+      if(!coopIsHost) showCoopDungeonInvite(ev);
       break;
     }
     case 'start_campaign': {
@@ -4375,7 +4380,7 @@ function _coopHandleEvent(ev){
       break;
     }
     case 'combat_invite': {
-      // Show to everyone not currently in combat
+      // Another party member entered combat nearby
       if(!G.inCombat) showCoopCombatInvite(ev);
       break;
     }
