@@ -240,7 +240,18 @@ function gameLoop(ts) {
   =============================== */
 
 async function startEngine() {
-  if (engineRunning) return;
+  // Always sync player — even if engine already running
+  if (window.G && window.G.name) {
+    GameState.player = window.G;
+  }
+  if (window.multi) window.multi.G = window.G || GameState.player;
+
+  // Engine already running — just re-sync player, don't restart
+  if (engineRunning) {
+    console.log("[startEngine] Already running — player synced:", GameState.player?.name);
+    setupInput(); // ensure input is registered
+    return;
+  }
   engineRunning = true;
 
   canvas = document.getElementById("world-cv");
@@ -248,23 +259,15 @@ async function startEngine() {
 
   ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Failed to acquire 2D context");
-  window._engineCtx = ctx; // expose for legacy code (ripples etc)
+  window._engineCtx = ctx;
 
   GameState.camera.w = canvas.width;
   GameState.camera.h = canvas.height;
 
-  // Sync GameState.player to window.G — single source of truth for all game code.
-  // startGame() / csLoadCharacter() set window.G before calling startEngine().
-  if (window.G && window.G.name) {
-    GameState.player = window.G;
-  }
-  if (window.multi) window.multi.G = window.G || GameState.player;
-
   try {
     GameState.activeMap = await loadMap("overworld_generated");
   } catch (e) {
-    console.error("[startEngine] Map load failed — canvas will be blank:", e.message);
-    // Don't rethrow — game loop still runs, toast shown by mapLoader
+    console.error("[startEngine] Map load failed:", e.message);
   }
 
   if (GameState.activeMap) {
@@ -277,7 +280,7 @@ async function startEngine() {
   setupInput();
 
   window.engineReady = true;
-  console.log("✅ Engine ready");
+  console.log("✅ Engine ready, player:", GameState.player?.name);
 
   requestAnimationFrame(gameLoop);
 }
