@@ -42,6 +42,24 @@ export const TILE_COLORS = {
   [TILE.STAIRS_DOWN]:["#405060", "#506070"],  // stairs down
   [TILE.PORTAL]:     ["#8040cc", "#9050dd"],  // campaign portal
 };
+window.TOWN_TILE_COLORS = {
+    20: '#6a6058',  // floor - stone
+    21: '#1e1810',  // wall  - dark
+    22: '#7a5030',  // inn   - warm brown
+    23: '#1a3a5a',  // shop  - blue
+    24: '#4a2a6a',  // temple - purple
+    25: '#3a2808',  // tavern - dark wood
+    26: '#1a3a1a',  // vendor - dark green
+    27: '#102a2a',  // craft  - teal
+    28: '#1a4a1a',  // exit   - green
+    29: '#252015',  // deco   - stone grey
+  };
+ window.TOWN_TILE_ICONS = {
+    22: '🏨', 23: '⚒', 24: '✝', 25: '🍺', 26: '💰', 27: '⚗', 28: '🌍'
+  };
+ 
+  // Town tile passability for BFS pathfinding click-to-move
+  window.TOWN_PASSABLE_SET = TOWN_PASSABLE;
 
 export const PASSABLE = new Set([
   TILE.GRASS,
