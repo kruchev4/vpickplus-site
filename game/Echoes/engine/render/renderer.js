@@ -626,6 +626,23 @@ export function renderMap(ctx, map, camera, entities = []) {
     } else {
       const cls = (e.cls?.id || e.cls || 'fighter').toLowerCase();
       drawSprite(ctx, sx, sy, TS, cls);
+      // Party member name tag
+      if(e.isPartyMember && e.name){
+        ctx.font = "bold 9px 'Cinzel',sans-serif";
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.8)';
+        ctx.fillText(e.name, sx + TS/2 + 1, sy + 1);
+        // Coloured name
+        ctx.fillStyle = e.color || '#c090ff';
+        ctx.fillText(e.name, sx + TS/2, sy);
+        // Colour dot indicator
+        ctx.fillStyle = e.color || '#c090ff';
+        ctx.beginPath();
+        ctx.arc(sx + TS/2, sy + TS + 3, 2, 0, Math.PI*2);
+        ctx.fill();
+      }
     }
     ctx.restore();
   }
