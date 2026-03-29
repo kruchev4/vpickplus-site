@@ -480,6 +480,91 @@ function drawPortal(ctx, px, py, ts) {
   ctx.fillText('🌀', px + ts/2, py + ts * 0.55);
 }
 
+
+// ── Dungeon tile drawers ──────────────────────────────────────────────────────
+
+function drawWall(ctx, px, py, x, y) {
+  const h = hash(x, y);
+  ctx.fillStyle = h > 0.6 ? '#1a1a28' : h > 0.3 ? '#151520' : '#111118';
+  ctx.fillRect(px, py, TS, TS);
+  // Stone block pattern
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
+  ctx.fillRect(px, py, TS/2-1, TS/2-1);
+  ctx.fillRect(px+TS/2+1, py+TS/2+1, TS/2-1, TS/2-1);
+  // Crack
+  if(h>0.7){
+    ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(px+4,py+3);ctx.lineTo(px+10,py+12);ctx.stroke();
+  }
+}
+
+function drawFloor(ctx, px, py, x, y) {
+  const h = hash(x, y);
+  ctx.fillStyle = h > 0.6 ? '#2e2820' : h > 0.3 ? '#262018' : '#221c14';
+  ctx.fillRect(px, py, TS, TS);
+  // Subtle stone texture
+  ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  if(h>0.8) ctx.fillRect(px+2, py+2, TS-4, 1);
+  if(h>0.9) ctx.fillRect(px+2, py+TS-4, TS-4, 1);
+}
+
+function drawDoor(ctx, px, py, x, y) {
+  // Floor base
+  drawFloor(ctx, px, py, x, y);
+  // Door frame
+  ctx.fillStyle = '#5a3010';
+  ctx.fillRect(px+4, py+2, TS-8, TS-4);
+  ctx.fillStyle = '#7a4a20';
+  ctx.fillRect(px+6, py+4, TS-12, TS-8);
+  // Handle
+  ctx.fillStyle = '#c9a227';
+  ctx.fillRect(px+TS/2-1, py+TS/2-1, 3, 3);
+  // Frame border
+  ctx.strokeStyle = '#3a2008';ctx.lineWidth=2;
+  ctx.strokeRect(px+4, py+2, TS-8, TS-4);
+}
+
+function drawChest(ctx, px, py, x, y) {
+  drawFloor(ctx, px, py, x, y);
+  // Chest body
+  ctx.fillStyle = '#6b3a10';
+  ctx.fillRect(px+5, py+8, TS-10, TS-14);
+  ctx.fillStyle = '#8b5a20';
+  ctx.fillRect(px+5, py+8, TS-10, (TS-14)/2);
+  // Lid
+  ctx.fillStyle = '#5a2a08';
+  ctx.fillRect(px+5, py+6, TS-10, 4);
+  // Lock
+  ctx.fillStyle = '#c9a227';
+  ctx.fillRect(px+TS/2-2, py+TS/2-1, 4, 4);
+  // Glow
+  const t = (Date.now()/1500)%1;
+  ctx.fillStyle = `rgba(201,162,39,${0.08+Math.sin(t*Math.PI*2)*0.05})`;
+  ctx.fillRect(px+3, py+5, TS-6, TS-8);
+}
+
+function drawStairsUp(ctx, px, py, x, y) {
+  drawFloor(ctx, px, py, x, y);
+  ctx.fillStyle = 'rgba(96,128,160,0.6)';
+  for(let i=0;i<4;i++){
+    ctx.fillRect(px+4+i*3, py+TS-8-i*4, TS-8-i*6, 3);
+  }
+  ctx.font=`${Math.round(TS*0.5)}px serif`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('⬆', px+TS/2, py+TS/2);
+}
+
+function drawStairsDown(ctx, px, py, x, y) {
+  drawFloor(ctx, px, py, x, y);
+  ctx.fillStyle = 'rgba(64,80,96,0.6)';
+  for(let i=0;i<4;i++){
+    ctx.fillRect(px+4+i*3, py+4+i*4, TS-8-i*6, 3);
+  }
+  ctx.font=`${Math.round(TS*0.5)}px serif`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('⬇', px+TS/2, py+TS/2);
+}
+
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export function renderMap(ctx, map, camera, entities = []) {
@@ -512,6 +597,12 @@ export function renderMap(ctx, map, camera, entities = []) {
         case 5: drawTown(ctx, px, py, tx, ty);      break;
         case 6: drawDanger(ctx, px, py, tx, ty);    break;
         case 7: drawSand(ctx, px, py, tx, ty);      break;
+        case  8: drawWall(ctx, px, py, tx, ty);       break;
+        case  9: drawFloor(ctx, px, py, tx, ty);      break;
+        case 10: drawDoor(ctx, px, py, tx, ty);       break;
+        case 11: drawChest(ctx, px, py, tx, ty);      break;
+        case 12: drawStairsUp(ctx, px, py, tx, ty);   break;
+        case 13: drawStairsDown(ctx, px, py, tx, ty); break;
         default: {
           const colors = TILE_COLORS?.[tile];
           if (colors) { ctx.fillStyle = colors[0]; ctx.fillRect(px, py, TS, TS); }
