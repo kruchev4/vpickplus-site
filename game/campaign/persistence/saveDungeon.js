@@ -8,7 +8,7 @@ export async function saveDungeonToSupabase(dungeon) {
       {
         id: dungeon.id,
         name: dungeon.name,
-        map_json: dungeon
+        json: dungeon
       },
       { onConflict: "id" }
     );
