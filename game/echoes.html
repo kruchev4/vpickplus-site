@@ -1752,13 +1752,16 @@ function bfsPath(sx, sy, tx, ty, maxSteps){
   }
   return null; // no path
 }
-  function startApp() {
-  // Decide initial screen ONCE
-  if (hasSavedCharacter()) {
-    showGameScreen();
-  } else {
-    showCharSelect();
+ let appStarted = false;
+
+function startApp() {
+  if (appStarted) {
+    console.warn("startApp blocked (already ran)");
+    return;
   }
+  appStarted = true;
+
+  // existing logic…
 }
 
 window.startApp = startApp;
