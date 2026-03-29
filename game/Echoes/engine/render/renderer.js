@@ -721,7 +721,7 @@ export function renderMap(ctx, map, camera, entities = []) {
         case 11: drawChest(ctx, px, py, tx, ty);      break;
         case 12: drawStairsUp(ctx, px, py, tx, ty);   break;
         case 13: drawStairsDown(ctx, px, py, tx, ty); break;
-        dcase 20: drawTownFloor(ctx, px, py, tx, ty);   break;
+        case 20: drawTownFloor(ctx, px, py, tx, ty);   break;
 case 21: drawTownWall(ctx, px, py, tx, ty);    break;
 case 22: drawTownService(ctx, px, py, tx, ty, '🏨', '#7a5030'); break;
 case 23: drawTownService(ctx, px, py, tx, ty, '⚒',  '#1a3a5a'); break;
