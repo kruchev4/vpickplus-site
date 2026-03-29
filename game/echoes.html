@@ -6291,50 +6291,101 @@ function getPlayerToken(){
 // ── saveGame: ONLY writes to localStorage — instant, zero network ──
 // Cloud sync is handled separately via cloudSyncNow() or the
 // debounced auto-sync which fires at most once per 60 seconds.
-function saveGame(){
-  try{
-    localStorage.setItem('realmSave', JSON.stringify({
-      version:3, G, CC:{race:CC.race, cls:CC.cls}
-    }));
-  }catch(e){}
-  // Schedule a debounced cloud sync (won't actually fire for 60s)
-  _scheduleCloudSync();
-}
-
-// ── Debounced cloud sync — fires at most once per 60s automatically ──
-let _cloudSyncTimer = null;
-let _lastCloudSync  = 0;
-
-function _scheduleCloudSync(){
-  if(_cloudSyncTimer) clearTimeout(_cloudSyncTimer);
-  _cloudSyncTimer = setTimeout(()=>{
-    _cloudSyncTimer = null;
-    const now = Date.now();
-    if(now - _lastCloudSync > 60000){ // at most once per 60s
-      cloudSyncNow(true); // silent=true
+window.saveGame = function saveGame() {
+    const G = window.G;
+    if (!G || !G.name || !G.cls) return; // don't save empty/unloaded state
+ 
+    try {
+      // Always sync window.G with GameState.player
+      if (window.GameState?.player) {
+        Object.assign(window.GameState.player, G);
+      }
+ 
+      const savePayload = {
+        version: 3,
+        G: G,
+        savedAt: Date.now()
+      };
+ 
+      localStorage.setItem('realmSave', JSON.stringify(savePayload));
+ 
+      // Schedule cloud sync (Firebase) — debounced, max once per 60s
+      _scheduleCloudSync();
+ 
+    } catch (e) {
+      console.warn('[saveGame] Failed:', e);
     }
-  }, 60000); // wait 60s of inactivity before syncing
-}
-
-// ── cloudSyncNow: explicit cloud save — called by menu Save button ──
-async function cloudSyncNow(silent=false){
-  if(_isLocal||!_db){ if(!silent) toast('Local mode — deploy for cloud saves'); return; }
-  try{
-    const tok = getPlayerToken();
-    const saveData = {
-      token: tok,
-      charName: G.name||'',
-      data: JSON.stringify(G),
-      updatedAt: Date.now()
-    };
-    await fbSet('saves/'+tok, saveData);
-    if(!silent) toast('Saved to cloud ✓');
-    console.log('[Firebase] Saved');
-  }catch(e){
-    console.warn('[Firebase] Save failed:',e);
-    if(!silent) toast('Save failed','err');
-  }
-}
+  };
+ 
+  // Debounced cloud sync — safe to call frequently
+  let _cloudSyncTimer = null;
+  let _lastCloudSync  = 0;
+ 
+  window._scheduleCloudSync = function _scheduleCloudSync() {
+    if (_cloudSyncTimer) clearTimeout(_cloudSyncTimer);
+    _cloudSyncTimer = setTimeout(() => {
+      _cloudSyncTimer = null;
+      const now = Date.now();
+      if (now - _lastCloudSync > 55000) {
+        _lastCloudSync = now;
+        window.cloudSyncNow(true); // silent
+      }
+    }, 5000); // try after 5s idle — not 60s (too slow for gameplay)
+  };
+ 
+  // Cloud sync to Firebase
+  window.cloudSyncNow = async function cloudSyncNow(silent = false) {
+    const G = window.G;
+    if (!G || !G.name) return;
+ 
+    // Local-only mode
+    if (location.protocol === 'file:') {
+      if (!silent) window.toast?.('Local mode — cloud sync disabled');
+      return;
+    }
+ 
+    const _db = window._db;
+    if (!_db) {
+      if (!silent) window.toast?.('Not connected to Firebase', 'err');
+      return;
+    }
+ 
+    try {
+      const tok = window.getPlayerToken?.() || localStorage.getItem('realmPlayerToken');
+      if (!tok) return;
+ 
+      await _db.ref('saves/' + tok).set({
+        token:     tok,
+        charName:  G.name,
+        data:      JSON.stringify(G),
+        updatedAt: Date.now()
+      });
+ 
+      if (!silent) window.toast?.('✅ Saved to cloud');
+      console.log('[saveGame] Cloud sync OK —', G.name, 'Lv', G.level);
+    } catch (e) {
+      console.warn('[saveGame] Cloud sync failed:', e.message);
+      if (!silent) window.toast?.('Save failed: ' + e.message, 'err');
+    }
+  };
+ 
+  // Also fix the beforeunload handler to use the new save
+  window.addEventListener('beforeunload', () => {
+    const G = window.G;
+    const _db = window._db;
+    if (!G?.name || !_db) return;
+    try {
+      const tok = localStorage.getItem('realmPlayerToken');
+      if (tok) {
+        _db.ref('saves/' + tok).set({
+          token: tok, charName: G.name,
+          data: JSON.stringify(G), updatedAt: Date.now()
+        });
+      }
+    } catch(e) {}
+  });
+ 
+  console.log('[Patch A] ✅ saveGame fixed');
 
 async function loadGameAsync(){
   if(_isLocal||!_db) return loadGameLocal();
