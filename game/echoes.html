@@ -1845,22 +1845,9 @@ function drawClickRipple(cx, cy){
 // ── INPUT ──
 const keys={};
 let moveAccum=0;const MOVE_MS=150;
-// These are set by the UI modules (gameMenu.js, characterSheet.js)
-// declared here so onKey never throws ReferenceError
-if(typeof _menuOpen==='undefined')    window._menuOpen    = false;
-if(typeof charSheetOpen==='undefined') window.charSheetOpen = false;
+
 
 function onKey(e){
-  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key))e.preventDefault();
-
-  // ── Movement ──────────────────────────────────────────────────────────────
-  if(!G.inCombat && !G.inTown){
-    if(e.key==='ArrowUp'    ||e.key==='w'||e.key==='W') { tryMove(0,-1); return; }
-    if(e.key==='ArrowDown'  ||e.key==='s'||e.key==='S') { tryMove(0, 1); return; }
-    if(e.key==='ArrowLeft'  ||e.key==='a'||e.key==='A') { tryMove(-1,0); return; }
-    if(e.key==='ArrowRight' ||e.key==='d'||e.key==='D') { tryMove(1, 0); return; }
-  }
-
   // ── Combat number keys ────────────────────────────────────────────────────
   if(G.inCombat && !combat.playerCasting && ['1','2','3','4','5','6'].includes(e.key)){
     const idx = parseInt(e.key)-1;
@@ -1871,11 +1858,12 @@ function onKey(e){
 
   // ── UI shortcuts ──────────────────────────────────────────────────────────
   if(e.key==='Escape'){
-    if(_menuOpen){ closeGameMenu(); return; }
+    // Close whatever is open, or open the game menu
+    if(document.getElementById('ov-menu')?.classList.contains('active')){ closeGameMenu(); return; }
     if(document.getElementById('ov-inventory')?.classList.contains('active')){ closeInventory(); return; }
-    if(charSheetOpen){ closeCharSheet(); return; }
+    if(document.getElementById('ov-charsheet')?.classList.contains('active')){ closeCharSheet(); return; }
     if(document.getElementById('ov-item')?.classList.contains('active')){ closeItemModal(); return; }
-    if(document.getElementById('screen-game')?.classList.contains('active')) openGameMenu();
+    if(document.getElementById('screen-game')?.classList.contains('active')){ openGameMenu(); return; }
     return;
   }
   if((e.key==='m'||e.key==='M') && !G.inCombat &&
@@ -1888,9 +1876,9 @@ function onKey(e){
     return;
   }
   if((e.key==='c'||e.key==='C') && !G.inCombat){
-    const itemModal = document.getElementById('ov-item');
-    if(!itemModal || itemModal.style.display !== 'flex'){
-      charSheetOpen ? closeCharSheet() : openCharSheet();
+    if(!document.getElementById('ov-item')?.classList.contains('active')){
+      document.getElementById('ov-charsheet')?.classList.contains('active')
+        ? closeCharSheet() : openCharSheet();
     }
     return;
   }
@@ -7003,7 +6991,7 @@ initFirebase();
 
 // Wait for main.js (ES module) to finish loading RACES/CLASSES before showing char select.
 // main.js dispatches 'module-ready' immediately after all imports resolve.
-// ── Input registration — called once, safe to call multiple times ─────────────
+// Input registration — called from initGame, safe to call multiple times
 function registerInput() {
   if (window._inputRegistered) return;
   window._inputRegistered = true;
@@ -7011,7 +6999,6 @@ function registerInput() {
   document.addEventListener('keyup', e => { keys[e.key] = false; });
   const _wc = document.getElementById('world-cv');
   if (_wc) _wc.addEventListener('click', onCanvasClick);
-  window.addEventListener('resize', resizeCanvas);
   console.log('[input] Listeners registered ✓');
 }
 
