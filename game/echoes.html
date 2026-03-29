@@ -3561,7 +3561,7 @@ let currentTown=null;
 let openServicePanel=null;
 
 function enterTown(town){
-  currentTown=town;G.inTown=true;
+  currentTown=town;G.inTown=false;
   document.getElementById('town-name-h').textContent=town.name;
   document.getElementById('town-type-h').textContent=town.type;
   document.getElementById('town-desc-h').textContent=town.desc;
