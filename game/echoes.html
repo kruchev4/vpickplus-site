@@ -2522,6 +2522,19 @@ function triggerDungeonEncounter(){
   document.getElementById('ov-combat').classList.add('active');
   const names = combat.enemies.map(e=>e.def.name).join(', ');
   addLog(`⚔ ${def.isBoss?'👑 BOSS: ':''}Encountered: ${names}!`,'combat');
+  // Notify nearby party members
+  if(coopActive){
+    const PROX = 6;
+    coopParty.forEach(p=>{
+      if(!p||p.id===coopMyId) return;
+      const dist = Math.abs((p.x||0)-G.x)+Math.abs((p.y||0)-G.y);
+      if(dist <= PROX){
+        coopBroadcast({type:'combat_invite',
+          from:G.name, enemyNames:names, dist
+        });
+      }
+    });
+  }
   addCombatLog(count>1?`${count} enemies attack!`:`A ${def.name} attacks!`);
   combat.lastTick=performance.now();
   if(combat.animFrame) cancelAnimationFrame(combat.animFrame);
@@ -2584,6 +2597,14 @@ function triggerCombat(tileType){
   document.getElementById('ov-combat').classList.add('active');
   const names = combat.enemies.map(e=>e.def.name).join(', ');
   addLog(`⚔ Encountered: ${names}!`,'combat');
+  // Notify nearby party members
+  if(coopActive){
+    coopParty.forEach(p=>{
+      if(!p||p.id===coopMyId) return;
+      const dist = Math.abs((p.x||0)-G.x)+Math.abs((p.y||0)-G.y);
+      if(dist <= 6) coopBroadcast({type:'combat_invite', from:G.name, enemyNames:names, dist});
+    });
+  }
   coopOnCombatStart();
   addCombatLog(count>1 ? `${count} enemies attack!` : `A ${combat.enemies[0].def.name} attacks!`);
   combat.lastTick = performance.now();
@@ -2734,15 +2755,24 @@ function queueAction(action,mpCost,btn){
   if(partyTimers[myIdx3]){partyTimers[myIdx3].queued=true;partyTimers[myIdx3].action=action;}
   updateBattlefieldBars();
 
-  // Broadcast to peers
-  if(coopIsHost&&coopConns.length>0){
-    coopBroadcast({type:'member_queued',
-      partyIdx:0, action, name:G.name});
+  // Broadcast queue notification to all
+  if(coopActive){
+    coopBroadcast({type:'member_queued', partyIdx:0, action, name:G.name});
   }
-  // Peers send to host; host resolves and broadcasts back
-  if(!coopIsHost && coopActive && coopConns.length>0){
-    coopSendAction(action);
-    document.getElementById('queued-display').textContent=`Sent to host: ${action}…`;
+  // Peers send action to host for authoritative resolution
+  if(!coopIsHost && coopActive){
+    coopBroadcast({type:'combat_action_from_peer',
+      action, atkBonus:G.atkBonus||2, dmgBonus:G.dmgBonus||0,
+      ac:G.ac||10, hp:G.hp, hpMax:G.hpMax
+    });
+    document.getElementById('queued-display').textContent=`${action} sent to host…`;
+    // Reset cast state on peer side
+    setTimeout(()=>{
+      combat.playerCasting=false;
+      document.querySelectorAll('.action-btn').forEach(b=>b.disabled=false);
+      if(document.getElementById('queued-display'))
+        document.getElementById('queued-display').textContent='Choose a skill…';
+    }, 1500);
     return;
   }
   setTimeout(()=>{ if(combat.active&&combat.playerTurn) resolvePlayerTurn(combat.queuedAction); },300);
@@ -2887,35 +2917,53 @@ function resolveEnemyAttack(e, enemyIdx){
     return;
   }
 
-  // Attack player
+  // Pick target — randomly choose between G and any party members in combat
+  const _partyInCombat = combat.partyMembers?.filter(p=>p.hp>0) || [];
+  const _allTargets = [{isPlayer:true}, ..._partyInCombat.map(p=>({isParty:true,member:p}))];
+  const _target = _allTargets[Math.floor(Math.random()*_allTargets.length)];
+
   const roll=d20(); const toHit=roll+e.atk;
-  const playerAC=G.ac+(G.defending?4:0);
-  G.defending=false;
-  if(toHit>=playerAC||roll===20){
-    let dmg=rollDice(Math.max(2,Math.floor(e.def.hd/2)),1)+e.dmg;
-    if(roll===20) dmg*=2;
-    if(e.status?.intimidated){dmg=Math.floor(dmg*.6);delete e.status.intimidated;}
-    if(G.passives?.dmgReduce) dmg=Math.max(0,dmg-G.passives.dmgReduce);
-    if(G.invincibleRounds>0){G.invincibleRounds--;dmg=0;addCombatLog('Divine Shield — negated!','player-hit');}
-    playSound('enemy_hit');
-    // Temp HP absorbs first
-    if(G.passives?.tempHP>0){
-      const absorbed=Math.min(G.passives.tempHP,dmg);
-      G.passives.tempHP-=absorbed; dmg-=absorbed;
-      if(absorbed>0) addCombatLog(`Temp HP absorbs ${absorbed}!`,'player-hit');
-    }
-    G.hp=Math.max(0,G.hp-dmg);
-    // Decay Second Wind dmg reduction
-    if(G.passives?._windHits>0){ G.passives._windHits--; if(G.passives._windHits<=0){G.passives.dmgReduce=0;delete G.passives._windHits;} }
-    // Clear defensive bonus after hit
-    if(G._acBonus){ G._acBonus=0; }
+
+  if(_target.isPlayer){
+    // Attack local player G
+    const playerAC=G.ac+(G.defending?4:0);
     G.defending=false;
-    addCombatLog(`${e.def.name} hits! — ${dmg} dmg${roll===20?' CRIT!':''}`,roll===20?'hit':'hit');
-    // Flash the enemy figure
-    const figEl=document.getElementById('bf-fig-enemy'+enemyIdx);
-    if(figEl){figEl.classList.add('hit');setTimeout(()=>figEl.classList.remove('hit'),200);}
-  } else {
-    addCombatLog(`${e.def.name} misses! (${roll}+${e.atk}=${toHit} vs AC${playerAC})`,'miss');
+    if(toHit>=playerAC||roll===20){
+      let dmg=rollDice(Math.max(2,Math.floor(e.def.hd/2)),1)+e.dmg;
+      if(roll===20) dmg*=2;
+      if(e.status?.intimidated){dmg=Math.floor(dmg*.6);delete e.status.intimidated;}
+      if(G.passives?.dmgReduce) dmg=Math.max(0,dmg-G.passives.dmgReduce);
+      if(G.invincibleRounds>0){G.invincibleRounds--;dmg=0;addCombatLog('Divine Shield — negated!','player-hit');}
+      playSound('enemy_hit');
+      if(G.passives?.tempHP>0){
+        const absorbed=Math.min(G.passives.tempHP,dmg);
+        G.passives.tempHP-=absorbed;dmg-=absorbed;
+        if(absorbed>0)addCombatLog(`Temp HP absorbs ${absorbed}!`,'player-hit');
+      }
+      G.hp=Math.max(0,G.hp-dmg);
+      if(G.passives?._windHits>0){G.passives._windHits--;if(G.passives._windHits<=0){G.passives.dmgReduce=0;delete G.passives._windHits;}}
+      if(G._acBonus) G._acBonus=0;
+      addCombatLog(`${e.def.name} hits ${G.name}! — ${dmg} dmg${roll===20?' CRIT!':''}`,roll===20?'hit':'hit');
+      const figEl=document.getElementById('bf-fig-enemy'+enemyIdx);
+      if(figEl){figEl.classList.add('hit');setTimeout(()=>figEl.classList.remove('hit'),200);}
+    } else {
+      addCombatLog(`${e.def.name} misses ${G.name}! (${roll}+${e.atk}=${toHit} vs AC${playerAC})`,'miss');
+    }
+  } else if(_target.isParty){
+    // Attack a party member — broadcast damage to their client
+    const pm = _target.member;
+    const pmAC = pm.ac||12;
+    if(toHit>=pmAC||roll===20){
+      let dmg=rollDice(Math.max(2,Math.floor(e.def.hd/2)),1)+e.dmg;
+      if(roll===20) dmg*=2;
+      pm.hp = Math.max(0,pm.hp-dmg);
+      addCombatLog(`${e.def.name} hits ${pm.name}! — ${dmg} dmg${roll===20?' CRIT!':''}`,roll===20?'hit':'hit');
+      // Broadcast HP damage to peer
+      if(coopActive) coopBroadcast({type:'party_member_hit',
+        targetId:pm.id, dmg, newHp:pm.hp, name:pm.name});
+    } else {
+      addCombatLog(`${e.def.name} misses ${pm.name}!`,'miss');
+    }
   }
   updateBattlefieldBars(); updateHUD(); checkCombatEnd();
 }
@@ -3908,6 +3956,73 @@ const PARTY_COLORS = ['#c090ff','#60c0ff','#60ff90','#ffb060'];
 
 // ── Lobby UI ──────────────────────────────────────────────────────────────────
 
+// ── Co-op Invite Popups ──────────────────────────────────────────────────────
+
+function showCoopDungeonInvite(ev){
+  document.getElementById('coop-dungeon-invite')?.remove();
+  const name = ev.dungeonName || (ev.dungeonId||'').replace(/_/g,' ') || 'a dungeon';
+  const from = ev.from || 'Your party';
+  const d = document.createElement('div');
+  d.id = 'coop-dungeon-invite';
+  d.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:200;' +
+    'background:linear-gradient(160deg,#0e0918,#08050f);' +
+    'border:1px solid rgba(201,162,39,.6);border-radius:6px;' +
+    'padding:16px 20px;width:260px;font-family:Cinzel,serif;' +
+    'box-shadow:0 4px 20px rgba(0,0,0,.6);';
+  d.innerHTML =
+    '<div style="font-size:.75rem;color:var(--gold-b);margin-bottom:6px;">⚔ Dungeon Invite</div>' +
+    '<div style="font-size:.68rem;color:var(--parch-lt);margin-bottom:12px;line-height:1.5;">' +
+    '<strong>'+from+'</strong> is entering<br><em>'+name+'</em></div>' +
+    '<div style="display:flex;gap:8px;">' +
+    '<button id="coop-dinv-accept" style="flex:1;padding:6px;background:rgba(201,162,39,.15);' +
+    'border:1px solid var(--gold-b);color:var(--gold-b);font-family:Cinzel,serif;' +
+    'font-size:.65rem;cursor:pointer;border-radius:3px;">⚔ Join</button>' +
+    '<button id="coop-dinv-decline" style="padding:6px 10px;background:transparent;' +
+    'border:1px solid rgba(74,53,32,.5);color:var(--parch-dk);font-family:Cinzel,serif;' +
+    'font-size:.65rem;cursor:pointer;border-radius:3px;">✕</button></div>';
+  document.body.appendChild(d);
+  d.querySelector('#coop-dinv-accept').onclick = ()=>{ enterDungeon(ev.dungeonId); d.remove(); };
+  d.querySelector('#coop-dinv-decline').onclick = ()=>d.remove();
+  setTimeout(()=>d.remove(), 15000);
+}
+
+function showCoopCombatInvite(ev){
+  document.getElementById('coop-combat-invite')?.remove();
+  const from = ev.from || 'A party member';
+  const enemies = ev.enemyNames || 'enemies';
+  const dist = ev.dist != null ? ev.dist+' tiles away' : 'nearby';
+  const fromId = ev._from;
+  const d = document.createElement('div');
+  d.id = 'coop-combat-invite';
+  d.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:200;' +
+    'background:linear-gradient(160deg,#1a0808,#08050f);' +
+    'border:1px solid rgba(180,40,40,.6);border-radius:6px;' +
+    'padding:16px 20px;width:260px;font-family:Cinzel,serif;' +
+    'box-shadow:0 4px 20px rgba(0,0,0,.6);';
+  d.innerHTML =
+    '<div style="font-size:.75rem;color:#e07070;margin-bottom:6px;">⚔ Combat Nearby!</div>' +
+    '<div style="font-size:.68rem;color:var(--parch-lt);margin-bottom:12px;line-height:1.5;">' +
+    '<strong>'+from+'</strong> is fighting '+enemies+'!<br>' +
+    '<span style="color:var(--parch-dk);">'+dist+'</span></div>' +
+    '<div style="display:flex;gap:8px;">' +
+    '<button id="coop-cinv-help" style="flex:1;padding:6px;background:rgba(180,40,40,.15);' +
+    'border:1px solid #e07070;color:#e07070;font-family:Cinzel,serif;' +
+    'font-size:.65rem;cursor:pointer;border-radius:3px;">⚔ Help!</button>' +
+    '<button id="coop-cinv-skip" style="padding:6px 10px;background:transparent;' +
+    'border:1px solid rgba(74,53,32,.5);color:var(--parch-dk);font-family:Cinzel,serif;' +
+    'font-size:.65rem;cursor:pointer;border-radius:3px;">✕</button></div>';
+  document.body.appendChild(d);
+  d.querySelector('#coop-cinv-help').onclick = ()=>{
+    const p = coopParty.find(p=>p&&p.id===fromId);
+    if(p){ G.x=p.x+1; G.y=p.y; window.GameState.player=G; }
+    coopBroadcast({type:'combat_join', player:G.name});
+    addLog('You rush to help '+from+'!','disc');
+    d.remove();
+  };
+  d.querySelector('#coop-cinv-skip').onclick = ()=>d.remove();
+  setTimeout(()=>d.remove(), 12000);
+}
+
 function openCoopLobby(){
   if(!G.cls||!G.name){ toast('Create your character first!','err'); return; }
   if(!_db){ toast('Firebase not connected — check config','err'); return; }
@@ -4162,8 +4277,7 @@ function _coopHandleEvent(ev){
       break;
     }
     case 'dungeon_invite': {
-      if(typeof showDungeonInvitePopup==='function') showDungeonInvitePopup(ev);
-      else if(ev.dungeonId) enterDungeon(ev.dungeonId);
+      if(!coopIsHost) showCoopDungeonInvite(ev);
       break;
     }
     case 'start_campaign': {
@@ -4180,15 +4294,89 @@ function _coopHandleEvent(ev){
       break;
     }
     case 'start_game': {
-      // Host started the game - peer enters world
       if(!coopIsHost){
-        // Spawn peer near host
         if(ev.hostX!=null){ G.x=ev.hostX+2; G.y=ev.hostY; }
         window.GameState.player = window.G;
         closeCoopLobby();
         addLog('The host has started! Entering the world…','disc');
         toast('⚔ Party adventure begins!');
       }
+      break;
+    }
+    case 'combat_invite': {
+      // Another party member entered combat nearby
+      if(!G.inCombat) showCoopCombatInvite(ev);
+      break;
+    }
+    case 'combat_join': {
+      if(G.inCombat && ev.player){
+        addCombatLog(`${ev.player} joins the fight!`,'player-hit');
+        addLog(`${ev.player} joins combat!`,'sys');
+        // Add peer as a combatant the enemy can target
+        if(!combat.partyMembers) combat.partyMembers = [];
+        combat.partyMembers.push({name:ev.player, id:ev._from, hp:ev.hp||50, hpMax:ev.hpMax||50, ac:ev.ac||12});
+        // Broadcast updated combat state to all
+        coopBroadcast({type:'combat_state_full',
+          enemies: combat.enemies.map(e=>({hp:e.hp,hpMax:e.hpMax,name:e.def.name,icon:e.def.icon})),
+          partyMembers: combat.partyMembers,
+          log: ev.player+' has joined the battle!', logType:'player-hit'
+        });
+      }
+      break;
+    }
+    case 'combat_action_from_peer': {
+      // Host processes a peer's combat action
+      if(coopIsHost && G.inCombat && ev.action){
+        const peerName = coopParty.find(p=>p&&p.id===ev._from)?.name || 'Ally';
+        // Apply peer's action to current enemy
+        const target = combat.enemies.find(e=>e.hp>0);
+        if(target){
+          const roll=d20(), toHit=roll+(ev.atkBonus||2);
+          if(toHit>=target.ac||roll===20){
+            const dmg = rollDice(8,1)+(ev.dmgBonus||0);
+            target.hp = Math.max(0,target.hp-dmg);
+            addCombatLog(`${peerName}: ${ev.action} hits for ${dmg}!`,'player-hit');
+          } else {
+            addCombatLog(`${peerName}: ${ev.action} misses!`,'miss');
+          }
+          // Broadcast updated enemy HP to all
+          coopBroadcast({type:'combat_state_full',
+            enemies: combat.enemies.map(e=>({hp:e.hp,hpMax:e.hpMax,name:e.def.name,icon:e.def.icon})),
+            log: null
+          });
+          updateBattlefieldBars();
+          checkCombatEnd();
+        }
+      }
+      break;
+    }
+    case 'combat_state_full': {
+      // Peer receives authoritative combat state from host
+      if(!coopIsHost && G.inCombat && ev.enemies){
+        // Update enemy HP bars to match host's state
+        ev.enemies.forEach((eData,i)=>{
+          if(combat.enemies[i]){
+            combat.enemies[i].hp    = eData.hp;
+            combat.enemies[i].hpMax = eData.hpMax;
+          }
+        });
+        if(ev.log) addCombatLog(ev.log, ev.logType||'sys');
+        updateBattlefieldBars();
+        checkCombatEnd();
+      }
+      break;
+    }
+    case 'party_member_hit': {
+      // We got hit by an enemy (host told us)
+      if(!coopIsHost && ev.targetId===coopMyId){
+        G.hp = Math.max(0, ev.newHp);
+        addCombatLog(`You take ${ev.dmg} damage from the enemy!`,'hit');
+        updateBattlefieldBars(); updateHUD(); checkCombatEnd();
+      }
+      // Update party display for everyone
+      const hitP = coopParty.find(p=>p&&p.id===ev.targetId);
+      if(hitP) hitP.hp = ev.newHp;
+      updatePartyHUD();
       break;
     }
     case 'member_queued': {
@@ -5360,6 +5548,15 @@ async function enterDungeon(campaignId) {
     markVisited(ex, ey, 4); // reveal entry area
     updateMinimapMode();     // switch minimap to dungeon mode
 
+    // Broadcast dungeon invite to party
+    if(coopActive){
+      coopBroadcast({type:'dungeon_invite',
+        dungeonId: campaignId,
+        dungeonName: raw.name || campaignId.replace(/_/g,' '),
+        from: G.name,
+      });
+    }
+
     addLog(`You descend into the ${raw.name || campaignId.replace(/_/g,' ')}. Watch your step.`, 'disc');
     toast('⚔ Dungeon entered! Find the exit stairs to return.');
 
@@ -5959,6 +6156,11 @@ function doLevelUp(){
 function closeLevelUp(){
   document.getElementById('ov-levelup').classList.remove('active');
   updateHUD();
+}
+
+// Clear party combat members when combat ends
+function clearCombatParty(){
+  combat.partyMembers = [];
 }
 
 // ╔══════════════════════════════════════════════════════╗
