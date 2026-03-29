@@ -207,7 +207,7 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
       <div id="tile-xy" style="margin-top:3px;"></div>
       <div style="margin-top:8px;">
         <div style="font-size:.52rem;letter-spacing:2px;color:#5a4030;text-transform:uppercase;margin-bottom:4px;">⬟ Portals</div>
-        <div id="portal-shortcut-list"></div>
+        <div id="portal-shortcut-list" style="max-height:90px;overflow-y:auto;"></div>
       </div>
     </div>
     <div class="panel-sec" style="flex:1;overflow-y:auto;">
@@ -623,6 +623,114 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 
 
     <!-- Character Sheet Overlay (press C) -->
+    <style>
+/* Ability choice overlay */
+#ov-ability{position:fixed;inset:0;z-index:150;display:none;align-items:center;justify-content:center;background:rgba(4,2,10,.9);backdrop-filter:blur(6px);}
+#ov-ability.active{display:flex;}
+.ab-box{background:linear-gradient(160deg,#0e0918,#08050f);border:1px solid rgba(201,162,39,.5);border-radius:8px;padding:28px 32px;width:min(640px,92vw);font-family:'Cinzel',serif;}
+.ab-header{text-align:center;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid rgba(201,162,39,.2);}
+.ab-title{font-size:1.1rem;color:var(--gold-b,#c9a227);letter-spacing:3px;margin-bottom:6px;}
+.ab-sub{font-size:.7rem;color:var(--parch-dk,#9a8a6a);letter-spacing:1px;}
+.ab-instruct{font-size:.75rem;color:var(--parch-dk,#9a8a6a);text-align:center;margin-bottom:16px;font-style:italic;}
+.ab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;}
+.ab-card{background:rgba(255,255,255,.03);border:1px solid rgba(74,53,32,.5);border-radius:6px;padding:16px 14px;cursor:pointer;text-align:center;transition:border-color .2s,background .2s;}
+.ab-card:hover{border-color:var(--gold-b,#c9a227);background:rgba(201,162,39,.06);}
+.ab-card-icon{font-size:1.8rem;margin-bottom:8px;}
+.ab-card-name{font-size:.78rem;color:var(--parch-lt,#d4c4a0);margin-bottom:6px;letter-spacing:1px;}
+.ab-card-desc{font-size:.62rem;color:var(--parch-dk,#9a8a6a);line-height:1.5;margin-bottom:8px;}
+.ab-card-tag{display:inline-block;font-size:.5rem;letter-spacing:1px;padding:2px 7px;border-radius:10px;background:rgba(74,53,32,.4);color:var(--parch-dk,#9a8a6a);text-transform:uppercase;}
+.ab-card-tag.active-tag{background:rgba(40,80,140,.4);color:#7aacdf;}
+/* Paper doll equipped states */
+.pd-slot.pd-filled { border-color:rgba(201,162,39,.6); background:rgba(201,162,39,.08); }
+.pd-slot.pd-filled .pd-icon { filter:none; opacity:1; }
+.pd-slot.pd-filled .pd-lbl { color:var(--parch-lt,#d4c4a0); font-size:.48rem; }
+.pd-slot.pd-rare { border-color:rgba(100,150,255,.7); background:rgba(100,150,255,.06); }
+.pd-slot.pd-legendary { border-color:rgba(255,200,0,.8); background:rgba(255,200,0,.08);
+  box-shadow:0 0 6px rgba(255,200,0,.2); }
+/* Milestone ability buttons in combat — gold-tinted to distinguish from base actions */
+.action-btn.ability-action{border-color:rgba(201,162,39,.4);background:rgba(201,162,39,.05);}
+.action-btn.ability-action:hover{border-color:var(--gold-b,#c9a227);background:rgba(201,162,39,.12);}
+.action-btn.ability-action .a-icon{filter:sepia(0.5);}
+/* Combat quick slots */
+.combat-quick-slots-bar{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;min-height:0;}
+.cqs-btn{display:flex;align-items:center;gap:4px;padding:4px 9px;
+  background:rgba(20,10,5,.7);border:1px solid rgba(120,80,30,.5);
+  border-radius:4px;cursor:pointer;font-family:'Cinzel',serif;
+  color:var(--parch-lt,#d4c4a0);transition:border-color .15s;}
+.cqs-btn:hover{border-color:var(--gold-b,#c9a227);background:rgba(40,25,5,.8);}
+.cqs-btn.potion{border-color:rgba(30,80,140,.5);}
+.cqs-btn.potion:hover{border-color:#3a9ad9;}
+.cqs-icon{font-size:.95rem;}
+.cqs-name{font-size:.6rem;letter-spacing:.5px;}
+.cqs-qty{font-size:.55rem;color:var(--gold-b,#c9a227);margin-left:2px;}
+/* Compact portal shortcuts */
+.portal-shortcut{display:block;width:100%;text-align:left;padding:3px 6px;margin-bottom:2px;
+  background:transparent;border:1px solid rgba(74,53,32,.3);
+  font-family:'Cinzel',serif;font-size:.58rem;color:var(--parch-dk,#9a8a6a);
+  cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:2px;}
+.portal-shortcut:hover{border-color:var(--gold-b,#c9a227);color:var(--parch-lt,#d4c4a0);}
+.ps-level{font-size:.5rem;opacity:.6;}
+#ov-charsheet {
+  position:fixed;inset:0;z-index:120;display:none;
+  align-items:center;justify-content:center;
+  background:rgba(4,2,10,.85);backdrop-filter:blur(4px);
+}
+#ov-charsheet.active{display:flex;}
+.cs-box {
+  background:linear-gradient(160deg,#0e0918 0%,#08050f 100%);
+  border:1px solid rgba(201,162,39,.35);
+  border-radius:6px;width:min(820px,96vw);max-height:88vh;
+  overflow-y:auto;padding:20px 24px;font-family:'Cinzel',serif;
+}
+.cs-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;border-bottom:1px solid rgba(201,162,39,.2);padding-bottom:12px;}
+.cs-char-name{font-size:1.2rem;color:var(--gold-b,#c9a227);letter-spacing:2px;}
+.cs-char-sub{font-size:.7rem;color:var(--parch-dk,#9a8a6a);margin-top:3px;}
+.cs-close-btn{background:transparent;border:1px solid rgba(74,53,32,.6);color:var(--parch-dk,#9a8a6a);font-family:'Cinzel',serif;font-size:.65rem;padding:5px 12px;cursor:pointer;border-radius:3px;}
+.cs-close-btn:hover{border-color:var(--gold-b,#c9a227);color:var(--gold-b,#c9a227);}
+.cs-body{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.cs-col{display:flex;flex-direction:column;gap:10px;}
+.cs-sec{font-size:.6rem;letter-spacing:2px;color:var(--gold-b,#c9a227);text-transform:uppercase;border-bottom:1px solid rgba(201,162,39,.2);padding-bottom:4px;margin-top:4px;}
+/* Vitals */
+.cs-vital{margin-bottom:6px;}
+.cs-vital-row{display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px;}
+.cs-vital-lbl{color:var(--parch-dk,#9a8a6a);}
+.cs-vital-val{color:var(--parch-lt,#d4c4a0);}
+.cs-vbar{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+.cs-vbar-fill{height:100%;border-radius:3px;transition:width .4s;}
+.cs-hp-fill{background:linear-gradient(90deg,#8b1a1a,#c0392b);}
+.cs-mp-fill{background:linear-gradient(90deg,#1a3a8b,#2980b9);}
+.cs-xp-fill{background:linear-gradient(90deg,#6b3a8b,#9b59b6);}
+/* Combat stat boxes */
+.cs-combat-row{display:flex;flex-wrap:wrap;gap:6px;}
+.cs-stat-box{background:rgba(255,255,255,.03);border:1px solid rgba(74,53,32,.4);border-radius:4px;padding:5px 8px;text-align:center;min-width:44px;}
+.cs-stat-val{font-size:.85rem;color:var(--parch-lt,#d4c4a0);}
+.cs-stat-lbl{font-size:.52rem;color:var(--parch-dk,#9a8a6a);letter-spacing:1px;text-transform:uppercase;margin-top:1px;}
+/* Ability scores */
+.cs-abilities{display:flex;flex-wrap:wrap;gap:6px;}
+.cs-ab-box{background:rgba(255,255,255,.03);border:1px solid rgba(74,53,32,.4);border-radius:4px;padding:6px 8px;text-align:center;min-width:48px;}
+.cs-ab-name{font-size:.52rem;color:var(--parch-dk,#9a8a6a);letter-spacing:1px;}
+.cs-ab-val{font-size:.95rem;color:var(--parch-lt,#d4c4a0);margin:2px 0;}
+.cs-ab-mod{font-size:.65rem;color:var(--gold-b,#c9a227);}
+/* Traits */
+.cs-trait-row{display:flex;justify-content:space-between;font-size:.7rem;padding:3px 0;border-bottom:1px solid rgba(74,53,32,.15);}
+.cs-trait-lbl{color:var(--parch-dk,#9a8a6a);}
+.cs-trait-val{color:var(--parch-lt,#d4c4a0);text-align:right;}
+/* Equipment */
+.cs-equip-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;}
+.cs-equip-slot{background:rgba(255,255,255,.02);border:1px solid rgba(74,53,32,.35);border-radius:4px;padding:5px 3px;text-align:center;}
+.cs-equip-icon{font-size:.9rem;}
+.cs-equip-name{font-size:.5rem;color:var(--parch-dk,#9a8a6a);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* Inventory */
+.cs-inv-grid{display:flex;flex-direction:column;gap:3px;max-height:120px;overflow-y:auto;}
+.cs-inv-item{display:flex;align-items:center;gap:6px;font-size:.7rem;padding:3px 4px;border-bottom:1px solid rgba(74,53,32,.15);}
+.cs-inv-icon{font-size:.9rem;}
+.cs-inv-name{color:var(--parch-lt,#d4c4a0);}
+@media(max-width:600px){
+  .cs-body{grid-template-columns:1fr;}
+  .cs-equip-grid{grid-template-columns:repeat(4,1fr);}
+}
+    </style>
+
     <div id="ov-charsheet">
       <div class="cs-box">
         <div class="cs-header">
@@ -1212,8 +1320,10 @@ function startGame() {
     necklace: null
   };
 
-  // TEMP legacy save compatibility (remove later)
-  window.G = GameState.player;
+  // Sync all G references to the same object
+  Object.assign(G, GameState.player); // update local G in-place
+  window.G = G;
+  GameState.player = G;
   saveGame();
 
   // Switch UI screens
@@ -1445,8 +1555,31 @@ const SLOT_ACCEPTS = {
 
 // Types that go in each slot
 const SLOT_FOR_TYPE = {
-  weapon:'weapon', armor:'armor', accessory:'accessory', boots:'boots',
-  potion:null, misc:null,
+  // item.type  →  G.equipped key
+  weapon:    'mainhand',
+  sword:     'mainhand',
+  axe:       'mainhand',
+  bow:       'mainhand',
+  staff:     'mainhand',
+  wand:      'mainhand',
+  dagger:    'mainhand',
+  offhand:   'offhand',
+  shield:    'offhand',
+  armor:     'chest',
+  chest:     'chest',
+  helmet:    'head',
+  head:      'head',
+  shoulders: 'shoulders',
+  pants:     'pants',
+  boots:     'boots',
+  ring:      'ring1',
+  ring1:     'ring1',
+  ring2:     'ring2',
+  necklace:  'necklace',
+  accessory: 'ring1',
+  potion:    null,
+  misc:      null,
+  food:      null,
 };
 
 
@@ -1524,13 +1657,80 @@ function _buildEquipSlotsUI_legacy(){
 }
 
 function openEquipSlot(slot){
-  // Redirect to new full inventory overlay
   openInventory();
+}
+
+// Default icons for empty slots
+const SLOT_ICONS = {
+  head:'🪖', shoulders:'🛡️', chest:'👕', pants:'👖', boots:'👢',
+  mainhand:'⚔️', offhand:'🛡️', ring1:'💍', ring2:'💍', necklace:'📿'
+};
+const SLOT_LABELS = {
+  head:'Head', shoulders:'Shldr', chest:'Chest', pants:'Legs', boots:'Boots',
+  mainhand:'Main', offhand:'Off', ring1:'Ring 1', ring2:'Ring 2', necklace:'Neck'
+};
+
+function updatePaperDoll(){
+  if(!G.equipped) return;
+  for(const slot of EQUIP_SLOTS){
+    const el = document.getElementById('pd-'+slot);
+    if(!el) continue;
+    const item = G.equipped[slot];
+    const iconEl = el.querySelector('.pd-icon');
+    const lblEl  = el.querySelector('.pd-lbl');
+    if(item){
+      el.classList.add('pd-filled');
+      el.classList.toggle('pd-rare',      item.tier==='rare');
+      el.classList.toggle('pd-legendary', item.tier==='legendary');
+      el.title = item.name+': '+(item.desc||'');
+      if(iconEl) iconEl.textContent = item.icon||'📦';
+      if(lblEl)  lblEl.textContent  = item.name.length>8 ? item.name.slice(0,7)+'…' : item.name;
+    } else {
+      el.classList.remove('pd-filled','pd-rare','pd-legendary');
+      el.title = (SLOT_LABELS[slot]||slot)+' — empty';
+      if(iconEl) iconEl.textContent = SLOT_ICONS[slot]||'—';
+      if(lblEl)  lblEl.textContent  = SLOT_LABELS[slot]||slot;
+    }
+  }
+}
+
+function pdSlotClick(slot){
+  const item = G.equipped?.[slot];
+  if(!item){
+    // Show inventory filtered to equippable items for this slot
+    openInventory();
+    toast('Select an item to equip in '+( SLOT_LABELS[slot]||slot)+' slot');
+    return;
+  }
+  // Show item modal for equipped item (allows unequip)
+  const idx = G.inventory.indexOf(item);
+  if(idx >= 0){
+    openItemModal(idx);
+  } else {
+    // Item equipped but not in inventory — show unequip option directly
+    const d = document.createElement('div');
+    d.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
+      'z-index:300;background:#0a0612;border:1px solid rgba(74,53,32,.6);' +
+      'padding:20px 24px;min-width:220px;text-align:center;font-family:Cinzel,serif;';
+    d.innerHTML =
+      '<div style="color:var(--gold-b);font-size:.8rem;margin-bottom:8px;">'+item.icon+' '+item.name+'</div>' +
+      '<div style="color:var(--parch-dk);font-size:.65rem;margin-bottom:14px;">'+( item.desc||'Equipped item')+'</div>' +
+      '<div style="display:flex;gap:8px;justify-content:center;">' +
+      '<button onclick="unequipItem(''+slot+'');updatePaperDoll();buildInventoryUI();this.closest('div[style]').remove();" ' +
+      'style="padding:6px 14px;border:1px solid #c0392b;color:#c0392b;background:transparent;' +
+      'font-family:Cinzel,serif;font-size:.65rem;cursor:pointer;">↩ Unequip</button>' +
+      '<button onclick="this.closest('div[style]').remove();" ' +
+      'style="padding:6px 14px;border:1px solid rgba(74,53,32,.4);color:var(--parch-dk);background:transparent;' +
+      'font-family:Cinzel,serif;font-size:.65rem;cursor:pointer;">✕ Close</button>' +
+      '</div>';
+    document.body.appendChild(d);
+  }
 }
 
 let _modalItemIdx = null;
 
 function buildInventoryUI(){
+  updatePaperDoll();
   // Rebuild left-panel active slots
   buildLeftPanelActiveSlots();
   // If full inventory is open, rebuild that too
@@ -1582,7 +1782,8 @@ function openItemModal(idx){
 
   // Action buttons
   const slot = SLOT_FOR_TYPE[item.type]||null;
-  const isEquipped = slot && G.equipped[slot]===item;
+  const isEquipped = slot && G.equipped?.[slot] &&
+    (G.equipped[slot]===item || G.equipped[slot]?.name===item?.name);
   const acts = document.getElementById('im-actions');
   acts.innerHTML='';
 
@@ -1628,7 +1829,10 @@ function closeItemModal(){
 }
 
 function equipItem(idx){
-  if(!G.equipped) G.equipped={weapon:null,armor:null,accessory:null,boots:null};
+  if(!G.equipped) G.equipped={
+    mainhand:null,offhand:null,head:null,chest:null,
+    shoulders:null,pants:null,boots:null,ring1:null,ring2:null,necklace:null
+  };
   const item=G.inventory[idx];
   if(!item)return;
   const slot=SLOT_FOR_TYPE[item.type];
@@ -1640,6 +1844,7 @@ function equipItem(idx){
   if(item.tier==='legendary') addLog(`⭐ ${item.name} — "${item.flavour}"`, 'legendary');
   recalcStats();
   buildInventoryUI();
+  updatePaperDoll();
   updateHUD();
   saveGame();
   toast(`Equipped ${item.name}!`);
@@ -1652,6 +1857,7 @@ function unequipItem(slot){
   addLog(`Unequipped: ${item.name}.`,'sys');
   recalcStats();
   buildInventoryUI();
+  updatePaperDoll();
   updateHUD();
   saveGame();
   toast(`Unequipped ${item.name}.`);
@@ -1842,6 +2048,210 @@ function drawClickRipple(cx, cy){
   requestAnimationFrame(ripple);
 }
 
+// ── CHARACTER SHEET POPULATION ──────────────────────────────────────────────
+function fillCharSheet(){
+  if(!G || !G.cls) return;
+  const mod = v => { const m=Math.floor((v-10)/2); return m>=0?'+'+m:String(m); };
+
+  // Header
+  const nameEl = document.getElementById('cs-name');
+  const subEl  = document.getElementById('cs-sub');
+  if(nameEl) nameEl.textContent = G.name || 'Unknown';
+  if(subEl)  subEl.textContent  =
+    `${G.race?.name||'?'} ${G.cls?.name||'?'} · Level ${G.level} · ${G.gold}gp`;
+
+  // Vitals
+  const hpVal = document.getElementById('cs-hp-val');
+  const mpVal = document.getElementById('cs-mp-val');
+  const xpVal = document.getElementById('cs-xp-val');
+  const hpBar = document.getElementById('cs-hp-bar');
+  const mpBar = document.getElementById('cs-mp-bar');
+  const xpBar = document.getElementById('cs-xp-bar');
+  if(hpVal) hpVal.textContent = `${G.hp} / ${G.hpMax}`;
+  if(mpVal) mpVal.textContent = `${G.mp} / ${G.mpMax}`;
+  if(xpVal) xpVal.textContent = `${G.xp} / ${G.xpNext}`;
+  if(hpBar) hpBar.style.width = Math.round(100*G.hp/Math.max(1,G.hpMax))+'%';
+  if(mpBar) mpBar.style.width = Math.round(100*G.mp/Math.max(1,G.mpMax))+'%';
+  if(xpBar) xpBar.style.width = Math.round(100*G.xp/Math.max(1,G.xpNext))+'%';
+
+  // Combat stats
+  const combatRow = document.getElementById('cs-combat-row');
+  if(combatRow) combatRow.innerHTML = [
+    ['AC',     G.ac||10],
+    ['ATK',    (G.atkBonus>=0?'+':'')+( G.atkBonus||0)],
+    ['DMG',    (G.dmgBonus>=0?'+':'')+( G.dmgBonus||0)],
+    ['Init',   mod(G.stats?.DEX||10)],
+    ['Speed',  (G.race?.speed||30)+' ft'],
+    ['HD',     'd'+(G.cls?.hd||8)],
+  ].map(([l,v])=>`<div class="cs-stat-box"><div class="cs-stat-val">${v}</div><div class="cs-stat-lbl">${l}</div></div>`).join('');
+
+  // Ability scores
+  const abEl = document.getElementById('cs-abilities');
+  if(abEl && G.stats) abEl.innerHTML = Object.entries(G.stats).map(([k,v])=>
+    `<div class="cs-ab-box">
+      <div class="cs-ab-name">${k}</div>
+      <div class="cs-ab-val">${v}</div>
+      <div class="cs-ab-mod">${mod(v)}</div>
+    </div>`
+  ).join('');
+
+  // Character traits
+  const traitsEl = document.getElementById('cs-traits');
+  if(traitsEl) traitsEl.innerHTML = `
+    <div class="cs-trait-row"><span class="cs-trait-lbl">Race</span><span class="cs-trait-val">${G.race?.name||'?'}</span></div>
+    <div class="cs-trait-row"><span class="cs-trait-lbl">Class</span><span class="cs-trait-val">${G.cls?.name||'?'}</span></div>
+    <div class="cs-trait-row"><span class="cs-trait-lbl">Level</span><span class="cs-trait-val">${G.level}</span></div>
+    <div class="cs-trait-row"><span class="cs-trait-lbl">Gold</span><span class="cs-trait-val">${G.gold} gp</span></div>
+    <div class="cs-trait-row"><span class="cs-trait-lbl">Background</span><span class="cs-trait-val">${G.background||G.cls?.flavour||'Adventurer'}</span></div>
+    ${G.race?.traits?.map(t=>`<div class="cs-trait-row"><span class="cs-trait-lbl">Trait</span><span class="cs-trait-val">${t}</span></div>`).join('')||''}
+  `;
+
+  // Equipment
+  const equipEl = document.getElementById('cs-equip-grid');
+  if(equipEl){
+    const slots = ['mainhand','offhand','head','chest','shoulders','pants','boots','ring1','ring2','necklace'];
+    const icons = {mainhand:'⚔️',offhand:'🛡️',head:'🪖',chest:'🥋',shoulders:'🧥',pants:'👖',boots:'👢',ring1:'💍',ring2:'💍',necklace:'📿'};
+    equipEl.innerHTML = slots.map(s=>{
+      const item = G.equipped?.[s];
+      return `<div class="cs-equip-slot" title="${s}">
+        <div class="cs-equip-icon">${item?.icon||icons[s]||'—'}</div>
+        <div class="cs-equip-name">${item?.name||'<span style="opacity:.3">Empty</span>'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Inventory
+  const invEl = document.getElementById('cs-inv-grid');
+  if(invEl){
+    const items = G.inventory||[];
+    if(!items.length){
+      invEl.innerHTML = '<div style="opacity:.4;font-size:.7rem;padding:4px;">Empty</div>';
+    } else {
+      invEl.innerHTML = items.map(item=>
+        `<div class="cs-inv-item">
+          <span class="cs-inv-icon">${item.icon||'📦'}</span>
+          <span class="cs-inv-name">${item.name}${item.qty>1?' x'+item.qty:''}</span>
+        </div>`
+      ).join('');
+    }
+  }
+
+  // Class actions
+  const actEl = document.getElementById('cs-actions');
+  if(actEl){
+    const actions = G.cls?.actions||[];
+    actEl.innerHTML = actions.map(a=>
+      `<div style="padding:3px 8px;border:1px solid rgba(74,53,32,.5);border-radius:3px;font-size:.65rem;color:var(--parch-dk);">${a}</div>`
+    ).join('') || '<span style="opacity:.4;font-size:.7rem;">None</span>';
+  }
+
+  // Proficiency
+  const profEl = document.getElementById('cs-proficiency');
+  if(profEl){
+    const profs = [...(G.cls?.proficiencies||[]), ...(G.race?.languages||[])];
+    profEl.innerHTML = profs.length
+      ? profs.map(p=>`<span style="display:inline-block;margin-right:8px;">✦ ${p}</span>`).join('')
+      : '<span style="opacity:.4;">None listed</span>';
+  }
+
+  // Abilities (passives/active)
+  const ablListEl = document.getElementById('cs-abilities-list');
+  if(ablListEl){
+    const abls = G.abilities||[];
+    ablListEl.innerHTML = abls.length
+      ? abls.map(a=>`<div style="padding:4px 0;border-bottom:1px solid rgba(74,53,32,.2);font-size:.7rem;">
+          <span style="color:var(--gold-b);">${a.name||a}</span>
+          ${a.desc?`<span style="color:var(--parch-dk);margin-left:6px;">${a.desc}</span>`:''}
+        </div>`).join('')
+      : '<div style="opacity:.4;font-size:.7rem;padding:4px;">No abilities yet</div>';
+  }
+}
+
+// ── MINIMAP ──────────────────────────────────────────────────────────────────
+if(!window._visitedTiles) window._visitedTiles = new Set();
+
+function markVisited(cx, cy, radius){
+  const map = window.GameState?.activeMap;
+  if(!map) return;
+  for(let dy=-radius;dy<=radius;dy++)
+    for(let dx=-radius;dx<=radius;dx++)
+      if(dx*dx+dy*dy<=radius*radius)
+        window._visitedTiles.add(`${cx+dx},${cy+dy}`);
+}
+
+function updateMinimapMode(){
+  const worldCv   = document.getElementById('minimap-cv');
+  const dungeonCv = document.getElementById('minimap-dungeon-cv');
+  const label     = document.getElementById('minimap-label');
+  if(!worldCv||!dungeonCv) return;
+  const inDungeon = window.GameState?.mode === 'dungeon';
+  worldCv.style.display   = inDungeon ? 'none'  : 'block';
+  dungeonCv.style.display = inDungeon ? 'block' : 'none';
+  if(label) label.textContent = inDungeon ? '⬟ Dungeon Map' : '⬡ Minimap';
+  if(inDungeon) drawNewDungeonMinimap(dungeonCv);
+  else          drawWorldMinimap(worldCv);
+}
+
+function drawWorldMinimap(cv){
+  const map = window.GameState?.activeMap;
+  if(!map||!cv) return;
+  const W=cv.width||170, H=cv.height||128;
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
+  const c=cv.getContext('2d');
+  c.fillStyle='#071e3d';c.fillRect(0,0,W,H);
+  const sx=W/map.width, sy=H/map.height;
+  const wc={0:'#3a6b30',1:'#1a3d16',2:'#5a5045',3:'#071e3d',4:'#1a5a8a',
+            5:'#8b6914',6:'#3c0e0e',7:'#c8a870'};
+  for(let y=0;y<map.height;y++)
+    for(let x=0;x<map.width;x++){
+      const t=map.getTile(x,y);
+      c.fillStyle=wc[t]||'#3a6b30';
+      c.fillRect(Math.floor(x*sx),Math.floor(y*sy),Math.max(1,Math.ceil(sx)),Math.max(1,Math.ceil(sy)));
+    }
+  // Player dot
+  c.fillStyle='#ffffff';
+  c.fillRect(Math.floor(G.x*sx)-1,Math.floor(G.y*sy)-1,3,3);
+  // Party members
+  if(window.coopActive&&Array.isArray(window.coopParty)){
+    window.coopParty.forEach(p=>{
+      if(!p||p.id===window.coopMyId||p.x==null) return;
+      c.fillStyle=p.color||'#c090ff';
+      c.fillRect(Math.floor(p.x*sx)-1,Math.floor(p.y*sy)-1,3,3);
+    });
+  }
+  // Towns
+  (map.towns||[]).forEach(t=>{
+    c.fillStyle='#c9a227';
+    c.fillRect(Math.floor(t.x*sx)-1,Math.floor(t.y*sy)-1,3,3);
+  });
+}
+
+function drawNewDungeonMinimap(cv){
+  const map=window.GameState?.activeMap;
+  if(!map||!cv) return;
+  const W=cv.width||170,H=cv.height||128;
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
+  const c=cv.getContext('2d');
+  c.fillStyle='#060308';c.fillRect(0,0,W,H);
+  const sx=W/map.width,sy=H/map.height;
+  const dc={8:'#0a0a14',9:'#3a3028',10:'#7a4a20',11:'#c9a227',12:'#6080a0',13:'#405060'};
+  for(let y=0;y<map.height;y++)
+    for(let x=0;x<map.width;x++){
+      if(!window._visitedTiles.has(`${x},${y}`)) continue;
+      c.fillStyle=dc[map.getTile(x,y)]||'#3a3028';
+      c.fillRect(Math.floor(x*sx),Math.floor(y*sy),Math.max(1,Math.ceil(sx)),Math.max(1,Math.ceil(sy)));
+    }
+  c.fillStyle='#c090ff';
+  c.fillRect(Math.floor(G.x*sx)-1,Math.floor(G.y*sy)-1,3,3);
+  (window._dungeonMonsters||[]).forEach(m=>{
+    if(!m.alive||!window._visitedTiles.has(`${m.x},${m.y}`)) return;
+    c.fillStyle=m.isBoss?'#ff4040':'#ff8040';
+    c.fillRect(Math.floor(m.x*sx),Math.floor(m.y*sy),2,2);
+  });
+  const ex=map.exit?.x,ey=map.exit?.y;
+  if(ex!=null){c.fillStyle='#60ff60';c.fillRect(Math.floor(ex*sx)-1,Math.floor(ey*sy)-1,3,3);}
+}
+
 // ── INPUT ──
 const keys={};
 let moveAccum=0;const MOVE_MS=150;
@@ -1876,7 +2286,13 @@ function onKey(e){
     document.getElementById('ov-inventory')?.classList.contains('active')?closeInventory():openInventory(); return;
   }
   if((e.key==='c'||e.key==='C')&&!G.inCombat&&!document.getElementById('ov-item')?.classList.contains('active')){
-    document.getElementById('ov-charsheet')?.classList.contains('active')?window.closeCharSheet?.():window.openCharSheet?.(); return;
+    if(document.getElementById('ov-charsheet')?.classList.contains('active')){
+      window.closeCharSheet?.();
+    } else {
+      fillCharSheet();
+      window.openCharSheet?.();
+    }
+    return;
   }
   keys[e.key]=true;
 }
@@ -1890,7 +2306,7 @@ function tryMove(dx,dy){
 
   // Tile type constants (match constants.js)
   const _T = { GRASS:0, FOREST:1, MOUNTAIN:2, DEEP_WATER:3, SHALLOW:4, TOWN:5, DANGER:6, SAND:7 };
-  const _PASSABLE = new Set([0,1,4,5,6,7]); // grass,forest,shallow,town,danger,sand
+  const _PASSABLE = new Set([0,1,4,5,6,7,9,10,11,12,13]); // world tiles + dungeon: floor,door,chest,stairs
 
   // If map not loaded yet, allow movement but skip encounters
   const _mapReady = !!_map;
@@ -1924,6 +2340,27 @@ function tryMove(dx,dy){
     if(town){ enterTown(town); return; }
   }
 
+  // ── Dungeon boss check ────────────────────────────────────────────────────
+  if(window.GameState?.mode === 'dungeon'){
+    const boss = (window._dungeonMonsters||[]).find(m=>m.alive && m.isBoss &&
+      Math.abs(nx-m.x)<=2 && Math.abs(ny-m.y)<=2);
+    if(boss){
+      boss.alive = false; // mark as engaged
+      triggerDungeonBoss(boss);
+      return;
+    }
+  }
+
+  // ── Dungeon stairs ─────────────────────────────────────────────────────────
+  if(type === 13){ // STAIRS_DOWN = exit dungeon
+    if(window.GameState?.mode === 'dungeon'){
+      // Confirm before exiting
+      if(confirm('Exit the dungeon and return to the world?')) exitDungeon();
+      else G.x=G.prevX; G.y=G.prevY; // step back
+    }
+    return;
+  }
+
   // ── World boss check ───────────────────────────────────────────────────────
   if(typeof worldBosses!=='undefined'){
     const boss=worldBosses.find(b=>b.alive&&Math.abs(nx-b.x)<=1&&Math.abs(ny-b.y)<=1);
@@ -1937,13 +2374,25 @@ function tryMove(dx,dy){
   const prevType = _getTile(G.prevX, G.prevY);
   if(_mapReady && G.encounterCooldown<=0){
     let chance=0;
-    if     (type===_T.DANGER)   chance=.30;
-    else if(type===_T.FOREST)   chance=.12;
-    else if(type===_T.MOUNTAIN) chance=.10;
-    else if(type===_T.GRASS)    chance=.04;
-    else if(type===_T.SAND)     chance=.06;
+    const inDungeon = window.GameState?.mode === 'dungeon';
+    if(inDungeon){
+      // Dungeon encounter rates by tile
+      if(type===9)  chance=0.15; // floor
+      if(type===10) chance=0.08; // door
+    } else {
+      if     (type===_T.DANGER)   chance=.30;
+      else if(type===_T.FOREST)   chance=.12;
+      else if(type===_T.MOUNTAIN) chance=.10;
+      else if(type===_T.GRASS)    chance=.04;
+      else if(type===_T.SAND)     chance=.06;
+    }
     if(chance>0 && Math.random()<chance){
-      if(!checkEncounterAvoid()){ triggerCombat(type); return; }
+      if(!checkEncounterAvoid()){
+        // Check dungeon monsters first
+        if(inDungeon) triggerDungeonEncounter();
+        else triggerCombat(type);
+        return;
+      }
     }
   }
   G.encounterCooldown=Math.max(0,G.encounterCooldown-1);
@@ -1977,6 +2426,15 @@ function tryMove(dx,dy){
   G._stepCount++;
   if(G._stepCount%3===0) playSound('step');
   if(G._stepCount%20===0) saveGame();
+  // Broadcast position to party (every step, throttled by Firebase)
+  if(coopActive && coopMyId && _fbRoomRef){
+    _fbRoomRef.child('players/'+coopMyId).update({x:G.x, y:G.y, hp:G.hp, ts:Date.now()});
+  }
+  // Mark visited tiles for fog of war (reveal radius 4 in dungeon, 6 in world)
+  const _fogRadius = window.GameState?.mode==='dungeon' ? 4 : 6;
+  markVisited(G.x, G.y, _fogRadius);
+  // Update minimap every step
+  if(G._stepCount%3===0) updateMinimapMode();
   render(); updateHUD();
 }
 window.tryMove = tryMove; // expose for main.js setupInput
@@ -2100,6 +2558,84 @@ function triggerWorldBossCombat(boss){
   combat.animFrame=requestAnimationFrame(tickCombat);
 }
 
+// Dungeon monster definitions
+const DUNGEON_MONSTERS = {
+  goblin:        {name:'Goblin',        icon:'👺',hd:4, loot:['Rusty Dagger','Goblin Ear'],     gold:[1,8],   xp:50,  habitat:['DUNGEON']},
+  goblin_shaman: {name:'Goblin Shaman', icon:'🧙',hd:5, loot:['Spell Scroll','Shaman Staff'],  gold:[5,15],  xp:80,  habitat:['DUNGEON']},
+  hobgoblin:     {name:'Hobgoblin',     icon:'👹',hd:7, loot:['Iron Shield','Hobgoblin Helm'],  gold:[8,20],  xp:120, habitat:['DUNGEON']},
+  goblin_king:   {name:'Goblin King',   icon:'👑',hd:20,loot:['Crown Shard','Goblin King Axe'], gold:[50,150],xp:5000,habitat:['DUNGEON'],isBoss:true},
+};
+
+function triggerDungeonEncounter(){
+  const zl = Math.max(1, getZoneLevel());
+  // Pick from nearby alive dungeon monsters or random
+  const nearby = (window._dungeonMonsters||[]).filter(m =>
+    m.alive && Math.abs(m.x - G.x) <= 5 && Math.abs(m.y - G.y) <= 5
+  );
+  const monsterType = nearby.length > 0
+    ? nearby[Math.floor(Math.random()*nearby.length)].type
+    : ['goblin','goblin','goblin_shaman','hobgoblin'][Math.floor(Math.random()*4)];
+
+  const def = DUNGEON_MONSTERS[monsterType] || DUNGEON_MONSTERS.goblin;
+  const count = def.isBoss ? 1 : randInt(1, 2);
+  combat.enemies = [];
+  for(let i=0;i<count;i++){
+    const hpMax = rollDice(def.hd, 1+Math.floor(zl/3)) + zl*2;
+    combat.enemies.push({
+      def, hp:hpMax, hpMax,
+      ac:10+Math.floor(zl/2), atk:2+Math.floor(zl/3), dmg:Math.floor(def.hd/4)+1,
+      timer:0, timerMax:randInt(1800,3000),
+      timerStartDelay:randInt(400,1200), timerStarted:false,
+      status:{}, _announcedDead:false,
+    });
+  }
+  combat.targetIdx=0; combat.round=1;
+  combat.playerCasting=false; combat.playerCastTimer=0; combat.playerCastAction=null;
+  combat.active=true; combat.playerTurn=true;
+  combat.queuedAction=null;
+  G.inCombat=true; G.encounterCooldown=25;
+  buildCombatUI();
+  document.getElementById('ov-combat').classList.add('active');
+  const names = combat.enemies.map(e=>e.def.name).join(', ');
+  addLog(`⚔ ${def.isBoss?'👑 BOSS: ':''}Encountered: ${names}!`,'combat');
+  // Notify all party members
+  if(coopActive && coopParty.length > 1){
+    coopBroadcast({type:'combat_invite', from:G.name, enemyNames:names,
+      hostX:G.x, hostY:G.y, isDungeon:true});
+  }
+  addCombatLog(count>1?`${count} enemies attack!`:`A ${def.name} attacks!`);
+  combat.lastTick=performance.now();
+  if(combat.animFrame) cancelAnimationFrame(combat.animFrame);
+  combat.animFrame=requestAnimationFrame(tickCombat);
+  // Mark nearby monster as engaged
+  if(nearby.length>0) nearby[0].alive = false;
+}
+
+function triggerDungeonBoss(bossMonster){
+  const def = DUNGEON_MONSTERS[bossMonster.type] || DUNGEON_MONSTERS.goblin_king;
+  const hpMax = 120 + G.level * 15;
+  combat.enemies = [{
+    def, hp:hpMax, hpMax,
+    ac:16, atk:8, dmg:6,
+    isBoss:true,
+    timer:0, timerMax:2500, timerStartDelay:600, timerStarted:false,
+    status:{}, _announcedDead:false,
+  }];
+  combat.targetIdx=0; combat.round=1;
+  combat.playerCasting=false; combat.playerCastTimer=0; combat.playerCastAction=null;
+  combat.active=true; combat.playerTurn=true; combat.queuedAction=null;
+  G.inCombat=true; G.encounterCooldown=50;
+  buildCombatUI();
+  document.getElementById('ov-combat').classList.add('active');
+  addLog(`👑 BOSS ENCOUNTER: ${def.name}!`,'combat');
+  addCombatLog(`The ${def.name} lets out a terrifying roar!`,'hit');
+  addCombatLog(`HP: ${hpMax} — This will be a tough fight!`,'sys');
+  toast(`👑 BOSS: ${def.name}!`,'err');
+  combat.lastTick=performance.now();
+  if(combat.animFrame) cancelAnimationFrame(combat.animFrame);
+  combat.animFrame=requestAnimationFrame(tickCombat);
+}
+
 function triggerCombat(tileType){
   const zl = getZoneLevel();
   // Spawn 1-3 enemies based on zone level (more enemies at higher zones)
@@ -2129,11 +2665,63 @@ function triggerCombat(tileType){
   document.getElementById('ov-combat').classList.add('active');
   const names = combat.enemies.map(e=>e.def.name).join(', ');
   addLog(`⚔ Encountered: ${names}!`,'combat');
+  // Notify ALL party members (let them decide based on distance)
+  if(coopActive && coopParty.length > 1){
+    coopBroadcast({type:'combat_invite', from:G.name, enemyNames:names,
+      hostX:G.x, hostY:G.y});
+  }
   coopOnCombatStart();
   addCombatLog(count>1 ? `${count} enemies attack!` : `A ${combat.enemies[0].def.name} attacks!`);
   combat.lastTick = performance.now();
   if(combat.animFrame) cancelAnimationFrame(combat.animFrame);
   combat.animFrame = requestAnimationFrame(tickCombat);
+}
+
+function buildCombatQuickSlots(){
+  const bar = document.getElementById('combat-quick-slots');
+  if(!bar) return;
+  bar.innerHTML = '';
+  // Show all potions from inventory as quick-use buttons + activeSlots
+  const potions = (G.inventory||[])
+    .map((item,i)=>({item,i}))
+    .filter(({item})=>item.type==='potion');
+
+  if(!potions.length && !(G.activeSlots||[]).some(s=>s)){
+    bar.innerHTML = '<span style="font-size:.6rem;color:rgba(100,80,60,.5);font-style:italic;">No potions</span>';
+    return;
+  }
+
+  // Active slots first (items dragged to quick bar)
+  (G.activeSlots||[]).forEach((item,i)=>{
+    if(!item) return;
+    const btn = document.createElement('button');
+    btn.className = 'cqs-btn';
+    btn.innerHTML = `<span class="cqs-icon">${item.icon||'📦'}</span><span class="cqs-name">${item.name}</span>${item.qty>1?`<span class="cqs-qty">x${item.qty}</span>`:''}`;
+    btn.title = `Use ${item.name}`;
+    btn.onclick = () => { useActiveSlotInCombat(i); };
+    bar.appendChild(btn);
+  });
+
+  // Then potions from inventory not in active slots
+  potions.forEach(({item,i})=>{
+    const btn = document.createElement('button');
+    btn.className = 'cqs-btn potion';
+    btn.innerHTML = `<span class="cqs-icon">${item.icon||'🧪'}</span><span class="cqs-name">${item.name}</span>${item.qty>1?`<span class="cqs-qty">x${item.qty}</span>`:''}`;
+    btn.title = `Use ${item.name} (${item.desc||''})`;
+    btn.onclick = () => { usePotion(i); buildCombatQuickSlots(); updateHUD(); };
+    bar.appendChild(btn);
+  });
+}
+
+function useActiveSlotInCombat(idx){
+  const item = G.activeSlots?.[idx];
+  if(!item) return;
+  applyItemEffect(item);
+  item.qty = (item.qty||1) - 1;
+  if(item.qty <= 0) G.activeSlots[idx] = null;
+  addCombatLog(`Used ${item.name}.`,'sys');
+  buildCombatQuickSlots();
+  updateHUD();
 }
 
 function buildCombatUI(){
@@ -2151,35 +2739,59 @@ function buildCombatUI(){
   // Build the full battlefield UI
   buildBattlefieldUI();
   updateCombatBars();
+  buildCombatQuickSlots();
 
   // Actions
+  // Re-link cls from CLASSES array if actions missing (happens after save restore)
+  if(!G.cls?.actions && G.cls?.id){
+    const linked = window.CLASSES?.find(c => c.id === G.cls.id);
+    if(linked) G.cls = linked;
+  }
+  if(!G.cls?.actions){ console.warn('[combat] G.cls.actions missing, aborting buildCombatUI'); return; }
   const ag=document.getElementById('action-grid');
   ag.innerHTML='';
-  /*G.cls.actions.forEach(a=>{
-    const isMagic=G.cls.spells.includes(a);
-    const mpCost=isMagic?Math.ceil(G.mpMax*.15):0;
+  const icons={
+    'Attack':'⚔️','Heavy Strike':'💥','Defend':'🛡️','Second Wind':'💨',
+    'Magic Missile':'✨','Fireball':'🔥','Blink':'💨','Sneak Attack':'🗡️',
+    'Dodge':'🏃','Poison Strike':'☠️','Sacred Flame':'✝️','Heal':'💚',
+    'Turn Undead':'☀️','Divine Smite':'⚡','Lay on Hands':'🙏',
+    'Aura of Protection':'🔰',"Multishot":'🏹',"Hunter's Mark":'🎯','Evade':'🌬️',
+    'Rage Attack':'😡','Reckless Attack':'🌀','Intimidate':'👿',
+    'Vicious Mockery':'🎭','Inspiration':'✨','Charm':'💫',
+    'Thorn Whip':'🌿','Entangle':'🌱','Wild Shape':'🐻',
+    'Chaos Bolt':'⚡','Metamagic':'🔮','Dragon Breath':'🐉',
+    'Eldritch Blast':'👁️','Hex':'🔮',"Dark One's Blessing":'🌑',
+    'Flurry of Blows':'👊','Stunning Strike':'💫','Patient Defense':'🧘',
+  };
+
+  function addActionBtn(name, mpCost, isAbility=false){
     const btn=document.createElement('button');
-    btn.className='action-btn';
-    const icons={
-      'Attack':'⚔️','Heavy Strike':'💥','Defend':'🛡️','Second Wind':'💨',
-      'Magic Missile':'✨','Fireball':'🔥','Blink':'💨','Sneak Attack':'🗡️',
-      'Dodge':'🏃','Poison Strike':'☠️','Sacred Flame':'✝️','Heal':'💚',
-      'Turn Undead':'☀️','Divine Smite':'⚡','Lay on Hands':'🙏',
-      'Aura of Protection':'🔰',"Multishot":'🏹',"Hunter's Mark":'🎯','Evade':'🌬️',
-      'Rage Attack':'😡','Reckless Attack':'🌀','Intimidate':'👿',
-      'Vicious Mockery':'🎭','Inspiration':'✨','Charm':'💫',
-      'Thorn Whip':'🌿','Entangle':'🌱','Wild Shape':'🐻',
-      'Chaos Bolt':'⚡','Metamagic':'🔮','Dragon Breath':'🐉',
-      'Eldritch Blast':'👁️','Hex':'🔮',"Dark One's Blessing":'🌑',
-      'Flurry of Blows':'👊','Stunning Strike':'💫','Patient Defense':'🧘',
-    };
-    const _bidx = Array.from(ag.children).length; // 0-based index at time of creation
+    btn.className='action-btn'+(isAbility?' ability-action':'');
+    const _bidx = Array.from(ag.children).length;
     const _kbind = _bidx<6 ? `<span class="a-keybind">${_bidx+1}</span>` : '';
-    btn.innerHTML=`${_kbind}<span class="a-icon">${icons[a]||'⚔️'}</span>${a}${mpCost?`<span class="a-cost">${mpCost}MP</span>`:''}`;
-    btn.onclick=()=>queueAction(a,mpCost,btn);
-    btn.dataset.action=a;btn.dataset.mp=mpCost;
+    btn.innerHTML=`${_kbind}<span class="a-icon">${icons[name]||'✦'}</span>${name}${mpCost?`<span class="a-cost">${mpCost}MP</span>`:''}`;
+    btn.onclick=()=>queueAction(name,mpCost,btn);
+    btn.dataset.action=name;btn.dataset.mp=mpCost;
     ag.appendChild(btn);
-  });*/
+  }
+
+  // Base class actions
+  G.cls.actions.forEach(a=>{
+    const isMagic=G.cls.spells?.includes(a);
+    const mpCost=isMagic?Math.ceil(G.mpMax*.15):0;
+    addActionBtn(a, mpCost, false);
+  });
+
+  // Milestone abilities — only non-passive ones
+  (G.abilities||[]).forEach(ab=>{
+    if(!ab || ab.passive) return; // skip passives
+    const name = ab.name||ab;
+    if(!name || typeof name !== 'string') return;
+    // Don't duplicate base actions
+    if(G.cls.actions.includes(name)) return;
+    const mpCost = ab.mpCost || (ab.effect?.mp ? 0 : Math.ceil(G.mpMax*0.12));
+    addActionBtn(name, mpCost, true);
+  });
 }
 
 function queueAction(action,mpCost,btn){
@@ -2208,15 +2820,24 @@ function queueAction(action,mpCost,btn){
   if(partyTimers[myIdx3]){partyTimers[myIdx3].queued=true;partyTimers[myIdx3].action=action;}
   updateBattlefieldBars();
 
-  // Broadcast to peers
-  if(coopIsHost&&coopConns.length>0){
-    coopBroadcast({type:'member_queued',
-      partyIdx:0, action, name:G.name});
+  // Broadcast queue notification to all
+  if(coopActive){
+    coopBroadcast({type:'member_queued', partyIdx:0, action, name:G.name});
   }
-  // Peers send to host; host resolves and broadcasts back
-  if(!coopIsHost && coopActive && coopConns.length>0){
-    coopSendAction(action);
-    document.getElementById('queued-display').textContent=`Sent to host: ${action}…`;
+  // Peers send action to host for authoritative resolution
+  if(!coopIsHost && coopActive){
+    coopBroadcast({type:'combat_action_from_peer',
+      action, atkBonus:G.atkBonus||2, dmgBonus:G.dmgBonus||0,
+      ac:G.ac||10, hp:G.hp, hpMax:G.hpMax
+    });
+    document.getElementById('queued-display').textContent=`${action} sent to host…`;
+    // Reset cast state on peer side
+    setTimeout(()=>{
+      combat.playerCasting=false;
+      document.querySelectorAll('.action-btn').forEach(b=>b.disabled=false);
+      if(document.getElementById('queued-display'))
+        document.getElementById('queued-display').textContent='Choose a skill…';
+    }, 1500);
     return;
   }
   setTimeout(()=>{ if(combat.active&&combat.playerTurn) resolvePlayerTurn(combat.queuedAction); },300);
@@ -2361,35 +2982,53 @@ function resolveEnemyAttack(e, enemyIdx){
     return;
   }
 
-  // Attack player
+  // Pick target — randomly choose between G and any party members in combat
+  const _partyInCombat = combat.partyMembers?.filter(p=>p.hp>0) || [];
+  const _allTargets = [{isPlayer:true}, ..._partyInCombat.map(p=>({isParty:true,member:p}))];
+  const _target = _allTargets[Math.floor(Math.random()*_allTargets.length)];
+
   const roll=d20(); const toHit=roll+e.atk;
-  const playerAC=G.ac+(G.defending?4:0);
-  G.defending=false;
-  if(toHit>=playerAC||roll===20){
-    let dmg=rollDice(Math.max(2,Math.floor(e.def.hd/2)),1)+e.dmg;
-    if(roll===20) dmg*=2;
-    if(e.status?.intimidated){dmg=Math.floor(dmg*.6);delete e.status.intimidated;}
-    if(G.passives?.dmgReduce) dmg=Math.max(0,dmg-G.passives.dmgReduce);
-    if(G.invincibleRounds>0){G.invincibleRounds--;dmg=0;addCombatLog('Divine Shield — negated!','player-hit');}
-    playSound('enemy_hit');
-    // Temp HP absorbs first
-    if(G.passives?.tempHP>0){
-      const absorbed=Math.min(G.passives.tempHP,dmg);
-      G.passives.tempHP-=absorbed; dmg-=absorbed;
-      if(absorbed>0) addCombatLog(`Temp HP absorbs ${absorbed}!`,'player-hit');
-    }
-    G.hp=Math.max(0,G.hp-dmg);
-    // Decay Second Wind dmg reduction
-    if(G.passives?._windHits>0){ G.passives._windHits--; if(G.passives._windHits<=0){G.passives.dmgReduce=0;delete G.passives._windHits;} }
-    // Clear defensive bonus after hit
-    if(G._acBonus){ G._acBonus=0; }
+
+  if(_target.isPlayer){
+    // Attack local player G
+    const playerAC=G.ac+(G.defending?4:0);
     G.defending=false;
-    addCombatLog(`${e.def.name} hits! — ${dmg} dmg${roll===20?' CRIT!':''}`,roll===20?'hit':'hit');
-    // Flash the enemy figure
-    const figEl=document.getElementById('bf-fig-enemy'+enemyIdx);
-    if(figEl){figEl.classList.add('hit');setTimeout(()=>figEl.classList.remove('hit'),200);}
-  } else {
-    addCombatLog(`${e.def.name} misses! (${roll}+${e.atk}=${toHit} vs AC${playerAC})`,'miss');
+    if(toHit>=playerAC||roll===20){
+      let dmg=rollDice(Math.max(2,Math.floor(e.def.hd/2)),1)+e.dmg;
+      if(roll===20) dmg*=2;
+      if(e.status?.intimidated){dmg=Math.floor(dmg*.6);delete e.status.intimidated;}
+      if(G.passives?.dmgReduce) dmg=Math.max(0,dmg-G.passives.dmgReduce);
+      if(G.invincibleRounds>0){G.invincibleRounds--;dmg=0;addCombatLog('Divine Shield — negated!','player-hit');}
+      playSound('enemy_hit');
+      if(G.passives?.tempHP>0){
+        const absorbed=Math.min(G.passives.tempHP,dmg);
+        G.passives.tempHP-=absorbed;dmg-=absorbed;
+        if(absorbed>0)addCombatLog(`Temp HP absorbs ${absorbed}!`,'player-hit');
+      }
+      G.hp=Math.max(0,G.hp-dmg);
+      if(G.passives?._windHits>0){G.passives._windHits--;if(G.passives._windHits<=0){G.passives.dmgReduce=0;delete G.passives._windHits;}}
+      if(G._acBonus) G._acBonus=0;
+      addCombatLog(`${e.def.name} hits ${G.name}! — ${dmg} dmg${roll===20?' CRIT!':''}`,roll===20?'hit':'hit');
+      const figEl=document.getElementById('bf-fig-enemy'+enemyIdx);
+      if(figEl){figEl.classList.add('hit');setTimeout(()=>figEl.classList.remove('hit'),200);}
+    } else {
+      addCombatLog(`${e.def.name} misses ${G.name}! (${roll}+${e.atk}=${toHit} vs AC${playerAC})`,'miss');
+    }
+  } else if(_target.isParty){
+    // Attack a party member — broadcast damage to their client
+    const pm = _target.member;
+    const pmAC = pm.ac||12;
+    if(toHit>=pmAC||roll===20){
+      let dmg=rollDice(Math.max(2,Math.floor(e.def.hd/2)),1)+e.dmg;
+      if(roll===20) dmg*=2;
+      pm.hp = Math.max(0,pm.hp-dmg);
+      addCombatLog(`${e.def.name} hits ${pm.name}! — ${dmg} dmg${roll===20?' CRIT!':''}`,roll===20?'hit':'hit');
+      // Broadcast HP damage to peer
+      if(coopActive) coopBroadcast({type:'party_member_hit',
+        targetId:pm.id, dmg, newHp:pm.hp, name:pm.name});
+    } else {
+      addCombatLog(`${e.def.name} misses ${pm.name}!`,'miss');
+    }
   }
   updateBattlefieldBars(); updateHUD(); checkCombatEnd();
 }
@@ -2882,7 +3521,8 @@ function enterTown(town){
 
   // Tavern rumours
   const tr=document.getElementById('tavern-rumours');
-  tr.innerHTML=town.rumours.map(r=>`<div style="padding:8px;border-bottom:1px solid rgba(74,53,32,.4);font-size:.8rem;font-style:italic;color:var(--parch-dk)">"${r}"</div>`).join('');
+  const rumours = town.rumours || ['The roads are dangerous — travel with care.','Strange lights seen near the old ruins.','A bounty has been posted for goblin ears.'];
+  tr.innerHTML=rumours.map(r=>`<div style="padding:8px;border-bottom:1px solid rgba(74,53,32,.4);font-size:.8rem;font-style:italic;color:var(--parch-dk)">"${r}"</div>`).join('');
 
   document.getElementById('ov-town').classList.add('active');
   // Portal hints near this town
@@ -3120,9 +3760,8 @@ function buildPortalShortcuts(){
     const camp = CAMPAIGNS[p.campaignId];
     if(!camp) return '';
     const type = camp.type==='lair'?'⚔':'🌟';
-    return `<button class="portal-shortcut" onclick="fastTravelToPortal(${p.x},${p.y})">
-      ${type} ${camp.name}<br>
-      <span class="ps-level">Lv${camp.levelRange[0]}-${camp.levelRange[1]} · ${camp.estTime}</span>
+    return `<button class="portal-shortcut" onclick="fastTravelToPortal(${p.x},${p.y})" title="${camp.name} — Lv${camp.levelRange[0]}-${camp.levelRange[1]}">
+      ${type} ${camp.name} <span class="ps-level">Lv${camp.levelRange[0]}-${camp.levelRange[1]}</span>
     </button>`;
   }).join('');
 }
@@ -3355,46 +3994,108 @@ function checkWorldBossCombat(tx, ty){
 //  • Host broadcasts: world_state (positions+hp), combat_state, chat
 //  • Peers render host's world_state — they see themselves + others
 
-// PeerJS replaced with Firebase WebRTC signaling
+// ── CO-OP via Firebase Realtime Database (no WebRTC/TURN needed) ─────────────
+// Architecture: Firebase is the message bus. Players write state, others read it.
+// rooms/{code}/players/{playerId} = player state
+// rooms/{code}/events = action queue (combat, moves, etc.)
 
-// ── CO-OP STATE ──
-let coopPeer      = null;  // local RTCPeerConnection
-let _coopBroadcastTimer = null;
-const PARTY_COLORS = ['#c9a227','#4a9eff','#ff6b6b','#6bff6b'];
-let coopActive    = false;
-let coopIsHost    = false;
-let coopRoomCode  = null;
-let coopConns     = [];    // array of RTCDataChannels
-let coopParty     = [];
-let _fbRoomRef    = null;  // Firebase room reference listener
+let coopActive   = false;
+let coopIsHost   = false;
+let coopRoomCode = null;
+let coopConns    = [];   // kept for legacy compat — not used in Firebase mode
+let coopParty    = [];   // [{name,cls,level,hp,hpMax,x,y,color,id}]
+let coopMyId     = null; // my Firebase player id
+let _fbRoomRef   = null;
+let _coopListeners = []; // Firebase listeners to clean up on disconnect
 
-// ── Firebase WebRTC Signaling ──
-// Uses Firebase Realtime Database as the signaling server
-// Data flows: Firebase → ICE/SDP exchange → direct WebRTC P2P data channel
-// The data channel sends the exact same messages as before (coopHandleData unchanged)
+// Expose on window so main.js game loop can read them
+Object.defineProperties(window, {
+  coopActive:  { get:()=>coopActive,  set:v=>coopActive=v },
+  coopParty:   { get:()=>coopParty,   set:v=>coopParty=v },
+  coopMyId:    { get:()=>coopMyId,    set:v=>coopMyId=v },
+  coopIsHost:  { get:()=>coopIsHost,  set:v=>coopIsHost=v },
+  _fbRoomRef:  { get:()=>_fbRoomRef,  set:v=>_fbRoomRef=v },
+});
 
-const RTC_CONFIG = {
-  iceServers: [
-    {urls:'stun:stun.l.google.com:19302'},
-    {urls:'stun:stun1.l.google.com:19302'},
-    {urls:'turn:openrelay.metered.ca:80',
-     username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turn:openrelay.metered.ca:443',
-     username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turn:openrelay.metered.ca:443?transport=tcp',
-     username:'openrelayproject',credential:'openrelayproject'},
-  ],
-  iceTransportPolicy: 'relay',
-};
+const PARTY_COLORS = ['#c090ff','#60c0ff','#60ff90','#ffb060'];
 
-function loadPeerJS(cb){ cb(); } // no-op — no PeerJS needed
+// ── Lobby UI ──────────────────────────────────────────────────────────────────
 
+// ── Co-op Invite Popups ──────────────────────────────────────────────────────
 
+function showCoopDungeonInvite(ev){
+  document.getElementById('coop-dungeon-invite')?.remove();
+  const name = ev.dungeonName || (ev.dungeonId||'').replace(/_/g,' ') || 'a dungeon';
+  const from = ev.from || 'Your party';
+  const d = document.createElement('div');
+  d.id = 'coop-dungeon-invite';
+  d.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:200;' +
+    'background:linear-gradient(160deg,#0e0918,#08050f);' +
+    'border:1px solid rgba(201,162,39,.6);border-radius:6px;' +
+    'padding:16px 20px;width:260px;font-family:Cinzel,serif;' +
+    'box-shadow:0 4px 20px rgba(0,0,0,.6);';
+  d.innerHTML =
+    '<div style="font-size:.75rem;color:var(--gold-b);margin-bottom:6px;">⚔ Dungeon Invite</div>' +
+    '<div style="font-size:.68rem;color:var(--parch-lt);margin-bottom:12px;line-height:1.5;">' +
+    '<strong>'+from+'</strong> is entering<br><em>'+name+'</em></div>' +
+    '<div style="display:flex;gap:8px;">' +
+    '<button id="coop-dinv-accept" style="flex:1;padding:6px;background:rgba(201,162,39,.15);' +
+    'border:1px solid var(--gold-b);color:var(--gold-b);font-family:Cinzel,serif;' +
+    'font-size:.65rem;cursor:pointer;border-radius:3px;">⚔ Join</button>' +
+    '<button id="coop-dinv-decline" style="padding:6px 10px;background:transparent;' +
+    'border:1px solid rgba(74,53,32,.5);color:var(--parch-dk);font-family:Cinzel,serif;' +
+    'font-size:.65rem;cursor:pointer;border-radius:3px;">✕</button></div>';
+  document.body.appendChild(d);
+  d.querySelector('#coop-dinv-accept').onclick = ()=>{ enterDungeon(ev.dungeonId); d.remove(); };
+  d.querySelector('#coop-dinv-decline').onclick = ()=>d.remove();
+  setTimeout(()=>d.remove(), 15000);
+}
 
+function showCoopCombatInvite(ev){
+  document.getElementById('coop-combat-invite')?.remove();
+  const from = ev.from || 'A party member';
+  const enemies = ev.enemyNames || 'enemies';
+  // Calculate distance from combat location if we have it
+  let distStr = 'nearby';
+  if(ev.hostX != null){
+    const d = Math.abs(ev.hostX - G.x) + Math.abs(ev.hostY - G.y);
+    distStr = d <= 3 ? 'right next to you!' : d+' tiles away';
+  }
+  const fromId = ev._from;
+  const d = document.createElement('div');
+  d.id = 'coop-combat-invite';
+  d.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:200;' +
+    'background:linear-gradient(160deg,#1a0808,#08050f);' +
+    'border:1px solid rgba(180,40,40,.6);border-radius:6px;' +
+    'padding:16px 20px;width:260px;font-family:Cinzel,serif;' +
+    'box-shadow:0 4px 20px rgba(0,0,0,.6);';
+  d.innerHTML =
+    '<div style="font-size:.75rem;color:#e07070;margin-bottom:6px;">⚔ Combat Nearby!</div>' +
+    '<div style="font-size:.68rem;color:var(--parch-lt);margin-bottom:12px;line-height:1.5;">' +
+    '<strong>'+from+'</strong> is fighting '+enemies+'!<br>' +
+    '<span style="color:var(--parch-dk);">'+dist+'</span></div>' +
+    '<div style="display:flex;gap:8px;">' +
+    '<button id="coop-cinv-help" style="flex:1;padding:6px;background:rgba(180,40,40,.15);' +
+    'border:1px solid #e07070;color:#e07070;font-family:Cinzel,serif;' +
+    'font-size:.65rem;cursor:pointer;border-radius:3px;">⚔ Help!</button>' +
+    '<button id="coop-cinv-skip" style="padding:6px 10px;background:transparent;' +
+    'border:1px solid rgba(74,53,32,.5);color:var(--parch-dk);font-family:Cinzel,serif;' +
+    'font-size:.65rem;cursor:pointer;border-radius:3px;">✕</button></div>';
+  document.body.appendChild(d);
+  d.querySelector('#coop-cinv-help').onclick = ()=>{
+    const p = coopParty.find(p=>p&&p.id===fromId);
+    if(p){ G.x=p.x+1; G.y=p.y; window.GameState.player=G; }
+    coopBroadcast({type:'combat_join', player:G.name});
+    addLog('You rush to help '+from+'!','disc');
+    d.remove();
+  };
+  d.querySelector('#coop-cinv-skip').onclick = ()=>d.remove();
+  setTimeout(()=>d.remove(), 12000);
+}
 
-// ── Co-op Lobby UI ──
 function openCoopLobby(){
   if(!G.cls||!G.name){ toast('Create your character first!','err'); return; }
+  if(!_db){ toast('Firebase not connected — check config','err'); return; }
   document.getElementById('ov-coop').classList.add('active');
   coopHidePanels();
 }
@@ -3413,845 +4114,420 @@ function coopShowHost(){
   document.getElementById('coop-host-panel').classList.add('open');
   document.getElementById('coop-join-panel').classList.remove('open');
 }
-// ── HOST: Create room ──
+
+function setCoopStatus(panel,type,msg){
+  const id = panel==='host' ? 'coop-host-status' : 'coop-join-status';
+  const el = document.getElementById(id);
+  if(el) el.innerHTML = `<span class="${type}">${msg}</span>`;
+}
+
+function buildMyPlayerData(idx){
+  return {
+    id:       coopMyId,
+    name:     G.name,
+    cls:      G.cls?.name || '?',
+    level:    G.level,
+    hp:       G.hp,
+    hpMax:    G.hpMax,
+    x:        G.x,
+    y:        G.y,
+    color:    PARTY_COLORS[idx % PARTY_COLORS.length],
+    partyIdx: idx,
+    ts:       Date.now(),
+  };
+}
+
+function refreshPartyList(){
+  const list = document.getElementById('coop-player-list');
+  if(!list) return;
+  list.innerHTML = coopParty.filter(Boolean).map(p=>
+    `<div class="party-member" style="border-left:3px solid ${p.color||'#c090ff'}">
+      <span class="pm-name">${p.name}</span>
+      <span class="pm-cls">${p.cls} Lv${p.level}</span>
+      <span class="pm-hp" style="color:${p.color}">${p.hp}/${p.hpMax} HP</span>
+    </div>`
+  ).join('');
+  const startBtn = document.getElementById('coop-start-btn');
+  if(startBtn) startBtn.disabled = coopParty.filter(Boolean).length < 2;
+}
+
+function updatePartyHUD(){
+  const hudEl = document.getElementById('hud-party');
+  if(!hudEl||!coopActive||coopParty.length<2) return;
+  hudEl.innerHTML = coopParty.filter((p,i)=>i>0&&p).map(p=>
+    `<div style="display:flex;align-items:center;gap:4px;margin-top:3px;">
+      <span style="color:${p.color};font-size:.65rem;">◆ ${p.name}</span>
+      <span style="font-size:.6rem;color:var(--parch-dk);">${p.hp}/${p.hpMax}HP</span>
+    </div>`
+  ).join('');
+}
+
+// ── HOST ──────────────────────────────────────────────────────────────────────
+
 function coopStartHost(){
   if(!G.cls||!G.name){ toast('Create your character first!','err'); return; }
-  if(!_db){ toast('Not connected to Firebase','err'); return; }
-  coopIsHost = true;
-  const code = Array.from({length:6},()=>Math.floor(Math.random()*10)).join('');
+  if(!_db){ toast('Firebase not connected','err'); return; }
+
+  coopIsHost  = true;
+  coopMyId    = 'host';
+  const code  = Array.from({length:6},()=>Math.floor(Math.random()*10)).join('');
   coopRoomCode = code;
+
   document.getElementById('coop-room-code').textContent = code;
   document.getElementById('coop-host-panel').classList.add('open');
   document.getElementById('coop-join-panel').classList.remove('open');
   setCoopStatus('host','warn','Room <strong>'+code+'</strong> open — share this code!');
-  document.getElementById('coop-start-btn').disabled = false;
-  coopParty = [buildMyPlayerData(0)];
-  refreshPartyList();
 
   const roomRef = _db.ref('rooms/'+code);
   _fbRoomRef = roomRef;
 
-  roomRef.remove().then(()=>{
-    roomRef.child('host').set({name:G.name, ts:Date.now()});
-  });
+  // Write host presence
+  roomRef.child('players/host').set(buildMyPlayerData(0));
+  roomRef.child('meta').set({host:G.name, ts:Date.now(), open:true});
 
-  // Watch for peer offer
-  roomRef.child('offer').on('value', async snap=>{
-    const offer = snap.val();
-    if(!offer||!offer.sdp) return;
+  // Remove room when host disconnects
+  roomRef.child('players/host').onDisconnect().remove();
+  roomRef.child('meta').onDisconnect().remove();
 
-    const pc = new RTCPeerConnection(RTC_CONFIG);
-    const idx = coopParty.length;
+  coopParty = [buildMyPlayerData(0)];
+  refreshPartyList();
 
-    // ICE buffer for this peer
-    const iceQueue = [];
-    let remoteReady = false;
-
-    async function flushIceQueue(){
-      remoteReady = true;
-      for(const ic of iceQueue){
-        try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
-      }
-      iceQueue.length = 0;
-    }
-
-    pc.ondatachannel = e=>{
-      const ch = e.channel;
-      const conn = {
-        send: d => ch.readyState==='open' && ch.send(JSON.stringify(d)),
-        _partyIdx: idx,
-        peer: 'peer'+idx,
-      };
-      ch.onopen = ()=>{
-        coopConns.push(conn);
-        setCoopStatus('host','ok','Party: '+(idx+1)+' player(s). Connected!');
-        startCoopBroadcastLoop();
-      };
-      ch.onmessage = e=>{ try{ coopHandleData(JSON.parse(e.data), conn); }catch(err){} };
-      ch.onclose = ()=>{
-        const name = coopParty[conn._partyIdx]?.name||'Player';
-        coopConns = coopConns.filter(x=>x!==conn);
-        coopParty = coopParty.map((p,i)=>i===conn._partyIdx?null:p).filter(Boolean);
-        refreshPartyList();
-        coopBroadcast({type:'party_update',party:coopParty});
-        addLog(name+' left the party.','sys');
-        updatePartyHUD();
-      };
-    };
-
-    pc.onconnectionstatechange = ()=>console.log('[Host] connectionState:', pc.connectionState);
-    pc.oniceconnectionstatechange = ()=>console.log('[Host] iceConnectionState:', pc.iceConnectionState);
-    pc.onicegatheringstatechange = ()=>console.log('[Host] iceGatheringState:', pc.iceGatheringState);
-
-    pc.onicecandidate = e=>{
-      if(e.candidate){
-        console.log('[Host] sending ICE candidate');
-        roomRef.child('host_ice').push(e.candidate.toJSON());
-      } else {
-        console.log('[Host] ICE gathering complete');
-      }
-    };
-
-    // Set remote desc THEN flush ICE
-    try{
-      console.log('[Host] setRemoteDescription...');
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-      console.log('[Host] createAnswer...');
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      console.log('[Host] writing answer to Firebase...');
-      await roomRef.child('answer').set({sdp:answer.sdp, type:answer.type});
-      console.log('[Host] answer written, flushing ICE...');
-      await flushIceQueue();
-      console.log('[Host] negotiation complete');
-    }catch(e){ console.error('[Host] negotiation FAILED:', e.name, e.message); }
-
-    // Watch peer ICE — queue if not ready
-    roomRef.child('peer_ice').on('value', snap=>{
-      const cs = snap.val(); if(!cs) return;
-      Object.values(cs).forEach(async ic=>{
-        if(remoteReady){
-          try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
-        } else {
-          iceQueue.push(ic);
-        }
-      });
+  // Watch for peers joining
+  const peerRef = roomRef.child('players');
+  const peerListener = peerRef.on('value', snap=>{
+    const players = snap.val();
+    if(!players) return;
+    const ids = Object.keys(players).filter(k=>k!=='host');
+    // Rebuild party: host always index 0
+    coopParty = [buildMyPlayerData(0)];
+    ids.forEach((id,i)=>{
+      const p = players[id];
+      p.color    = PARTY_COLORS[(i+1) % PARTY_COLORS.length];
+      p.partyIdx = i+1;
+      coopParty.push(p);
     });
-
-    coopPeer = pc;
+    if(ids.length > 0){
+      coopActive = true;
+      setCoopStatus('host','ok','✅ Party: '+coopParty.length+' player(s) connected');
+    }
+    refreshPartyList();
+    updatePartyHUD();
   });
+  _coopListeners.push(()=>peerRef.off('value', peerListener));
 
+  // Watch for events from peers
+  _coopWatchEvents(roomRef);
+
+  coopActive = true; // host is always active
   addLog('Co-op room opened: '+code,'sys');
+  toast('Room '+code+' open — share with friends!');
 }
 
+// ── PEER ──────────────────────────────────────────────────────────────────────
 
-// ── PEER: Join room ──
 async function coopJoin(){
   const code = document.getElementById('coop-join-input').value.trim();
   if(!/^[0-9]{6}$/.test(code)){ setCoopStatus('join','err','Enter a 6-digit room code.'); return; }
-  if(!_db){ toast('Not connected to Firebase','err'); return; }
-  coopIsHost = false;
-  coopRoomCode = code;
+  if(!_db){ toast('Firebase not connected','err'); return; }
+
   setCoopStatus('join','warn','Looking for room '+code+'…');
 
   const roomRef = _db.ref('rooms/'+code);
   _fbRoomRef = roomRef;
 
-  // Verify room exists
-  const hostData = await roomRef.child('host').get().then(s=>s.val());
-  if(!hostData){ setCoopStatus('join','err','Room '+code+' not found.'); return; }
-  setCoopStatus('join','warn','Found room — connecting…');
+  // Check room exists
+  const meta = await roomRef.child('meta').get().then(s=>s.val());
+  if(!meta||!meta.open){ setCoopStatus('join','err','Room '+code+' not found or closed.'); return; }
 
-  const pc = new RTCPeerConnection(RTC_CONFIG);
-  coopPeer = pc;
+  coopIsHost   = false;
+  coopRoomCode = code;
+  coopMyId     = 'peer_'+Date.now().toString(36);
 
-  // ICE candidate buffer — holds candidates until remote desc is set
-  const iceQueue = [];
-  let remoteReady = false;
+  // Count existing peers to assign index
+  const existingPlayers = await roomRef.child('players').get().then(s=>s.val()||{});
+  const myIdx = Object.keys(existingPlayers).length; // 0=host,1=first peer,etc
 
-  async function flushIceQueue(){
-    remoteReady = true;
-    for(const ic of iceQueue){
-      try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
-    }
-    iceQueue.length = 0;
-  }
+  // Write my presence
+  const myData = buildMyPlayerData(myIdx);
+  roomRef.child('players/'+coopMyId).set(myData);
+  roomRef.child('players/'+coopMyId).onDisconnect().remove();
 
-  // Create data channel
-  const ch = pc.createDataChannel('game', {ordered:true});
-  const conn = {
-    send: d => ch.readyState==='open' && ch.send(JSON.stringify(d)),
-    _partyIdx: 0,
-    peer: 'host',
-  };
-  coopConns = [conn];
+  setCoopStatus('join','ok','✅ Joined party! Room: '+code);
+  coopActive = true;
 
-  ch.onopen = ()=>{
-    setCoopStatus('join','ok','Connected! Joining party…');
-    conn.send({type:'player_join', player:buildMyPlayerData(0)});
-    coopActive = true;
-  };
-  ch.onmessage = e=>{ try{ coopHandleData(JSON.parse(e.data), conn); }catch(err){} };
-  ch.onclose = ()=>{
-    coopActive=false; coopConns=[];
-    setCoopStatus('join','warn','Disconnected from host.');
-    updatePartyHUD();
-    addLog('Disconnected from party.','sys');
-  };
-
-  // Log connection state changes
-  pc.onconnectionstatechange = ()=>console.log('[Peer] connectionState:', pc.connectionState);
-  pc.oniceconnectionstatechange = ()=>console.log('[Peer] iceConnectionState:', pc.iceConnectionState);
-  pc.onicegatheringstatechange = ()=>console.log('[Peer] iceGatheringState:', pc.iceGatheringState);
-
-  // Send our ICE candidates to Firebase
-  pc.onicecandidate = e=>{
-    if(e.candidate){
-      console.log('[Peer] sending ICE candidate');
-      roomRef.child('peer_ice').push(e.candidate.toJSON());
-    } else {
-      console.log('[Peer] ICE gathering complete');
-    }
-  };
-
-  // Create and send offer
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  await roomRef.child('offer').set({sdp:offer.sdp, type:offer.type});
-
-  // Watch for host answer — set remote desc THEN flush ICE queue
-  roomRef.child('answer').on('value', async snap=>{
-    const answer = snap.val();
-    if(!answer||!answer.sdp) return;
-    if(pc.signalingState !== 'have-local-offer') return;
-    try{
-      await pc.setRemoteDescription(new RTCSessionDescription(answer));
-      roomRef.child('answer').off();
-      await flushIceQueue(); // now safe to add ICE
-    }catch(e){ console.warn('[Peer] setRemoteDescription failed:', e); }
-  });
-
-  // Watch for host ICE candidates — queue if remote not ready yet
-  roomRef.child('host_ice').on('value', snap=>{
-    const cs = snap.val(); if(!cs) return;
-    Object.values(cs).forEach(async ic=>{
-      if(remoteReady){
-        try{ await pc.addIceCandidate(new RTCIceCandidate(ic)); }catch(e){}
-      } else {
-        iceQueue.push(ic);
-      }
+  // Watch all players
+  const peerRef = roomRef.child('players');
+  const peerListener = peerRef.on('value', snap=>{
+    const players = snap.val();
+    if(!players) return;
+    const ids = Object.keys(players);
+    coopParty = ids.map((id,i)=>{
+      const p = players[id];
+      p.color    = PARTY_COLORS[i % PARTY_COLORS.length];
+      p.partyIdx = i;
+      return p;
     });
+    refreshPartyList();
+    updatePartyHUD();
   });
+  _coopListeners.push(()=>peerRef.off('value', peerListener));
 
-  setTimeout(()=>{
-    if(!coopActive) setCoopStatus('join','err','Timed out. Make sure host has room open.');
-  }, 30000);
+  // Watch for events from host
+  _coopWatchEvents(roomRef);
+
+  addLog('Joined party in room '+code+'!','sys');
+  // Don't close lobby — show waiting state until host starts
+  document.getElementById('coop-join-panel').classList.remove('open');
+  document.getElementById('coop-host-panel').classList.add('open');
+  document.getElementById('coop-room-code').textContent = code;
+  setCoopStatus('host','ok','✅ Connected to '+meta.host+"'s party — waiting for host to start…");
+  // Disable start button for peers
+  const startBtn = document.getElementById('coop-start-btn');
+  if(startBtn){ startBtn.textContent='⏳ Waiting for host…'; startBtn.disabled=true; }
+  toast('Connected to '+meta.host+"'s party!");
 }
 
+// ── EVENT BUS ─────────────────────────────────────────────────────────────────
 
-function coopHandleData(data, fromConn){
-  switch(data.type){
+let _lastEventKey = null;
 
-    case 'player_join':{
-      if(coopIsHost){
-        const idx = coopParty.length;
-        fromConn._partyIdx = idx;
-        data.player.peerId   = fromConn.peer;
-        data.player.color    = PARTY_COLORS[idx % PARTY_COLORS.length];
-        data.player.partyIdx = idx;
-        data.player.x        = G.x; // spawn near host
-        data.player.y        = G.y;
-        coopParty[idx] = data.player;
-        refreshPartyList();
-        // NOW send welcome with their index + full world state
-        fromConn.send({type:'welcome', partyIdx:idx, party:coopParty,
-          worldState:buildWorldSnapshot()});
-        // Tell everyone else about the new party member
-        coopBroadcast({type:'party_update', party:coopParty});
-        addLog(`⚔ ${data.player.name} (${data.player.cls}) joined the party!`,'disc');
-        updatePartyHUD();
-        setCoopStatus('host','ok',`Party: ${coopParty.length} player(s).`);
+function _coopWatchEvents(roomRef){
+  // Use .on('child_added') so we only process new events
+  const evRef = roomRef.child('events');
+  const evListener = evRef.limitToLast(20).on('child_added', snap=>{
+    const ev = snap.val();
+    if(!ev || snap.key === _lastEventKey) return;
+    _lastEventKey = snap.key;
+    _coopHandleEvent(ev);
+  });
+  _coopListeners.push(()=>evRef.off('child_added', evListener));
+}
+
+function coopBroadcast(data){
+  if(!coopActive||!_fbRoomRef) return;
+  // Write my player state with every broadcast
+  if(coopMyId){
+    _fbRoomRef.child('players/'+coopMyId).update({
+      hp:G.hp, hpMax:G.hpMax, x:G.x, y:G.y, ts:Date.now()
+    });
+  }
+  // Push event for others to process
+  const ev = {...data, _from:coopMyId, _ts:Date.now()};
+  _fbRoomRef.child('events').push(ev);
+}
+
+function _coopHandleEvent(ev){
+  if(!ev) return;
+  // Ignore events from myself
+  if(ev._from === coopMyId) return;
+
+  switch(ev.type){
+    case 'player_move':
+    case 'peer_move':
+    case 'world_sync': {
+      // Update that player's position in coopParty
+      const p = coopParty.find(p=>p&&p.id===ev._from);
+      if(p){ p.x=ev.x||p.x; p.y=ev.y||p.y; }
+      updatePartyHUD();
+      break;
+    }
+    case 'player_stat':
+    case 'stat_update': {
+      const p = coopParty.find(p=>p&&p.id===ev._from);
+      if(p){ p.hp=ev.hp||p.hp; p.hpMax=ev.hpMax||p.hpMax; }
+      updatePartyHUD();
+      break;
+    }
+    case 'chat': {
+      if(typeof addLog==='function') addLog(`${ev.name}: ${ev.text}`,'chat');
+      break;
+    }
+    case 'combat_start': {
+      if(!coopIsHost && typeof startCombat==='function') startCombat(ev.enemies);
+      break;
+    }
+    case 'dungeon_invite': {
+      // Show to everyone who isn't already in that dungeon
+      if(window.GameState?.mode !== 'dungeon') showCoopDungeonInvite(ev);
+      break;
+    }
+    case 'start_campaign': {
+      window.location.href = ev.url;
+      break;
+    }
+    case 'party_update': {
+      if(ev.party) coopParty = ev.party;
+      refreshPartyList(); updatePartyHUD();
+      break;
+    }
+    case 'field_rest': {
+      if(typeof fieldRest==='function') fieldRest();
+      break;
+    }
+    case 'start_game': {
+      if(!coopIsHost){
+        if(ev.hostX!=null){ G.x=ev.hostX+2; G.y=ev.hostY; }
+        window.GameState.player = window.G;
+        closeCoopLobby();
+        addLog('The host has started! Entering the world…','disc');
+        toast('⚔ Party adventure begins!');
       }
       break;
     }
-
-    case 'dungeon_invite':{
-      // Party member received dungeon invite from host
-      const _dId=data.dungeonId;
-      addLog(`⚔ Party is entering ${_dId.replace(/_/g,' ')}…`,'disc');
-      toast('Following party into dungeon…');
-      saveGame();
-      setTimeout(()=>{
-        window.location.href='dungeons/dungeon-engine.html?dungeon='+_dId;
-      },800);
-      break;}
-
-    case 'welcome':
-      coopParty = data.party;
-      coopActive = true;
-      G.partyIdx = data.partyIdx;
-      closeCoopLobby();
-      applyWorldSnapshot(data.worldState);
-      // Make sure the game screen is showing (peer might be on create screen
-      // if they haven't started a character yet — in that case we
-      // need to check if G has a valid character)
-      if(G.cls && G.race && G.name){
-        document.getElementById('screen-create').classList.remove('active');
-        document.getElementById('screen-game').classList.add('active');
-        // Re-init if not already done
-        if(!document.getElementById('world-cv').width){
-          initGame();
-        } else {
-          buildInventoryUI();
-          buildPortalShortcuts();
-          updateHUD();
+    case 'combat_invite': {
+      // Show to everyone not currently in combat
+      if(!G.inCombat) showCoopCombatInvite(ev);
+      break;
+    }
+    case 'combat_join': {
+      if(G.inCombat && ev.player){
+        addCombatLog(`${ev.player} joins the fight!`,'player-hit');
+        addLog(`${ev.player} joins combat!`,'sys');
+        // Add peer as a combatant the enemy can target
+        if(!combat.partyMembers) combat.partyMembers = [];
+        combat.partyMembers.push({name:ev.player, id:ev._from, hp:ev.hp||50, hpMax:ev.hpMax||50, ac:ev.ac||12});
+        // Broadcast updated combat state to all
+        coopBroadcast({type:'combat_state_full',
+          enemies: combat.enemies.map(e=>({hp:e.hp,hpMax:e.hpMax,name:e.def.name,icon:e.def.icon})),
+          partyMembers: combat.partyMembers,
+          log: ev.player+' has joined the battle!', logType:'player-hit'
+        });
+      }
+      break;
+    }
+    case 'combat_action_from_peer': {
+      // Host processes a peer's combat action
+      if(coopIsHost && G.inCombat && ev.action){
+        const peerName = coopParty.find(p=>p&&p.id===ev._from)?.name || 'Ally';
+        // Apply peer's action to current enemy
+        const target = combat.enemies.find(e=>e.hp>0);
+        if(target){
+          const roll=d20(), toHit=roll+(ev.atkBonus||2);
+          if(toHit>=target.ac||roll===20){
+            const dmg = rollDice(8,1)+(ev.dmgBonus||0);
+            target.hp = Math.max(0,target.hp-dmg);
+            addCombatLog(`${peerName}: ${ev.action} hits for ${dmg}!`,'player-hit');
+          } else {
+            addCombatLog(`${peerName}: ${ev.action} misses!`,'miss');
+          }
+          // Broadcast updated enemy HP to all
+          coopBroadcast({type:'combat_state_full',
+            enemies: combat.enemies.map(e=>({hp:e.hp,hpMax:e.hpMax,name:e.def.name,icon:e.def.icon})),
+            log: null
+          });
+          updateBattlefieldBars();
+          checkCombatEnd();
         }
       }
-      refreshPartyList();
-      updatePartyHUD();
-      addLog(`⚔ Joined ${coopParty[0]?.name||'host'}'s party as Player ${data.partyIdx+1}!`,'disc');
-      addLog(`Party: ${coopParty.filter(Boolean).map(p=>p.name).join(', ')}`,'sys');
-      addLog('WASD or click to move. Your position is shown on the map.','sys');
-      render();
       break;
-
-    case 'party_update':
-      coopParty = data.party;
-      refreshPartyList();
-      updatePartyHUD();
-      break;
-
-    case 'world_state':
-      // Peer receives authoritative world snapshot from host
-      if(!coopIsHost) applyWorldSnapshot(data.state);
-      updatePartyHUD();
-      render();
-      break;
-
-    case 'combat_start':
-      if(!coopIsHost){
-        G.inCombat = true;
-        // Ensure enemy object has all fields tickCombat needs
-        combat.enemy = {
-          def:  data.enemy.def,
-          hp:   data.enemy.hp,
-          hpMax:data.enemy.hpMax,
-          ac:   data.enemy.ac,
-          atk:  data.enemy.atk,
-          dmg:  data.enemy.dmg,
-          isCampBoss: data.enemy.isCampBoss||false,
-          phaseTwo: null, phaseFired: false,
-          stunned:0, intimidated:false,
-        };
-        combat.round      = 1;
-        combat.active     = true;
-        combat.playerTurn = true;
-        combat.queuedAction = null;
-        combat.playerTimer  = combat.playerTimerMax;
-        combat.enemyTimer   = combat.enemyTimerMax;
-        buildCombatUI();
-        document.getElementById('ov-combat').classList.add('active');
-        addCombatLog('The party engages: '+data.enemy.def.name+'!');
-        addLog(`⚔ ${data.enemy.def.name} attacks the party!`,'combat');
-        combat.lastTick = performance.now();
-        if(combat.animFrame) cancelAnimationFrame(combat.animFrame);
-        combat.animFrame = requestAnimationFrame(tickCombat);
-      }
-      break;
-
-    case 'combat_state':
-      // Host broadcasts updated combat bars to all peers
-      if(!coopIsHost && combat.enemy){
-        combat.enemy.hp = data.enemyHp;
-        combat.round    = data.round;
-        updateCombatBars();
-        if(data.log) addCombatLog(data.log, data.logType||'');
-        if(data.playerHp !== undefined){ G.hp=data.playerHp; updateHUD(); }
-      }
-      // Also update party member HP in the HUD
-      if(data.partyHp) updatePartyHpFromData(data.partyHp);
-      break;
-
-    case 'combat_action':{
-      // Peer sends their action to the host
-      if(coopIsHost && combat.active && combat.enemy){
-        const pName = coopParty[fromConn._partyIdx]?.name || 'Ally';
-        // Execute as a simplified hit on behalf of the peer
-        const roll  = d20();
-        const toHit = roll + 3; // peer's atk bonus (simplified — use their stored stats)
-        const peer  = coopParty[fromConn._partyIdx];
-        const hit   = toHit >= combat.enemy.ac || roll===20;
-        const dmg   = hit ? rollDice(8,1)+2 : 0;
-        if(hit){ combat.enemy.hp -= dmg; playSound('hit'); }
-        else    { playSound('miss'); }
-        const msg = hit
-          ? `${pName}: ${data.action} for ${dmg}!`
-          : `${pName}: ${data.action} — misses!`;
-        addCombatLog(msg, hit?'player-hit':'miss');
-        updateCombatBars();
-        coopBroadcastCombatState(msg, hit?'player-hit':'miss');
+    }
+    case 'combat_state_full': {
+      // Peer receives authoritative combat state from host
+      if(!coopIsHost && G.inCombat && ev.enemies){
+        // Update enemy HP bars to match host's state
+        ev.enemies.forEach((eData,i)=>{
+          if(combat.enemies[i]){
+            combat.enemies[i].hp    = eData.hp;
+            combat.enemies[i].hpMax = eData.hpMax;
+          }
+        });
+        if(ev.log) addCombatLog(ev.log, ev.logType||'sys');
+        updateBattlefieldBars();
         checkCombatEnd();
       }
       break;
     }
-
-    case 'combat_end':
-      if(!coopIsHost){
-        if(combat.animFrame){ cancelAnimationFrame(combat.animFrame); combat.animFrame=null; }
-        combat.active = false; combat.playerTurn = false;
-        hideHealTargetPicker();
-        document.getElementById('ov-combat').classList.remove('active');
-        G.inCombat = false;
-        if(data.victory){
-          addLog(`Party victory! +${data.xp} XP, +${data.gold} gp`,'loot');
-          G.xp   += data.xp;
-          G.gold += data.gold;
-          if(G.mpMax>0){
-            const r=Math.max(1,Math.floor(G.mpMax*0.3));
-            G.mp=Math.min(G.mpMax,G.mp+r);
-          }
-          while(G.xp>=G.xpNext) doLevelUp();
-        } else {
-          addLog('The party was defeated.','combat');
-        }
-        updateHUD(); saveGame(); render();
+    case 'party_member_hit': {
+      // We got hit by an enemy (host told us)
+      if(!coopIsHost && ev.targetId===coopMyId){
+        G.hp = Math.max(0, ev.newHp);
+        addCombatLog(`You take ${ev.dmg} damage from the enemy!`,'hit');
+        updateBattlefieldBars(); updateHUD(); checkCombatEnd();
       }
-      break;
-
-    case 'peer_move':{
-      if(coopIsHost){
-        const pIdx = fromConn._partyIdx;
-        if(pIdx!=null && coopParty[pIdx]){
-          const px = coopParty[pIdx].x||30;
-          const py = coopParty[pIdx].y||22;
-          const nx = px + data.dx;
-          const ny = py + data.dy;
-          if(nx>=0&&nx<MAP_W&&ny>=0&&ny<MAP_H&&PASSABLE.has(worldMap[ny*MAP_W+nx])){
-            coopParty[pIdx].x = nx;
-            coopParty[pIdx].y = ny;
-            // Portal
-            if(worldMap[ny*MAP_W+nx]===T.PORTAL){
-              const portal=PORTALS.find(p=>p.x===nx&&p.y===ny);
-              if(portal) fromConn.send({type:'portal_prompt',campaignId:portal.campaignId});
-            }
-            // Town — tell peer to enter
-            for(const t of TOWNS){
-              if(Math.abs(nx-t.x)<=1&&Math.abs(ny-t.y)<=1){
-                fromConn.send({type:'enter_town', town:t}); break;
-              }
-            }
-            // Encounter — host triggers combat and broadcasts to all
-            if(!G.inCombat && G.encounterCooldown<=0){
-              const type=worldMap[ny*MAP_W+nx];
-              let chance=type===T.DANGER?.35:type===T.FOREST?.1:0;
-              if(chance>0&&Math.random()<chance){ triggerCombat(type); }
-            }
-          }
-          // Send world_state immediately back to the mover for responsive feel
-          fromConn.send({type:'world_state', state:buildWorldSnapshot()});
-          // Also broadcast to others (less urgently)
-          coopBroadcastWorldState();
-        }
-      }
+      // Update party display for everyone
+      const hitP = coopParty.find(p=>p&&p.id===ev.targetId);
+      if(hitP) hitP.hp = ev.newHp;
+      updatePartyHUD();
       break;
     }
-
-    case 'start_campaign':{
-      if(!coopIsHost){
-        // Show dungeon invite popup with accept/decline + 15s timer
-        const _hostName = coopParty[0]?.name || 'Your party leader';
-        showDungeonInvite(data.campaignId, _hostName);
-      }
-      break;    }
-
-    case 'portal_prompt':
-      // Peer walked into a portal tile — show dungeon invite if party is active,
-      // otherwise show the normal portal info screen
-      if(!coopIsHost){
-        if(coopActive && coopParty.length > 1){
-          showDungeonInvite(data.campaignId, 'You found a portal');
-        } else {
-          openPortal(data.campaignId);
-        }
-      }
-      break;
-    case 'enter_town':
-      if(!coopIsHost) enterTown(data.town);
-      break;
-    case 'hp_update':
-      // Direct HP update sent to a specific peer (e.g. after being healed)
-      if(!coopIsHost){
-        G.hp = data.hp; G.hpMax = data.hpMax;
-        if(data.msg) addCombatLog(data.msg, 'player-hit');
-        updateCombatBars(); updateHUD(); updatePartyHUD();
-        playSound('heal');
-      }
-      break;
-
-    case 'member_queued':
-      // Another party member queued an action — update their entry in panel
-      if(!coopIsHost){
-        if(!partyTimers[data.partyIdx])
-          partyTimers[data.partyIdx]={timer:combat.playerTimerMax,timerMax:combat.playerTimerMax,queued:false,action:''};
-        partyTimers[data.partyIdx].queued = true;
-        partyTimers[data.partyIdx].action = data.action;
-        buildPartyCombatPanel();
-      } else {
-        // Other peers queued — tell all
-        coopBroadcast({type:'member_queued', partyIdx:data.partyIdx||fromConn._partyIdx, action:data.action, name:data.name});
-      }
-      break;
-
-    case 'camp_combat_start':
-      // Host started campaign combat — peer closes campaign overlay and enters combat
-      if(!coopIsHost){
-        document.getElementById('ov-campaign').classList.remove('active');
-        G.inCombat = true;
-        combat.enemy = {
-          def:  data.enemy.def,
-          hp:   data.enemy.hp, hpMax:data.enemy.hpMax,
-          ac:   data.enemy.ac, atk:data.enemy.atk, dmg:data.enemy.dmg,
-          isCampBoss:true, campRoom:null,
-          phaseTwo:data.enemy.phaseTwo||null, phaseFired:false,
-          stunned:0, intimidated:false,
-        };
-        combat.round=1; combat.active=true;
-        combat.playerTurn=true; combat.queuedAction=null;
-        combat.playerTimer=combat.playerTimerMax;
-        combat.enemyTimer=combat.enemyTimerMax;
-        buildCombatUI();
-        document.getElementById('ov-combat').classList.add('active');
-        addCombatLog('⚔ '+data.enemy.def.name+' — the party engages!');
-        addLog('⚔ Campaign combat: '+data.enemy.def.name+'!','combat');
-        combat.lastTick=performance.now();
-        if(combat.animFrame) cancelAnimationFrame(combat.animFrame);
-        combat.animFrame=requestAnimationFrame(tickCombat);
-      }
-      break;
-
-    case 'engage_request':
-      if(coopIsHost && campState && campState.pendingRoom){
-        if(!combat.active){
-          startCampCombat();
-        } else {
-          coopOnCampCombatStart(campState.pendingRoom);
-        }
-      }
-      break;
-
-    case 'room_advance':{
-      // Host advanced to next room — peer follows
-      if(!coopIsHost && campState){
-        const _room = campState.camp.rooms.find(r=>r.id===data.roomId);
-        if(_room){
-          campState.prog.roomIdx = campState.camp.rooms.indexOf(_room);
-          campState.prog.completedRooms.push(data.roomId);
-          document.getElementById('ov-combat').classList.remove('active');
-          G.inCombat=false; combat.active=false;
-          if(combat.animFrame){cancelAnimationFrame(combat.animFrame);combat.animFrame=null;}
-          showRoom(_room);
-        }
-      }
+    case 'member_queued': {
+      // Show in party bar that someone queued an action
+      const p = coopParty.find(p=>p&&p.id===ev._from);
+      if(p) addLog(`${p.name} queues: ${ev.action}`,'sys');
       break;
     }
-
-    case 'field_rest':{
-      if(coopIsHost){
-        // Peer rested — update their HP/MP and broadcast
-        const pIdx = fromConn._partyIdx;
-        if(coopParty[pIdx]){
-          coopParty[pIdx].hp = Math.min(coopParty[pIdx].hpMax,
-            (coopParty[pIdx].hp||0) + Math.floor((coopParty[pIdx].hpMax||10)*0.05));
-          coopParty[pIdx].mp = Math.min(coopParty[pIdx].mpMax||0,
-            (coopParty[pIdx].mp||0) + Math.floor((coopParty[pIdx].mpMax||10)*0.2));
-          coopBroadcastWorldState();
-        }
-      }
-      break;
-    }
-
-    case 'chat':
-      addLog(`[${data.from}]: ${data.msg}`);
-      break;
   }
 }
 
-// ── BROADCAST HELPERS ──
-function coopBroadcast(data){
-  coopConns.forEach(conn=>{ try{ conn.send(data); }catch(e){} });
-}
-
-function buildWorldSnapshot(){
-  // Snapshot of all party positions + vital stats
-  const members = coopParty.map((p,i)=>p?{
-    partyIdx:i, name:p.name, cls:p.cls, color:p.color||PARTY_COLORS[i],
-    x:i===0?G.x:p.x||30, y:i===0?G.y:p.y||22,
-    hp:i===0?G.hp:p.hp||10, hpMax:i===0?G.hpMax:p.hpMax||10,
-    mp:i===0?G.mp:p.mp||10, mpMax:i===0?G.mpMax:p.mpMax||10,
-    level:i===0?G.level:p.level||1,
-  }:null).filter(Boolean);
-  return {members, hostX:G.x, hostY:G.y};
-}
-
-function applyWorldSnapshot(state){
-  if(!state||!state.members) return;
-  const now = Date.now();
-  state.members.forEach(m=>{
-    if(coopParty[m.partyIdx]) Object.assign(coopParty[m.partyIdx], m);
-    else coopParty[m.partyIdx] = m;
-    // Update G stats for this peer — but don't snap position if we moved very recently
-    // (avoids rubber-band from network latency)
-    if(!coopIsHost && m.partyIdx === G.partyIdx){
-      const recentMove = G._lastMoveTime && (now - G._lastMoveTime) < 400;
-      if(!recentMove){
-        G.x = m.x; G.y = m.y;
-      }
-      // Always sync hp/mp from host (these are authoritative)
-      G.hp = m.hp; G.hpMax = m.hpMax;
-      G.mp = m.mp; G.mpMax = m.mpMax;
-    }
-  });
-}
+// ── BROADCAST HELPERS (legacy compat) ────────────────────────────────────────
 
 function coopBroadcastWorldState(){
-  if(!coopIsHost||!coopConns.length) return;
-  coopBroadcast({type:'world_state', state:buildWorldSnapshot()});
+  if(!coopActive) return;
+  coopBroadcast({type:'world_sync', x:G.x, y:G.y, hp:G.hp, hpMax:G.hpMax});
 }
 
 function coopBroadcastCombatState(log, logType){
-  if(!coopIsHost) return;
-  const partyHp = coopParty.map((p,i)=>({
-    idx:i, hp:i===0?G.hp:p?.hp||0, hpMax:i===0?G.hpMax:p?.hpMax||1
-  }));
-  coopBroadcast({type:'combat_state',
-    enemyHp:combat.enemy?.hp||0,
-    round:combat.round,
-    log, logType, partyHp,
-    playerHp:G.hp,
-  });
+  if(!coopActive||!coopIsHost) return;
+  coopBroadcast({type:'combat_state', log, logType});
 }
 
-function coopBroadcastCombatEnd(victory, xp, gold){
-  coopBroadcast({type:'combat_end', victory, xp:xp||0, gold:gold||0});
+function coopBroadcastCombatEnd(victory,xp,gold){
+  if(!coopActive||!coopIsHost) return;
+  coopBroadcast({type:'combat_end', victory, xp, gold});
 }
 
-// ── HOST sends combat_start when a fight begins ──
-// ── Hooked into triggerCombat ──
-function coopOnCombatStart(){
-  if(!coopIsHost||!coopConns.length) return;
-  coopBroadcast({type:'combat_start', enemy:{
-    def:{name:combat.enemy.def.name,icon:combat.enemy.def.icon,xp:combat.enemy.def.xp},
-    hp:combat.enemy.hp, hpMax:combat.enemy.hpMax,
-    ac:combat.enemy.ac, atk:combat.enemy.atk, dmg:combat.enemy.dmg,
-    isCampBoss:combat.enemy.isCampBoss||false,
-  }, round:1});
-}
-
-function coopOnCampCombatStart(room){
-  if(!coopIsHost||!coopConns.length) return;
-  // Send campaign-specific combat_start with room context
-  // so peers close their campaign overlay and open combat
-  coopBroadcast({type:'camp_combat_start', enemy:{
-    def:{name:combat.enemy.def.name, icon:combat.enemy.def.icon,
-         xp:combat.enemy.def.xp||150},
-    hp:combat.enemy.hp, hpMax:combat.enemy.hpMax,
-    ac:combat.enemy.ac, atk:combat.enemy.atk, dmg:combat.enemy.dmg,
-    isCampBoss:true,
-    phaseTwo:combat.enemy.phaseTwo||null,
-  }, roomId:room.id, round:1});
-}
-
-// ── Patching checkCombatEnd to broadcast result ──
-// co-op wrapper removed
-
-// ── PEER SENDS MOVES/ACTIONS TO HOST ──
 function coopSendMove(dx,dy){
-  if(coopIsHost||!coopConns.length) return;
-  G._lastMoveTime = Date.now();
-  coopConns[0].send({type:'peer_move', dx, dy});
+  if(!coopActive) return;
+  coopBroadcast({type:'peer_move', dx, dy, x:G.x, y:G.y});
 }
 
 function coopSendAction(action){
-  if(coopIsHost||!coopConns.length) return;
-  coopConns[0].send({type:'combat_action', action, playerName:G.name});
+  if(!coopActive) return;
+  coopBroadcast({type:'combat_action', action});
 }
 
 function coopSendFieldRest(){
-  if(coopIsHost||!coopConns.length) return;
-  coopConns[0].send({type:'field_rest'});
-}
-
-// ── PARTY HUD ── (strip below/above main view)
-
-// ── Minimap mode switch (world vs dungeon) ──
-function updateMinimapMode(){
-  const worldCv   = document.getElementById('minimap-cv');
-  const dungeonCv = document.getElementById('minimap-dungeon-cv');
-  const label     = document.getElementById('minimap-label');
-  if(!worldCv||!dungeonCv) return;
-  const inDungeon = !!campState;
-  worldCv.style.display   = inDungeon ? 'none'  : 'block';
-  dungeonCv.style.display = inDungeon ? 'block' : 'none';
-  if(label) label.textContent = inDungeon ? '⬟ Dungeon Map' : '⬡ Minimap';
-  if(inDungeon) drawDungeonMapSmall(dungeonCv);
-}
-
-function drawDungeonMapSmall(cv){
-  if(!cv||!campState) return;
-  const camp=campState.camp, prog=campState.prog;
-  const W=170,H=128;
-  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
-  const ctx=cv.getContext('2d');
-  ctx.clearRect(0,0,W,H);
-  ctx.fillStyle='#060308';ctx.fillRect(0,0,W,H);
-  const rooms=camp.rooms, done=new Set(prog.completedRooms||[]);
-  const cur=rooms[prog.roomIdx];
-  const nodeR=6, colW=W/3;
-  const rowH=Math.min(26,(H-10)/Math.max(rooms.length,1));
-  const pos={};
-  rooms.forEach((r,i)=>{
-    const prev=rooms[i-1];let col=1;
-    if(prev&&prev.type==='choice'&&prev.choices){
-      const mc=prev.choices.findIndex(ch=>ch.next===r.id);
-      if(mc===0)col=0;else if(mc===1)col=2;
-    }
-    pos[r.id]={x:(col+0.5)*colW,y:8+i*rowH};
-  });
-  ctx.lineWidth=1;
-  rooms.forEach(r=>{
-    const from=pos[r.id];if(!from)return;
-    const targets=r.next?[r.next]:[];
-    if(r.choices)r.choices.forEach(ch=>ch.next&&targets.push(ch.next));
-    targets.forEach(tid=>{
-      const to=pos[tid];if(!to)return;
-      ctx.strokeStyle=done.has(r.id)?'#2a4a2a':'#1a0830';
-      ctx.beginPath();ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);ctx.stroke();
-    });
-  });
-  rooms.forEach((r,i)=>{
-    const p=pos[r.id];if(!p)return;
-    const isCur=r===cur,isDone=done.has(r.id),isBoss=r.type==='boss';
-    ctx.fillStyle=isDone?'#1a3a1a':isBoss?'#2a0808':isCur?'#3a1870':'#1a0830';
-    ctx.beginPath();ctx.arc(p.x,p.y,nodeR,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle=isDone?'#3a6a3a':isBoss?'#8b1a1a':isCur?'#c090ff':'#2a1040';
-    ctx.lineWidth=isCur?2:1;
-    ctx.beginPath();ctx.arc(p.x,p.y,nodeR,0,Math.PI*2);ctx.stroke();
-    ctx.font=`${nodeR}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillStyle=isCur?'#d0a0ff':isDone?'#5a9a5a':isBoss?'#c47b7b':'#4a2060';
-    ctx.fillText(isDone?'✓':isBoss?'💀':isCur?'●':'·',p.x,p.y);
-  });
-}
-
-function updatePartyHUD(){
-  let hud = document.getElementById('party-hud');
-  if(!hud) return;
-  if(!coopActive || coopParty.filter(Boolean).length < 2){
-    hud.style.display='none'; return;
-  }
-  hud.style.display='flex';
-  hud.innerHTML = coopParty.filter(Boolean).map((p,i)=>{
-    const hp    = i===0 ? G.hp    : (p.hp||0);
-    const hpMax = i===0 ? G.hpMax : (p.hpMax||1);
-    const pct   = Math.max(0,hp/hpMax*100);
-    const color = p.color||PARTY_COLORS[i];
-    const isMe  = (!coopIsHost && i===G.partyIdx) || (coopIsHost && i===0);
-    return `<div style="display:flex;align-items:center;gap:5px;padding:3px 6px;
-        border:1px solid ${isMe?color:'#3a2010'};background:rgba(0,0,0,.4);min-width:110px;">
-      <span style="color:${color};font-size:.6rem;">●</span>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:.58rem;color:${color};font-family:Cinzel,serif;
-          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}${isMe?' ★':''}</div>
-        <div style="height:4px;background:#1a0e06;margin-top:2px;">
-          <div style="width:${pct}%;height:100%;background:${color};opacity:.8;transition:width .3s;"></div>
-        </div>
-      </div>
-      <span style="font-size:.56rem;color:#7a6050;">${hp}/${hpMax}</span>
-    </div>`;
-  }).join('');
-}
-
-function updatePartyHpFromData(partyHp){
-  partyHp.forEach(p=>{
-    if(coopParty[p.idx]) { coopParty[p.idx].hp=p.hp; coopParty[p.idx].hpMax=p.hpMax; }
-  });
-  updatePartyHUD();
-}
-
-// ── OTHER PLAYERS ON MAP ──
-// Called at end of render() to draw party member sprites
-function drawCoopPlayers(stX,stY,offX,offY){
   if(!coopActive) return;
-  coopParty.forEach((p,i)=>{
-    if(!p) return;
-    const isSelf = (coopIsHost && i===0) || (!coopIsHost && i===G.partyIdx);
-    if(isSelf) return; // self is drawn by main player render
-    const px = (p.x||30), py = (p.y||22);
-    const sx = (px-stX)*TILE+offX, sy = (py-stY)*TILE+offY;
-    if(sx<-TILE||sx>vpW+TILE||sy<-TILE||sy>vpH+TILE) return;
-    const color = p.color||PARTY_COLORS[i];
-    ctx.save();
-    // Shadow
-    ctx.fillStyle='rgba(0,0,0,.35)';
-    ctx.beginPath();ctx.ellipse(sx+TILE/2,sy+TILE-5,8,4,0,0,Math.PI*2);ctx.fill();
-    // Body — different colour per player
-    ctx.fillStyle=color;
-    ctx.beginPath();ctx.arc(sx+TILE/2,sy+TILE/2-2,10,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#2a1a5a';
-    ctx.fillRect(sx+TILE/2-5,sy+TILE/2+6,10,10);
-    ctx.strokeStyle='#1a0e06';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.arc(sx+TILE/2,sy+TILE/2-2,10,0,Math.PI*2);ctx.stroke();
-    ctx.strokeRect(sx+TILE/2-5,sy+TILE/2+6,10,10);
-    // Name tag
-    ctx.font="bold 8px 'Cinzel',serif";
-    ctx.fillStyle=color; ctx.textAlign='center';
-    ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=3;
-    ctx.fillText(p.name.slice(0,8),sx+TILE/2,sy-3);
-    ctx.restore();
-  });
+  coopBroadcast({type:'field_rest'});
 }
 
-// ── PERIODIC STATE BROADCAST (host → peers, every 200ms) ──
 function startCoopBroadcastLoop(){
-  if(_coopBroadcastTimer) clearInterval(_coopBroadcastTimer);
-  _coopBroadcastTimer = setInterval(()=>{
-    if(coopIsHost && coopConns.length>0 && !G.inCombat){
-      if(coopParty[0]){ coopParty[0].x=G.x; coopParty[0].y=G.y;
-        coopParty[0].hp=G.hp; coopParty[0].mp=G.mp; }
-      coopBroadcastWorldState();
-    }
-  }, 500); // 500ms — plenty for world movement, reduces traffic
+  // State is pushed via coopBroadcast on each action — no polling loop needed
 }
+
+// ── DISCONNECT ────────────────────────────────────────────────────────────────
 
 function coopDisconnect(){
-  if(_coopBroadcastTimer){ clearInterval(_coopBroadcastTimer); _coopBroadcastTimer=null; }
-  if(coopPeer){ try{ coopPeer.close(); }catch(e){} coopPeer=null; }
-  if(_fbRoomRef){ _fbRoomRef.off(); _fbRoomRef=null; }
-  if(coopRoomCode&&_db) _db.ref('rooms/'+coopRoomCode).remove();
-  coopConns=[]; coopParty=[]; coopIsHost=false; coopRoomCode=null; coopActive=false;
+  if(_fbRoomRef && coopMyId){
+    _fbRoomRef.child('players/'+coopMyId).remove();
+    if(coopIsHost) _fbRoomRef.child('meta').remove();
+  }
+  _coopListeners.forEach(off=>{ try{off();}catch(e){} });
+  _coopListeners = [];
+  coopActive   = false;
+  coopIsHost   = false;
+  coopRoomCode = null;
+  coopConns    = [];
+  coopParty    = [];
+  coopMyId     = null;
+  _fbRoomRef   = null;
   coopHidePanels();
-  setCoopStatus('host','warn','Disconnected.');
+  setCoopStatus('host','','');
+  setCoopStatus('join','','');
   updatePartyHUD();
-  addLog('Left co-op session.','sys');
-}
-
-// ── Host: on click "Start Campaign" after all joined ──
-function coopStartCampaign(){
-  if(!coopIsHost) return;
+  addLog('Left party.','sys');
+  toast('Disconnected from party');
   closeCoopLobby();
-  coopActive = true;
-  coopParty[0] = buildMyPlayerData(0);
-  coopBroadcast({type:'party_update', party:coopParty});
-  startCoopBroadcastLoop();
-  updatePartyHUD();
-  addLog('Party ready! Find a portal to begin a campaign.','disc');
 }
 
-// ── Refresh lobby list ──
-function refreshPartyList(){
-  const list=document.getElementById('coop-player-list');
-  if(!list) return;
-  list.innerHTML=coopParty.filter(Boolean).map((p,i)=>`
-    <div class="player-row">
-      <div class="player-dot" style="background:${p.color||PARTY_COLORS[i]}"></div>
-      <div class="player-name-display">${p.name}</div>
-      <div class="player-class-display">${p.race} ${p.cls} · Lv.${p.level}</div>
-    </div>`).join('');
-}
-
-function buildMyPlayerData(idx){
-  return{
-    partyIdx:idx, peerId:coopPeer?.id||'',
-    name:G.name||'Adventurer', cls:G.cls?.name||'?', race:G.race?.name||'?',
-    level:G.level||1, hp:G.hp, hpMax:G.hpMax, mp:G.mp, mpMax:G.mpMax,
-    x:G.x, y:G.y,
-    color:PARTY_COLORS[idx%PARTY_COLORS.length],
-  };
-}
-
-function setCoopStatus(panel,type,msg){
-  const id=panel==='host'?'coop-host-status':'coop-join-status';
-  const el=document.getElementById(id);
-  if(el) el.innerHTML=`<span class="${type}">${msg}</span>`;
+function coopStartCampaign(){
+  if(!coopIsHost){ toast('Only the host can start campaigns','err'); return; }
+  if(coopParty.filter(Boolean).length < 2){ toast('Wait for players to join first!','err'); return; }
+  // Broadcast start_game to all peers — they enter the world
+  coopBroadcast({type:'start_game', hostX:G.x, hostY:G.y});
+  closeCoopLobby();
+  addLog('Party adventure started with '+coopParty.length+' players!','disc');
+  toast('⚔ Party started! Select a portal to begin a dungeon.');
 }
 
 
@@ -5275,33 +5551,129 @@ const DUNGEON_FILES = {
   'drowned_citadel': 'dungeons/dungeon-drowned-citadel.html',
 };
 
+// ── Dungeon entry/exit on same canvas ────────────────────────────────────────
+async function enterDungeon(campaignId) {
+  const GS = window.GameState;
+
+  // Save world return point
+  GS.returnMap = GS.activeMap;
+  GS.returnX   = G.x;
+  GS.returnY   = G.y;
+  GS.mode      = 'dungeon';
+  G.inTown     = true; // freeze movement while loading
+
+  toast('Loading dungeon…');
+
+  try {
+    // Fetch raw JSON directly
+    const { data, error } = await window.supabaseClient
+      .from('maps').select('json').eq('id', campaignId).maybeSingle();
+
+    if(error || !data) throw new Error(error?.message || 'Map not found: ' + campaignId);
+
+    const raw = typeof data.json === 'string' ? JSON.parse(data.json) : data.json;
+    console.log('[dungeon] raw keys:', Object.keys(raw), 'tiles:', raw.tiles?.length);
+
+    // Build a map object compatible with GameState/renderer without using GameMap constructor
+    // (GameMap does Uint8Array.from which can fail — we bypass it)
+    const tiles = Array.isArray(raw.tiles) ? raw.tiles : Array.from(raw.tiles || []);
+    const dungeonMap = {
+      id:       raw.id || campaignId,
+      name:     raw.name || campaignId,
+      type:     'dungeon',
+      width:    raw.width,
+      height:   raw.height,
+      tiles:    tiles,
+      entry:    raw.entry,
+      exit:     raw.exit,
+      monsters: raw.monsters || [],
+      rooms:    raw.rooms    || [],
+      towns:    [],
+      portals:  [],
+      getTile(x, y) {
+        if(x < 0 || y < 0 || x >= this.width || y >= this.height) return 8; // WALL
+        return this.tiles[y * this.width + x] ?? 8;
+      }
+    };
+
+    GS.activeMap = dungeonMap;
+
+    // Spawn player at entry
+    const ex = raw.entry?.x ?? 5;
+    const ey = raw.entry?.y ?? 5;
+    G.x = ex; G.y = ey; G.prevX = ex; G.prevY = ey;
+    GS.player = G;
+
+    // Sync window.MAP_W/H for any legacy code
+    window.MAP_W = dungeonMap.width;
+    window.MAP_H = dungeonMap.height;
+
+    // Store dungeon monsters
+    window._dungeonMonsters = dungeonMap.monsters.map(m => ({...m, alive:true}));
+
+    G.inTown    = false; // re-enable movement
+    G.inCombat  = false;
+
+    // Reset fog of war for new dungeon
+    window._visitedTiles = new Set();
+    markVisited(ex, ey, 4); // reveal entry area
+    updateMinimapMode();     // switch minimap to dungeon mode
+
+    // Broadcast dungeon invite to party
+    if(coopActive){
+      coopBroadcast({type:'dungeon_invite',
+        dungeonId: campaignId,
+        dungeonName: raw.name || campaignId.replace(/_/g,' '),
+        from: G.name,
+      });
+    }
+
+    addLog(`You descend into the ${raw.name || campaignId.replace(/_/g,' ')}. Watch your step.`, 'disc');
+    toast('⚔ Dungeon entered! Find the exit stairs to return.');
+
+  } catch(e) {
+    console.error('[dungeon] load failed:', e);
+    addLog('The dungeon entrance crumbled — cannot enter right now.', 'err');
+    toast('Dungeon load failed: ' + e.message, 'err');
+    // Roll back
+    GS.mode      = 'world';
+    GS.activeMap = GS.returnMap;
+    GS.returnMap = null;
+    G.inTown     = false;
+  }
+}
+
+function exitDungeon() {
+  const GS = window.GameState;
+  if(!GS.returnMap) return;
+  GS.activeMap = GS.returnMap;
+  GS.returnMap = null;
+  G.x = GS.returnX;
+  G.y = GS.returnY;
+  G.prevX = G.x; G.prevY = G.y;
+  GS.player = G;
+  GS.mode = 'world';
+  window.MAP_W = GS.activeMap.width;
+  window.MAP_H = GS.activeMap.height;
+  window._dungeonMonsters = [];
+  updateMinimapMode();
+  addLog('You emerge from the dungeon, blinking in the light.', 'disc');
+  toast('✅ Returned to world');
+}
+window.exitDungeon = exitDungeon;
+
 function startCampaign(){
   const campaignId = pendingPortalId;
   document.getElementById('ov-portal').classList.remove('active');
   G.inTown = false;
 
-  // ── New dungeon engine: navigate to standalone dungeon file ──
+  // ── New dungeon engine: load dungeon map on same canvas ──
   if(DUNGEON_FILES[campaignId]){
     pendingPortalId = null;
     saveGame();
     addLog(`Entering ${campaignId.replace(/_/g,' ')}…`,'disc');
     toast('Entering dungeon…');
-    // Broadcast dungeon invite to co-op party members
-    if(coopActive && coopIsHost && coopConns.length>0){
-      coopBroadcast({type:'dungeon_invite', dungeonId:campaignId});
-      addLog(`Sent dungeon invite to party.`,'sys');
-      // Save room code so we can rejoin after returning from dungeon
-      localStorage.setItem('realmCoopResume', JSON.stringify({
-        code:coopRoomCode, isHost:true, partySize:coopParty.length
-      }));
-    } else if(coopActive && !coopIsHost) {
-      localStorage.setItem('realmCoopResume', JSON.stringify({
-        code:coopRoomCode, isHost:false
-      }));
-    }
-    setTimeout(()=>{
-      window.location.href = 'dungeons/dungeon-engine.html?dungeon='+campaignId;
-    }, 600);
+    enterDungeon(campaignId);
     return;
   }
 
@@ -5577,10 +5949,22 @@ function checkEncounterAvoid(){
 
 // ── New & upgraded action execution (called from executePlayerAction) ──
 function executeCustomAction(action, e){
-  const upg = G.cls.upgradedActions && G.cls.upgradedActions[action];
-  const cust = G.cls.customActions && G.cls.customActions[action];
-  const src = upg || cust;
-  if(!src) return null; // not custom
+  const upg  = G.cls.upgradedActions && G.cls.upgradedActions[action];
+  const cust = G.cls.customActions   && G.cls.customActions[action];
+  // Also check milestone abilities from G.abilities
+  const milestoneAb = (G.abilities||[]).find(ab=>(ab.name||ab)===action && typeof ab==='object');
+  const src = upg || cust || milestoneAb?.combatEffect || milestoneAb?.effect || null;
+  if(!src && !milestoneAb) return null; // not custom
+
+  // Handle milestone ability with no combat effect — apply passive buff
+  if(milestoneAb && !src){
+    if(milestoneAb.effect){
+      Object.assign(G.passives||{}, milestoneAb.effect);
+      addCombatLog(`${action} activated!`,'player-hit');
+      return {hit:false, dmg:0, handled:true};
+    }
+    return null;
+  }
 
   let dmg=0, hit=false, msg='';
   const roll = d20(), toHit = roll + G.atkBonus;
@@ -5706,6 +6090,83 @@ function respawn(){
 // ╔══════════════════════════════════════════════════════╗
 // ║                  LEVEL UP                           ║
 // ╚══════════════════════════════════════════════════════╝
+// ── Ability milestone levels ──────────────────────────────────────────────────
+const ABILITY_MILESTONES = [3, 5, 7, 9, 11, 13, 15];
+
+function showAbilityChoice(level){
+  const CA = window.CLASS_ABILITIES;
+  if(!CA){ console.warn('[abilities] CLASS_ABILITIES not available on window'); closeLevelUp(); return; }
+
+  // Try multiple key formats: id, lowercase name, or iterate all arrays
+  const clsId   = G.cls?.id || G.cls?.name?.toLowerCase()?.replace(/\s+/g,'_');
+  const clsName = G.cls?.name?.toLowerCase();
+  let pool = CA[clsId] || CA[clsName] || CA[clsName?.replace(/\s+/g,'_')] || null;
+
+  // If still not found, try case-insensitive scan of CA keys
+  if(!pool){
+    const key = Object.keys(CA).find(k =>
+      k.toLowerCase() === clsId || k.toLowerCase() === clsName
+    );
+    if(key) pool = CA[key];
+  }
+  // Final fallback
+  if(!pool || !pool.length){
+    pool = CA['fighter'] || CA[Object.keys(CA)[0]] || [];
+  }
+  console.log('[abilities] Using pool for', clsId, '— found', pool.length, 'abilities');
+
+  // Filter to abilities for this level tier that player doesn't already have
+  const owned     = new Set((G.abilities||[]).map(a=>a.name||a));
+  const available = pool.filter(a=>{
+    const tier = a.level || a.minLevel || 1;
+    return tier <= level && !owned.has(a.name);
+  });
+
+  // Offer up to 3 choices (or all if fewer)
+  const choices = available.length <= 3
+    ? available
+    : [0,1,2].map(()=>{
+        const i = Math.floor(Math.random()*available.length);
+        return available.splice(i,1)[0];
+      });
+
+  // If nothing to offer, just close
+  if(!choices.length){
+    addLog('No new abilities available at this level.','sys');
+    closeLevelUp();
+    return;
+  }
+
+  document.getElementById('ab-level-label').textContent = `Level ${level} Milestone`;
+  document.getElementById('ab-instruct').textContent =
+    `${G.name}, you have grown in power. Choose one ability:`;
+
+  const grid = document.getElementById('ab-grid');
+  grid.innerHTML = '';
+  choices.forEach(ab=>{
+    const card = document.createElement('div');
+    card.className = 'ab-card';
+    card.innerHTML = `
+      <div class="ab-card-icon">${ab.icon||'✦'}</div>
+      <div class="ab-card-name">${ab.name}</div>
+      <div class="ab-card-desc">${ab.desc||''}</div>
+      ${ab.passive?'<div class="ab-card-tag">Passive</div>':'<div class="ab-card-tag active-tag">Active</div>'}
+    `;
+    card.onclick = ()=>{
+      if(!G.abilities) G.abilities=[];
+      G.abilities.push(ab);
+      if(ab.effect) Object.assign(G.passives||{}, ab.effect);
+      addLog(`✦ Gained ability: ${ab.name}!`,'disc');
+      toast(`✦ New ability: ${ab.name}!`);
+      document.getElementById('ov-ability').classList.remove('active');
+      recalcStats(); updateHUD(); saveGame();
+    };
+    grid.appendChild(card);
+  });
+
+  document.getElementById('ov-ability').classList.add('active');
+}
+
 function doLevelUp(){
   G.level++;G.xp=G.xp-G.xpNext;G.xpNext=Math.floor(G.xpNext*1.5);
   const cls=G.cls;
@@ -5768,6 +6229,11 @@ function closeLevelUp(){
   updateHUD();
 }
 
+// Clear party combat members when combat ends
+function clearCombatParty(){
+  combat.partyMembers = [];
+}
+
 // ╔══════════════════════════════════════════════════════╗
 // ║                    DEATH                            ║
 // ╚══════════════════════════════════════════════════════╝
@@ -5799,7 +6265,19 @@ function respawn(){
   // Keep level/class/race, reset HP/XP, penalise gold
   G.hp=G.hpMax;G.mp=G.mpMax;G.gold=Math.max(0,Math.floor(G.gold*.5));
   G.xp=0;G.level=1;G.xpNext=200;
-  G.x=120;G.y=90;G.inCombat=false;
+  G.inCombat=false;
+  // If in dungeon, return to overworld on death
+  const GS = window.GameState;
+  if(GS && GS.mode === 'dungeon'){
+    GS.mode = 'world';
+    if(GS.returnMap) GS.activeMap = GS.returnMap;
+    GS.returnMap = null;
+    G.x = GS.returnX || 120;
+    G.y = GS.returnY || 90;
+    addLog('You are dragged out of the dungeon, barely alive.','sys');
+  } else {
+    G.x=120;G.y=90;
+  }
   document.getElementById('ov-death').classList.remove('active');
   addLog('You rise again, weakened but alive.','sys');
   addLog('Half your gold was lost.','sys');
@@ -6287,9 +6765,12 @@ function csLoadCharacter(idx){
     return;
   }
 
-  // Sync GameState.player and multi.G to the loaded window.G
-  GameState.player = window.G;
-  if(window.multi) window.multi.G = window.G;
+  // Sync ALL references to the loaded character
+  // G (local let), window.G, and GameState.player must all point to same object
+  Object.assign(G, window.G); // update local G in-place
+  GameState.player = G;       // renderer uses GameState.player
+  window.G = G;               // keep window.G in sync
+  if(window.multi) window.multi.G = G;
 
   try{ localStorage.setItem('realmSave', JSON.stringify(data)); }catch(e){}
   document.getElementById('screen-charselect').classList.remove('active');
