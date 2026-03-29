@@ -1223,6 +1223,7 @@ function startGame() {
   // Signal engine readiness BEFORE startEngine so render guards pass on first frame
   window.engineReady = true;
 
+  initGame(); // register keyboard + click handlers
   console.log("about to start loop");
   window.startEngine(); // called ONCE only
 
@@ -1851,24 +1852,34 @@ let moveAccum=0;const MOVE_MS=150;
 function onKey(e){
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key))e.preventDefault();
 
-  // 1-6 keys trigger action buttons during combat
+  // ── Movement ──────────────────────────────────────────────────────────────
+  if(!G.inCombat && !G.inTown){
+    if(e.key==='ArrowUp'    ||e.key==='w'||e.key==='W') { tryMove(0,-1); return; }
+    if(e.key==='ArrowDown'  ||e.key==='s'||e.key==='S') { tryMove(0, 1); return; }
+    if(e.key==='ArrowLeft'  ||e.key==='a'||e.key==='A') { tryMove(-1,0); return; }
+    if(e.key==='ArrowRight' ||e.key==='d'||e.key==='D') { tryMove(1, 0); return; }
+  }
+
+  // ── Combat number keys ────────────────────────────────────────────────────
   if(G.inCombat && !combat.playerCasting && ['1','2','3','4','5','6'].includes(e.key)){
     const idx = parseInt(e.key)-1;
     const btns = document.querySelectorAll('#action-grid .action-btn:not(:disabled)');
     if(btns[idx]) btns[idx].click();
     return;
   }
+
+  // ── UI shortcuts ──────────────────────────────────────────────────────────
   if(e.key==='Escape'){
     if(_menuOpen){ closeGameMenu(); return; }
     if(document.getElementById('ov-inventory')?.classList.contains('active')){ closeInventory(); return; }
     if(charSheetOpen){ closeCharSheet(); return; }
     if(document.getElementById('ov-item').classList.contains('active')){ closeItemModal(); return; }
-    // Nothing else to close — open the game menu
     if(document.getElementById('screen-game').classList.contains('active')) openGameMenu();
+    return;
   }
   if((e.key==='m'||e.key==='M') && !G.inCombat &&
-     document.getElementById('screen-game').classList.contains('active')){ openGameMenu(); }
-  if((e.key==='r'||e.key==='R') && !G.inCombat && !G.inTown){ fieldRest(); }
+     document.getElementById('screen-game').classList.contains('active')){ openGameMenu(); return; }
+  if((e.key==='r'||e.key==='R') && !G.inCombat && !G.inTown){ fieldRest(); return; }
   if((e.key==='i'||e.key==='I') && !G.inCombat){
     const invEl=document.getElementById('ov-inventory');
     if(invEl.classList.contains('active')) closeInventory();
@@ -1877,6 +1888,7 @@ function onKey(e){
   }
   if((e.key==='c'||e.key==='C') && !G.inCombat && document.getElementById('ov-item').style.display!=='flex'){
     charSheetOpen ? closeCharSheet() : openCharSheet();
+    return;
   }
   keys[e.key]=true;
 }
