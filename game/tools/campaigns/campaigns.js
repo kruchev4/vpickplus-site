@@ -1,8 +1,8 @@
 import { OVERWORLD_DEFS } from "../world/overworldDefs.js";
 import { generateOverworldTiles, WORLD_WIDTH, WORLD_HEIGHT } from "../world/overworldGenerator.js";
-import { saveWorld } from "../game/campaig/persistence/saveDungeon.js";
+import { saveWorld } from "../game/campaign/persistence/saveDungeon.js";
 
-import { generateCampaign } from "../campaign/generator/generateCampaign.js";
+import { generateCampaign } from "../game/campaign/generator/generateCampaign.js";
 
 document.getElementById("generate").addEventListener("click", async () => {
   const seed = document.getElementById("seed").value;
