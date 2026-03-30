@@ -2299,6 +2299,9 @@ function onKey(e){
 }
 function tryMove(dx, dy) {
   if (G.inCombat) return;
+  const _map = window.GameState?.activeMap;
+  const _mapReady = !!_map;
+
   
 const _W = _map?.width  || window.MAP_W || 240;
 const _H = _map?.height || window.MAP_H || 180;
