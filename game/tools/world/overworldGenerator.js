@@ -3,24 +3,20 @@ console.log("✅ overworldGenerator.js executing");
 
 import { BIOMES } from "./biomes.js";
 
-
 export const WORLD_WIDTH  = 240;
 export const WORLD_HEIGHT = 180;
+
+// ✅ top-level hash (no redeclare per call)
+function hash(x, y) {
+  const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+  return s - Math.floor(s);
+}
 
 export function generateOverworldTiles({ biomeKey, seed }) {
   const biome = BIOMES[biomeKey];
   if (!biome) {
     throw new Error(`Unknown biome: ${biomeKey}`);
   }
-console.log("✅ about to expose generateOverworldTiles");
-window.__generateOverworldTiles = generateOverworldTiles;
-  
-  // Lightweight deterministic hash for world generation
-function hash(x, y) {
-  const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return s - Math.floor(s);
-}
-
 
   const tiles = new Array(WORLD_WIDTH * WORLD_HEIGHT);
 
@@ -36,10 +32,15 @@ function hash(x, y) {
           break;
         }
       }
-      
+
       tiles[idx] = tile;
     }
   }
- 
+
   return tiles;
 }
+
+// ✅ DEV HOOK — MUST BE TOP LEVEL
+console.log("✅ exposing generateOverworldTiles to window");
+window.__generateOverworldTiles = generateOverworldTiles;
+globalThis.__generateOverworldTiles = generateOverworldTiles;
