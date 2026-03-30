@@ -947,6 +947,7 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 };
 
 const GameState = window.GameState;
+  window.GameState._transitioning = false;
 'use strict';
 const worldCanvas = document.getElementById("world-cv");
   async function transitionWorldEdge(dir) {
