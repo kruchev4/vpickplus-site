@@ -936,6 +936,16 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
   // Legacy compatibility bridge — REMOVE later
 
 // Create a local alias for convenience throughout this file
+  window.GameState = {
+  mode: "world",
+  activeMap: null,
+  currentWorldId: "overworld_C",
+  player: null,
+
+  // ✅ REQUIRED: transition guard
+  _transitioning: false
+};
+
 const GameState = window.GameState;
 'use strict';
 const worldCanvas = document.getElementById("world-cv");
