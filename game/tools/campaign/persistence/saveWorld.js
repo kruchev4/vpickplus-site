@@ -1,4 +1,4 @@
-import { supabase } from "./supabaseClient.js";
+import { supabase } from "../../Echoes/engine/supabase/client.js";
 
 export async function saveWorldToSupabase(world) {
   const { data, error } = await supabase
