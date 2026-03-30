@@ -1,6 +1,6 @@
 // src/world/overworldGenerator.js
 import { BIOMES } from "./biomes.js";
-import { hash } from "../utils/hash.js";
+
 
 export const WORLD_WIDTH  = 240;
 export const WORLD_HEIGHT = 180;
@@ -10,6 +10,11 @@ export function generateOverworldTiles({ biomeKey, seed }) {
   if (!biome) {
     throw new Error(`Unknown biome: ${biomeKey}`);
   }
+  // Lightweight deterministic hash for world generation
+function hash(x, y) {
+  const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+  return s - Math.floor(s);
+}
 
   const tiles = new Array(WORLD_WIDTH * WORLD_HEIGHT);
 
