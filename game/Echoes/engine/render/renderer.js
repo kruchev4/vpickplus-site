@@ -52,7 +52,7 @@ function drawForest(ctx, px, py, x, y) {
   }
   // Tree trunks
   const treeCount = 1 + Math.floor(h * 2);
-   (let i = 0; i < treeCount; i++) {
+   for (let i = 0; i < treeCount; i++) {
     const hx = hash(x + i*7, y + i*3);
     const hy = hash(x + i*5, y + i*9);
     const r  = 6 + Math.floor(hx * 5);
