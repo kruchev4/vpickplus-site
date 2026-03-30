@@ -1002,19 +1002,15 @@ function toggleSound(){
 }
 // Overworld adjacency graph
 const WORLD_NEIGHBORS = {
-  overworld_C:  { N: "overworld_N",  NE: "overworld_NE", E: "overworld_E",
-                  SE: "overworld_SE", S: "overworld_S",  SW: "overworld_SW",
-                  W: "overworld_W",  NW: "overworld_NW" },
-
-  overworld_N:  { S: "overworld_C" },
-  overworld_S:  { N: "overworld_C" },
-  overworld_E:  { W: "overworld_C" },
-  overworld_W:  { E: "overworld_C" },
-
-  overworld_NE: { SW: "overworld_C" },
-  overworld_NW: { SE: "overworld_C" },
-  overworld_SE: { NW: "overworld_C" },
-  overworld_SW: { NE: "overworld_C" }
+  overworld_C:  { N:"overworld_N",  S:"overworld_S",  E:"overworld_E",  W:"overworld_W" },
+  overworld_N:  { S:"overworld_C",  E:"overworld_NE", W:"overworld_NW" },
+  overworld_S:  { N:"overworld_C",  E:"overworld_SE", W:"overworld_SW" },
+  overworld_E:  { W:"overworld_C",  N:"overworld_NE", S:"overworld_SE" },
+  overworld_W:  { E:"overworld_C",  N:"overworld_NW", S:"overworld_SW" },
+  overworld_NE: { W:"overworld_N",  S:"overworld_E" },
+  overworld_NW: { E:"overworld_N",  S:"overworld_W" },
+  overworld_SE: { W:"overworld_S",  N:"overworld_E" },
+  overworld_SW: { E:"overworld_S",  N:"overworld_W" }
 };
 
 
