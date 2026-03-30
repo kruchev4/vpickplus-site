@@ -2473,43 +2473,52 @@ if(window.GameState?.mode==='town'){
     }
   }
 
-  // Flavour logs on biome change
-  if(type!==prevType){
-    const msgs={
-      [_T.FOREST]:'You enter a dense, shadowed forest.',
-      [_T.MOUNTAIN]:'The path grows steep and rocky.',
-      [_T.DANGER]:'⚠ A chill runs through you. Something lurks here.',
-      [_T.SAND]:'Hot sand crunches underfoot.',
-      [_T.GRASS]:'You emerge onto open grassland.',
-      [_T.SHALLOW]:'You wade through shallow waters.',
-      
+ // Flavour logs on biome change
+if (type !== prevType) {
+  const msgs = {
+    [_T.FOREST]:   'You enter a dense, shadowed forest.',
+    [_T.MOUNTAIN]: 'The path grows steep and rocky.',
+    [_T.DANGER]:   '⚠ A chill runs through you. Something lurks here.',
+    [_T.SAND]:     'Hot sand crunches underfoot.',
+    [_T.GRASS]:    'You emerge onto open grassland.',
+    [_T.SHALLOW]:  'You wade through shallow waters.',
+
+    // Expansion tiles
     [_T.JUNGLE]:   'Vines and towering foliage close in around you.',
     [_T.VOLCANO]:  '🔥 The ground radiates unbearable heat.',
     [_T.ELDRITCH]: 'Your mind aches as reality feels… wrong.',
     [_T.OBSIDIAN]: 'Black volcanic glass reflects a scarred sky.',
     [_T.BLIGHT]:   'The land here is sick. Nothing thrives.'
+  };
 
-    };
-    if(msgs[type])addLog(msgs[type]);
-    };
-    if(msgs[type])addLog(msgs[type]);
+  if (msgs[type]) {
+    addLog(msgs[type]);
   }
-  if(!G._stepCount)G._stepCount=0;
-  G._stepCount++;
-  if(G._stepCount%3===0) playSound('step');
-  if(G._stepCount%20===0) saveGame();
-  // Broadcast position to party (every step, throttled by Firebase)
-  if(coopActive && coopMyId && _fbRoomRef){
-    _fbRoomRef.child('players/'+coopMyId).update({x:G.x, y:G.y, hp:G.hp, ts:Date.now()});
-  }
-  // Mark visited tiles for fog of war (reveal radius 4 in dungeon, 6 in world)
-  const _fogRadius = window.GameState?.mode==='dungeon' ? 4 : 6;
-  markVisited(G.x, G.y, _fogRadius);
-  // Update minimap every step
-  if(G._stepCount%3===0) updateMinimapMode();
-  render(); updateHUD();
 }
-window.tryMove = tryMove; // expose for main.js setupInput
+
+// Step tracking
+if (!G._stepCount) G._stepCount = 0;
+G._stepCount++;
+
+if (G._stepCount % 3 === 0) playSound('step');
+if (G._stepCount % 20 === 0) saveGame();
+
+// Broadcast position to party (every step, throttled by Firebase)
+if (coopActive && coopMyId && _fbRoomRef) {
+  _fbRoomRef
+    .child('players/' + coopMyId)
+    .update({ x: G.x, y: G.y, hp: G.hp, ts: Date.now() });
+}
+
+// Mark visited tiles for fog of war
+const _fogRadius = window.GameState?.mode === 'dungeon' ? 4 : 6;
+markVisited(G.x, G.y, _fogRadius);
+
+// Update minimap every step
+if (G._stepCount % 3 === 0) updateMinimapMode();
+
+render();
+updateHUD();
 
 // ╔══════════════════════════════════════════════════════╗
 // ║                    COMBAT                           ║
