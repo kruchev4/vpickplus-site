@@ -2227,8 +2227,8 @@ function onKey(e){
   keys[e.key]=true;
 }
 function tryMove(dx, dy) {
-  const _map = window.GameState?.activeMap;
-const _mapReady = !!_map;
+  const _mapb = window.GameState?.activeMap;
+const _mapReady = !!_mapb;
   
   if (G.inCombat) return;
 
