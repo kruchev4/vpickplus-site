@@ -1,5 +1,5 @@
 // src/world/overworldGenerator.js
-console.log("✅ overworldGenerator.js executing");
+
 
 import { BIOMES } from "./biomes.js";
 
@@ -16,6 +16,7 @@ const OVERWORLD_BIOMES = {
   overworld_SE: "jungle",
   overworld_SW: "jungle",
 };
+console.log("biomes added");
 
 // ✅ top-level hash (no redeclare per call)
 function hash(x, y) {
