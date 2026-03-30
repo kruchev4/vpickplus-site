@@ -17,6 +17,10 @@ import { CRAFT_RECIPES }                    from "./engine/data/crafting/recipes
 import { GameState }    from "./engine/state/GameState.js";
 import { loadMap }      from "./engine/supabase/mapLoader.js";
 import { loadWorld } from "./engine/supabase/worldLoader.js";
+
+window.loadWorld = loadWorld;
+window.loadMap   = loadMap;
+
 import { supabase }    from "./engine/supabase/client.js";
 import { renderMap }    from "./engine/render/renderer.js";
 import { updateCamera } from "./engine/camera/camera.js";
