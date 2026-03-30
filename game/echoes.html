@@ -932,32 +932,42 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 <script type="module" src="./Echoes/engine/supabase/client.js"></script>
 <script type="module" src="./Echoes/engine/supabase/mapLoader.js"></script>
 <script>
-  window.IS_NEW_ENGINE = true;
-  // Legacy compatibility bridge — REMOVE later
+'use strict';
 
-// Create a local alias for convenience throughout this file
-  window.GameState = {
-  mode: "world",
-  activeMap: null,
-  currentWorldId: "overworld_C",
-  player: null,
+window.IS_NEW_ENGINE = true;
 
-  // ✅ REQUIRED: transition guard
-  _transitioning: false
+// Never replace GameState entirely — only fill missing fields
+window.GameState = window.GameState || {};
+window.GameState.mode = window.GameState.mode || "world";
+window.GameState.currentWorldId = window.GameState.currentWorldId || "overworld_C";
+window.GameState._transitioning = window.GameState._transitioning || false;
+
+// Optional local alias (safe now that GameState exists)
+const GameState = window.GameState;
+
+// Canvas reference (fine)
+const worldCanvas = document.getElementById("world-cv");
+
+// Ensure neighbors are on window (avoids scope surprises)
+window.WORLD_NEIGHBORS = window.WORLD_NEIGHBORS || {
+  overworld_C:  { N:"overworld_N", S:"overworld_S", E:"overworld_E", W:"overworld_W" },
+  overworld_N:  { S:"overworld_C", E:"overworld_NE", W:"overworld_NW" },
+  overworld_S:  { N:"overworld_C", E:"overworld_SE", W:"overworld_SW" },
+  overworld_E:  { W:"overworld_C", N:"overworld_NE", S:"overworld_SE" },
+  overworld_W:  { E:"overworld_C", N:"overworld_NW", S:"overworld_SW" },
+  overworld_NE: { W:"overworld_N", S:"overworld_E" },
+  overworld_NW: { E:"overworld_N", S:"overworld_W" },
+  overworld_SE: { W:"overworld_S", N:"overworld_E" },
+  overworld_SW: { E:"overworld_S", N:"overworld_W" }
 };
 
-const GameState = window.GameState;
-  window.GameState._transitioning = false;
-'use strict';
-const worldCanvas = document.getElementById("world-cv");
-  window.transitionWorldEdge = async function transitionWorldEdge(dir) {
+// Transition function (single authoritative version)
+window.transitionWorldEdge = async function transitionWorldEdge(dir) {
   const GS = window.GameState;
   if (!GS) return false;
-
-  // guard to prevent double-trigger while loading
   if (GS._transitioning) return true;
 
-  const curId  = GS.currentWorldId || "overworld_C";
+  const curId = GS.currentWorldId || "overworld_C";
   const nextId = window.WORLD_NEIGHBORS?.[curId]?.[dir];
 
   if (!nextId) {
@@ -971,24 +981,20 @@ const worldCanvas = document.getElementById("world-cv");
   }
 
   GS._transitioning = true;
-
   try {
     const nextMap = await window.loadWorld(nextId);
 
-    // swap active map + id
     GS.activeMap = nextMap;
     GS.currentWorldId = nextId;
 
-    // update global dims used by renderer/minimap/etc.
     window.MAP_W = nextMap.width;
     window.MAP_H = nextMap.height;
-
     if (window.worldMap) {
       window.worldMap.width  = nextMap.width;
       window.worldMap.height = nextMap.height;
     }
 
-    // wrap player to opposite edge
+    // Wrap player
     if (dir === "W") G.x = nextMap.width - 1;
     if (dir === "E") G.x = 0;
     if (dir === "N") G.y = nextMap.height - 1;
@@ -997,20 +1003,19 @@ const worldCanvas = document.getElementById("world-cv");
     GS.player = G;
 
     if (typeof addLog === "function") addLog(`You enter ${nextId.replace("overworld_", "")}.`);
-
     render();
     updateHUD();
     return true;
-
   } catch (e) {
     console.error("[transition] failed:", e);
     if (typeof toast === "function") toast(`World transition failed: ${e.message}`, "err");
     return false;
-
   } finally {
     GS._transitioning = false;
   }
 };
+
+
 
     // wrap player to opposite edge
     if (dir === "N") G.y = nextMap.height - 1;
