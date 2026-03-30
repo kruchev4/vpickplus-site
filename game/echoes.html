@@ -2226,7 +2226,7 @@ function onKey(e){
   keys[e.key]=true;
 }
 function tryMove(dx, dy) {
-  let type = _getTile(G.x, G.y);
+  
   if (G.inCombat) return;
 
   // ── Town mode (unchanged) ──────────────────────────────────
@@ -2291,6 +2291,7 @@ function tryMove(dx, dy) {
   const _T = { GRASS:0, FOREST:1, MOUNTAIN:2, DEEP_WATER:3, SHALLOW:4, TOWN:5, DANGER:6, SAND:7 };
   const _PASSABLE = new Set([0,1,4,5,6,7,9,10,11,12,13]);
   const _getTile = (x,y) => _map ? _map.getTile(x,y) : _T.GRASS;
+  let type = _getTile(G.x, G.y);
 
   if (nx < 0 || nx >= _W || ny < 0 || ny >= _H) return;
   if (!_PASSABLE.has(_getTile(nx, ny))) return;
