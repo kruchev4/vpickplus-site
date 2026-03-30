@@ -12,6 +12,8 @@ export function generateOverworldTiles({ biomeKey, seed }) {
   if (!biome) {
     throw new Error(`Unknown biome: ${biomeKey}`);
   }
+console.log("✅ about to expose generateOverworldTiles");
+window.__generateOverworldTiles = generateOverworldTiles;
   
   // Lightweight deterministic hash for world generation
 function hash(x, y) {
@@ -38,7 +40,6 @@ function hash(x, y) {
       tiles[idx] = tile;
     }
   }
-  console.log("✅ about to expose generateOverworldTiles");
-window.__generateOverworldTiles = generateOverworldTiles;
+ 
   return tiles;
 }
