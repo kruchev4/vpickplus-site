@@ -995,56 +995,34 @@ window.transitionWorldEdge = async function transitionWorldEdge(dir) {
     }
 
     // Wrap player
-    if (dir === "W") G.x = nextMap.width - 1;
-    if (dir === "E") G.x = 0;
-    if (dir === "N") G.y = nextMap.height - 1;
-    if (dir === "S") G.y = 0;
+      if (dir === "W") G.x = nextMap.width - 1;
+      if (dir === "E") G.x = 0;
+      if (dir === "N") G.y = nextMap.height - 1;
+      if (dir === "S") G.y = 0;
 
     GS.player = G;
 
-    if (typeof addLog === "function") addLog(`You enter ${nextId.replace("overworld_", "")}.`);
-    render();
-    updateHUD();
-    return true;
-  } catch (e) {
-    console.error("[transition] failed:", e);
-    if (typeof toast === "function") toast(`World transition failed: ${e.message}`, "err");
-    return false;
-  } finally {
-    GS._transitioning = false;
-  }
+    if (typeof addLog === "function") {
+  addLog(`You enter ${nextId.replace("overworld_", "")}.`);
+}
+
+render();
+updateHUD();
+return true;
+
+} catch (e) {
+  console.error("[transition] failed:", e);
+  if (typeof toast === "function") toast(`World transition failed: ${e.message}`, "err");
+  return false;
+
+} finally {
+  GS._transitioning = false;
+}
 };
 
 
 
-    // wrap player to opposite edge
-    if (dir === "N") G.y = nextMap.height - 1;
-    if (dir === "S") G.y = 0;
-    if (dir === "W") G.x = nextMap.width - 1;
-    if (dir === "E") G.x = 0;
-
-    // optional diagonals if you ever enable them
-    if (dir === "NW") { G.x = nextMap.width - 1; G.y = nextMap.height - 1; }
-    if (dir === "NE") { G.x = 0;                G.y = nextMap.height - 1; }
-    if (dir === "SW") { G.x = nextMap.width - 1; G.y = 0; }
-    if (dir === "SE") { G.x = 0;                 G.y = 0; }
-
-    GS.player = G;
-
-    if (typeof addLog === "function") addLog(`You enter ${nextId.replace("overworld_", "")}.`);
-
-    render();
-    updateHUD();
-
-    return true;
-  } catch (e) {
-    console.error("[transitionWorldEdge] failed:", e);
-    if (typeof toast === "function") toast(`World transition failed: ${e.message}`, "err");
-    return false;
-  } finally {
-    GS._transitioning = false;
-  }
-}
+    
   
 
 
