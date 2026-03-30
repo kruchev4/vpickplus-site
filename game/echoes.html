@@ -2319,7 +2319,7 @@ let nx = null, ny = null;
 let nextType = null;
 
   // ── Town mode (keep your existing behavior) ─────────────────
-  if (window.GameState?.mode === 'town') {
+  if (if (window.GameState?.mode === 'town' && window.GameState?.activeMap?.isTown) {
     const tm = window.GameState.activeMap;
     if (!tm) return;
 
