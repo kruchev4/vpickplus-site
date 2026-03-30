@@ -1,10 +1,12 @@
 // src/world/overworldGenerator.js
-
+console.log("✅ overworldGenerator.js executing");
 
 import { BIOMES } from "./biomes.js";
 
 export const WORLD_WIDTH  = 240;
 export const WORLD_HEIGHT = 180;
+
+// World → biome mapping
 const OVERWORLD_BIOMES = {
   overworld_C:  "grass",
   overworld_N:  "mountain",
@@ -16,15 +18,20 @@ const OVERWORLD_BIOMES = {
   overworld_SE: "jungle",
   overworld_SW: "jungle",
 };
-console.log("biomes added");
 
-// ✅ top-level hash (no redeclare per call)
+// Lightweight hash
 function hash(x, y) {
   const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
   return s - Math.floor(s);
 }
 
-export function generateOverworldTiles({ biomeKey, seed }) {
+export function generateOverworldTiles({ worldId, seed }) {
+  // ✅ FIRST translate world → biome
+  const biomeKey = OVERWORLD_BIOMES[worldId];
+  if (!biomeKey) {
+    throw new Error(`Unknown worldId: ${worldId}`);
+  }
+
   const biome = BIOMES[biomeKey];
   if (!biome) {
     throw new Error(`Unknown biome: ${biomeKey}`);
@@ -52,7 +59,7 @@ export function generateOverworldTiles({ biomeKey, seed }) {
   return tiles;
 }
 
-// ✅ DEV HOOK — MUST BE TOP LEVEL
-console.log("✅ exposing generateOverworldTiles to window");
+// dev hook
 window.__generateOverworldTiles = generateOverworldTiles;
 globalThis.__generateOverworldTiles = generateOverworldTiles;
+console.log("✅ exposed __generateOverworldTiles");
