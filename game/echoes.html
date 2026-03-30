@@ -2263,7 +2263,7 @@ function onKey(e){
   keys[e.key]=true;
 }
 function tryMove(dx, dy) {
-  console.log("tryMove fired", dx, dy);
+  
 
   const _mapb = window.GameState?.activeMap;
 const _mapReady = true;
@@ -2281,10 +2281,11 @@ const _mapReady = true;
 
     const tt = _tm.getTile(nx, ny);
     if (!_TP.has(tt)) return;
-
+console.log("✅ ABOUT TO APPLY MOVEMENT");
     G.prevX = G.x; G.prevY = G.y;
     G.x = nx; G.y = ny;
     window.GameState.player = G;
+    console.log("✅ MOVEMENT APPLIED", G.x, G.y);
 
     window.handleTownTile?.(tt, nx, ny);
 
@@ -2367,8 +2368,8 @@ const _getTile = (x, y) => _map ? _map.getTile(x, y) : _T.GRASS;
   if (nx < 0 || nx >= _W || ny < 0 || ny >= _H) return;
   if (!_PASSABLE.has(_getTile(nx, ny))) return;
 
-  // ── CO‑OP OPTIMISTIC MOVE (MUST BE INSIDE FUNCTION) ──
-  if (!coopIsHost && coopActive) {
+ 
+  /*if (!coopIsHost && coopActive) {
     G.prevX = G.x; G.prevY = G.y;
     G.x = nx; G.y = ny;
     coopSendMove(dx, dy);
@@ -2379,7 +2380,7 @@ const _getTile = (x, y) => _map ? _map.getTile(x, y) : _T.GRASS;
 
     render(); updateHUD();
     return;
-  }
+  }*/
 
   
 
