@@ -17,6 +17,14 @@ export const TILE = {
   STAIRS_UP:  12,
   STAIRS_DOWN:13,
   PORTAL:     14,
+  
+// ── NEW EXPANSION WORLD TILES ──────────────────────
+  JUNGLE:     15,  // dense, dangerous movement
+  VOLCANO:    16,  // damage over time
+  ELDRITCH:   17,  // sanity / fear
+  OBSIDIAN:   18,  // volcanic rock
+  BLIGHT:     19,  // corruption / decay
+
 };
 
 // Each entry: [base color, optional highlight color]
@@ -41,7 +49,17 @@ export const TILE_COLORS = {
   [TILE.STAIRS_UP]:  ["#6080a0", "#7090b0"],  // stairs up
   [TILE.STAIRS_DOWN]:["#405060", "#506070"],  // stairs down
   [TILE.PORTAL]:     ["#8040cc", "#9050dd"],  // campaign portal
+  
+  // (existing entries unchanged)
+
+  // ── Expansion tiles ───────────────────────────────
+  [TILE.JUNGLE]:   ["#0f3b1f", "#16502a"],  // deep overgrowth
+  [TILE.VOLCANO]:  ["#7a1a0a", "#b02010"],  // burning lava
+  [TILE.ELDRITCH]: ["#32134d", "#4a1f73"],  // unnatural purple
+  [TILE.OBSIDIAN]: ["#1a1a1a", "#303030"],  // glass-black rock
+  [TILE.BLIGHT]:   ["#3a2a1a", "#5a3a2a"],  // dead corruption
 };
+
 window.TOWN_TILE_COLORS = {
     20: '#6a6058',  // floor - stone
     21: '#1e1810',  // wall  - dark
@@ -73,4 +91,68 @@ export const PASSABLE = new Set([
   TILE.STAIRS_UP,
   TILE.STAIRS_DOWN,
   TILE.PORTAL,
+  
+TILE.JUNGLE,
+  TILE.VOLCANO,
+  TILE.ELDRITCH,
+  TILE.OBSIDIAN,
+  TILE.BLIGHT,
+
+  
 ]);
+export const TILE_EFFECTS = {
+  [TILE.JUNGLE]: {
+    moveCost: 3,
+    encounterBias: 0.15,
+    description: "Dense vegetation limits visibility."
+  },
+
+  [TILE.VOLCANO]: {
+    moveCost: 2,
+    damagePerTurn: 10,
+    description: "Extreme heat scorches the unprepared."
+  },
+
+  [TILE.ELDRITCH]: {
+    moveCost: 2,
+    sanityCheck: true,
+    encounterBias: 0.25,
+    description: "Reality feels unstable here."
+  },
+
+  [TILE.OBSIDIAN]: {
+    moveCost: 2,
+    heat: true,
+    description: "Volcanic glass crunches underfoot."
+  },
+
+  [TILE.BLIGHT]: {
+    moveCost: 2,
+    debuff: "corruption",
+    encounterBias: 0.2,
+    description: "The land itself decays."
+  }
+};
+
+export function getMoveCost(tileId) {
+  return TILE_EFFECTS[tileId]?.moveCost ?? 1;
+}
+export function applyWorldTileEffects(player, tileId) {
+  const effect = TILE_EFFECTS[tileId];
+  if (!effect) return;
+
+  if (effect.damagePerTurn) {
+    player.hp = Math.max(0, player.hp - effect.damagePerTurn);
+  }
+
+  if (effect.debuff) {
+    applyDebuff(player, effect.debuff);
+  }
+
+  if (effect.sanityCheck) {
+    triggerSanityEvent(player);
+  }
+}
+export function getTileEncounterBias(tileId) {
+  return TILE_EFFECTS[tileId]?.encounterBias ?? 0;
+}
