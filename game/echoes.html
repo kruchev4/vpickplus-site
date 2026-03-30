@@ -2743,7 +2743,7 @@ function triggerCombat(tileType){
       if(dist <= 6) coopBroadcast({type:'combat_invite', from:G.name, enemyNames:names, dist});
     });
   }
-  coopOnCombatStart();
+  //coopOnCombatStart();
   addCombatLog(count>1 ? `${count} enemies attack!` : `A ${combat.enemies[0].def.name} attacks!`);
   combat.lastTick = performance.now();
   if(combat.animFrame) cancelAnimationFrame(combat.animFrame);
