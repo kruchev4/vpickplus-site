@@ -170,27 +170,23 @@ function drawDeepWater(ctx, px, py, x, y) {
   ctx.strokeStyle = 'rgba(0,5,20,0.4)';
   ctx.lineWidth = 1;
   ctx.strokeRect(px + 0.5, py + 0.5, TS - 1, TS - 1);
-}
 function drawBlight(ctx, px, py, x, y) {
   const h = hash(x, y);
 
-  // Rotten earth base
   ctx.fillStyle = h > 0.5 ? '#3a2a1a' : '#2e2016';
   ctx.fillRect(px, py, TS, TS);
 
-  // Dead patches
   if (h > 0.4) {
     ctx.fillStyle = 'rgba(80,60,40,0.4)';
     ctx.beginPath();
     ctx.ellipse(
-      px + Math.floor(hash(x,y)*18)+5,
-      py + Math.floor(hash2(x,y)*18)+5,
-      6, 4, h * Math.PI, 0, Math.PI*2
+      px + Math.floor(hash(x,y)*18) + 5,
+      py + Math.floor(hash2(x,y)*18) + 5,
+      6, 4, h * Math.PI, 0, Math.PI * 2
     );
     ctx.fill();
   }
 
-  // Corruption veins
   ctx.strokeStyle = 'rgba(120,90,60,0.5)';
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -199,132 +195,22 @@ function drawBlight(ctx, px, py, x, y) {
   ctx.lineTo(px + TS - 3, py + TS - 4);
   ctx.stroke();
 
-  // Faint sickly pulse
   ctx.fillStyle = 'rgba(120,160,100,0.06)';
   ctx.fillRect(px + 1, py + 1, TS - 2, TS - 2);
 }
+
+
 function drawVolcano(ctx, px, py, x, y) {
   const h = hash(x, y);
   const t = (Date.now() / 1200 + h * 10) % 1;
 
-  // Basalt base
   ctx.fillStyle = h > 0.5 ? '#2b2b2b' : '#1f1f1f';
   ctx.fillRect(px, py, TS, TS);
 
-  // Lava fissures
   ctx.strokeStyle = `rgba(220,60,20,${0.4 + Math.sin(t * Math.PI * 2) * 0.2})`;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(px + Math.floor(h * TS), py);
-  ctx.lineTo(px + Math.floor(h * TS * 0.7), py + TS);
-  ctx.stroke();
-
-  // Molten pools
-  if (h > 0.7) {
-    ctx.fillStyle = `rgba(255,90,20,${0.25 + Math.sin(t * Math.PI * 3) * 0.15})`;
-    ctx.beginPath();
-    ctx.ellipse(
-      px + Math.floor(hash(x+1,y)*20)+4,
-      py + Math.floor(hash2(x,y+1)*20)+4,
-      5, 3, 0, 0, Math.PI*2
-    );
-    ctx.fill();
-  }
-  function drawObsidian(ctx, px, py, x, y) {
-  const h = hash(x, y);
-
-  // Near-black base
-  ctx.fillStyle = h > 0.5 ? '#0e0e0e' : '#141414';
-  ctx.fillRect(px, py, TS, TS);
-
-  // Glassy edges
-  ctx.strokeStyle = 'rgba(160,160,160,0.15)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(px + TS - 1, py + 4);
-  ctx.lineTo(px + 4, py + TS - 1);
-  ctx.stroke();
-
-  // Angular light shard
-  if (h > 0.75) {
-    ctx.fillStyle = 'rgba(220,220,220,0.2)';
-    ctx.beginPath();
-    ctx.moveTo(px + TS/2, py + 5);
-    ctx.lineTo(px + TS - 4, py + TS/2);
-    ctx.lineTo(px + TS/2, py + TS - 4);
-    ctx.closePath();
-    ctx.fill();
-  }
-}
-
-  function drawEldritch(ctx, px, py, x, y) {
-  const h = hash(x, y);
-  const t = (Date.now() / 1800 + h * 6) % 1;
-
-  // Unnatural base
-  ctx.fillStyle = h > 0.5 ? '#32134d' : '#25103a';
-  ctx.fillRect(px, py, TS, TS);
-
-  // Reality distortion rings
-  ctx.strokeStyle = `rgba(150,90,200,${0.25 + Math.sin(t * Math.PI * 2) * 0.15})`;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.arc(
-    px + TS/2,
-    py + TS/2,
-    5 + Math.sin(t * Math.PI * 2) * 2,
-    0,
-    Math.PI * 2
-  );
-  ctx.stroke();
-
-  // Veins / glyph fractures
-  ctx.strokeStyle = 'rgba(90,40,140,0.4)';
-  ctx.beginPath();
-  ctx.moveTo(px + 3, py + TS - 5);
-  ctx.lineTo(px + TS/2, py + TS/2);
-  ctx.lineTo(px + TS - 5, py + 3);
-  ctx.stroke();
-
-  // Rare watching eye
-  if (h > 0.96) {
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    ctx.beginPath();
-    ctx.ellipse(px + TS/2, py + TS/2, 3, 2, 0, 0, Math.PI*2);
-    ctx.fill();
-    ctx.fillStyle = '#000';
-    ctx.fillRect(px + TS/2 - 1, py + TS/2 - 1, 2, 2);
-  }
-}
-
-  // Heat shimmer highlight
-  ctx.fillStyle = 'rgba(255,120,60,0.08)';
-  ctx.fillRect(px + 1, py + 1, TS - 2, TS - 2);
-}
-function drawJungle(ctx, px, py, x, y) {
-  const h = hash(x, y);
-
-  // Dark, saturated base
-  ctx.fillStyle = h > 0.5 ? '#0f3b1f' : '#0a2f18';
-  ctx.fillRect(px, py, TS, TS);
-
-  // Dense leaf shadows
-  ctx.fillStyle = 'rgba(0, 40, 20, 0.35)';
-  for (let i = 0; i < 2 + Math.floor(h * 3); i++) {
-    const lx = px + Math.floor(hash(x + i*3, y) * TS);
-    const ly = py + Math.floor(hash2(x, y + i*5) * TS);
-    ctx.beginPath();
-    ctx.ellipse(lx, ly, 6, 4, h * Math.PI, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // Vines
-  if (h > 0.6) {
-    ctx.strokeStyle = 'rgba(20,90,50,0.6)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(px + TS - 3, py);
-  }
 
 
 function drawShallow(ctx, px, py, x, y) {
