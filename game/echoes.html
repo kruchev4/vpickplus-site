@@ -935,7 +935,8 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
   window.IS_NEW_ENGINE = true;
   // Legacy compatibility bridge — REMOVE later
 
-
+// Create a local alias for convenience throughout this file
+const GameState = window.GameState;
 'use strict';
 const worldCanvas = document.getElementById("world-cv");
   async function transitionWorldEdge(dir) {
