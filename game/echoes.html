@@ -2369,7 +2369,7 @@ let nextType = null;
   if (nx < 0 || nx >= ctx.W || ny < 0 || ny >= ctx.H) return;
 
   // Passability
-  const nextType = ctx.getTile(nx, ny);
+  nextType = ctx.getTile(nx, ny);
   if (!ctx.passable.has(nextType)) return;
 
   // ── CO‑OP optimistic move (preserve behavior) ───────────────
