@@ -35,5 +35,7 @@ export async function loadWorld(worldId) {
 
   return new GameMap(json);
   window.loadWorld = loadWorld;
+  console.log("[worldLoader] json keys:", Object.keys(json || {}));
+console.log("[worldLoader] tiles typeof:", typeof json?.tiles, "isArray:", Array.isArray(json?.tiles));
 
 }
