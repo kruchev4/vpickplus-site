@@ -25,7 +25,7 @@ export function generateOverworldTiles({ biomeKey, seed }) {
           break;
         }
       }
-
+      window.__generateOverworldTiles = generateOverworldTiles;
       tiles[idx] = tile;
     }
   }
