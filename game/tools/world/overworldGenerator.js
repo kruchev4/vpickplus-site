@@ -1,4 +1,6 @@
 // src/world/overworldGenerator.js
+console.log("✅ overworldGenerator.js executing");
+
 import { BIOMES } from "./biomes.js";
 
 
@@ -36,6 +38,7 @@ function hash(x, y) {
       tiles[idx] = tile;
     }
   }
+  console.log("✅ about to expose generateOverworldTiles");
 window.__generateOverworldTiles = generateOverworldTiles;
   return tiles;
 }
