@@ -951,38 +951,59 @@ const GameState = window.GameState;
 'use strict';
 const worldCanvas = document.getElementById("world-cv");
   async function transitionWorldEdge(dir) {
-  const current = GameState.currentWorldId;
-  const next = WORLD_NEIGHBORS[current]?.[dir];
+  const GS = window.GameState || GameState;
 
-  if (!next) return false;
+  const current = GS.currentWorldId || "overworld_C";
+  const nextId = WORLD_NEIGHBORS[current]?.[dir];
 
-  GameState._transitioning = true;
+  if (!nextId) return false;
+  if (GS._transitioning) return true;
 
- const nextMap = await window.loadWorld(nextId);
-window.GameState.activeMap = nextMap;
+  GS._transitioning = true;
 
+  try {
+    // ✅ load the NEXT world using the correct id
+    const nextMap = await window.loadWorld(nextId);
 
-  const map = GameState.activeMap;
+    // swap map
+    GS.activeMap = nextMap;
+    GS.currentWorldId = nextId;
 
-  // Place player on opposite edge
-  if (dir === "N")  { G.y = map.height - 1; }
-  if (dir === "S")  { G.y = 0; }
-  if (dir === "W")  { G.x = map.width - 1; }
-  if (dir === "E")  { G.x = 0; }
+    // update globals used elsewhere (renderer/minimap/etc.)
+    window.MAP_W = nextMap.width;
+    window.MAP_H = nextMap.height;
+    if (window.worldMap) {
+      window.worldMap.width = nextMap.width;
+      window.worldMap.height = nextMap.height;
+    }
 
-  if (dir === "NW") { G.x = map.width - 1; G.y = map.height - 1; }
-  if (dir === "NE") { G.x = 0;               G.y = map.height - 1; }
-  if (dir === "SW") { G.x = map.width - 1;   G.y = 0; }
-  if (dir === "SE") { G.x = 0;               G.y = 0; }
+    // wrap player to opposite edge
+    if (dir === "N") G.y = nextMap.height - 1;
+    if (dir === "S") G.y = 0;
+    if (dir === "W") G.x = nextMap.width - 1;
+    if (dir === "E") G.x = 0;
 
-  GameState.currentWorldId = next;
-  GameState.player = G;
+    // optional diagonals if you ever enable them
+    if (dir === "NW") { G.x = nextMap.width - 1; G.y = nextMap.height - 1; }
+    if (dir === "NE") { G.x = 0;                G.y = nextMap.height - 1; }
+    if (dir === "SW") { G.x = nextMap.width - 1; G.y = 0; }
+    if (dir === "SE") { G.x = 0;                 G.y = 0; }
 
-  GameState._transitioning = false;
-  render();
-  updateHUD();
+    GS.player = G;
 
-  return true;
+    if (typeof addLog === "function") addLog(`You enter ${nextId.replace("overworld_", "")}.`);
+
+    render();
+    updateHUD();
+
+    return true;
+  } catch (e) {
+    console.error("[transitionWorldEdge] failed:", e);
+    if (typeof toast === "function") toast(`World transition failed: ${e.message}`, "err");
+    return false;
+  } finally {
+    GS._transitioning = false;
+  }
 }
   
 
