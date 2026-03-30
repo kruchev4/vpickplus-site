@@ -5,6 +5,17 @@ import { BIOMES } from "./biomes.js";
 
 export const WORLD_WIDTH  = 240;
 export const WORLD_HEIGHT = 180;
+const OVERWORLD_BIOMES = {
+  overworld_C:  "grass",
+  overworld_N:  "mountain",
+  overworld_S:  "blight",
+  overworld_E:  "volcano",
+  overworld_W:  "forest",
+  overworld_NE: "eldritch",
+  overworld_NW: "eldritch",
+  overworld_SE: "jungle",
+  overworld_SW: "jungle",
+};
 
 // ✅ top-level hash (no redeclare per call)
 function hash(x, y) {
