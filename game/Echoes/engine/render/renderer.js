@@ -472,24 +472,35 @@ function drawBoss(ctx, sx, sy, ts, icon) {
 function drawSprite(ctx, sx, sy, ts, cls) {
   const c = CLASS_COLORS[cls] || CLASS_COLORS.fighter;
   const s = ts / 32;
+
   // Drop shadow
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
   ctx.beginPath();
-  ctx.ellipse(sx + ts/2, sy + ts - 2*s, ts*0.32, ts*0.09, 0, 0, Math.PI*2);
+  ctx.ellipse(
+    sx + ts / 2,
+    sy + ts - 2 * s,
+    ts * 0.32,
+    ts * 0.09,
+    0,
+    0,
+    Math.PI * 2
+  );
   ctx.fill();
-   (cls) {
-    case 'wizard':    drawWizard(ctx,sx,sy,s,c);    break;
-    case 'sorcerer':  drawWizard(ctx,sx,sy,s,c);    break;
-    case 'warlock':   drawWarlock(ctx,sx,sy,s,c);   break;
-    case 'cleric':    drawCleric(ctx,sx,sy,s,c);    break;
-    case 'paladin':   drawPaladin(ctx,sx,sy,s,c);   break;
-    case 'rogue':     drawRogue(ctx,sx,sy,s,c);     break;
-    case 'ranger':    drawRanger(ctx,sx,sy,s,c);    break;
-    case 'barbarian': drawBarbarian(ctx,sx,sy,s,c); break;
-    case 'monk':      drawMonk(ctx,sx,sy,s,c);      break;
-    case 'druid':     drawDruid(ctx,sx,sy,s,c);     break;
-    case 'bard':      drawBard(ctx,sx,sy,s,c);      break;
-    default:          drawFighter(ctx,sx,sy,s,c);   break;
+
+  // ✅ REQUIRED keyword
+  switch (cls) {
+    case 'wizard':    drawWizard(ctx, sx, sy, s, c);    break;
+    case 'sorcerer':  drawWizard(ctx, sx, sy, s, c);    break;
+    case 'warlock':   drawWarlock(ctx, sx, sy, s, c);   break;
+    case 'cleric':    drawCleric(ctx, sx, sy, s, c);    break;
+    case 'paladin':   drawPaladin(ctx, sx, sy, s, c);   break;
+    case 'rogue':     drawRogue(ctx, sx, sy, s, c);     break;
+    case 'ranger':    drawRanger(ctx, sx, sy, s, c);    break;
+    case 'barbarian': drawBarbarian(ctx, sx, sy, s, c); break;
+    case 'monk':      drawMonk(ctx, sx, sy, s, c);      break;
+    case 'druid':     drawDruid(ctx, sx, sy, s, c);     break;
+    case 'bard':      drawBard(ctx, sx, sy, s, c);      break;
+    default:          drawFighter(ctx, sx, sy, s, c);   break;
   }
 }
 
