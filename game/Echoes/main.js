@@ -173,20 +173,28 @@ async function startEngine() {
   GameState.camera.h = canvas.height;
 
   try {
-    GameState.activeMap = await loadMap("overworld_generated");
-  } catch(e) { console.error("[engine] map load failed:", e.message); }
+  GameState.activeMap = await loadWorld("overworld_C");
+  GameState.currentWorldId = "overworld_C";
 
-  if(GameState.activeMap){
-    window.MAP_W = GameState.activeMap.width;
-    window.MAP_H = GameState.activeMap.height;
-    window.worldMap.width  = GameState.activeMap.width;
-    window.worldMap.height = GameState.activeMap.height;
-  }
+  // Spawn player near center
+  GameState.player.x = Math.floor(GameState.activeMap.width / 2);
+  GameState.player.y = Math.floor(GameState.activeMap.height / 2);
 
-  setupInput();
-  window.engineReady = true;
-  console.log("✅ Engine ready");
-  requestAnimationFrame(gameLoop);
+} catch (e) {
+  console.error("[engine] map load failed:", e.message);
+}
+
+if (GameState.activeMap) {
+  window.MAP_W = GameState.activeMap.width;
+  window.MAP_H = GameState.activeMap.height;
+  window.worldMap.width  = GameState.activeMap.width;
+  window.worldMap.height = GameState.activeMap.height;
+}
+
+setupInput();
+window.engineReady = true;
+console.log("✅ Engine ready");
+requestAnimationFrame(gameLoop);
 }
 
 function setupInput() {
