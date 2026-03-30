@@ -38,7 +38,7 @@ function drawGrass(ctx, px, py, x, y) {
     ctx.fillStyle = h > 0.96 ? '#f1c40f' : h > 0.93 ? '#e74c3c' : '#ffffff';
     ctx.fillRect(px + Math.floor(hash2(x,y)*26)+3, py + Math.floor(hash(x,y+1)*26)+3, 2, 2);
   }
-}
+
 
 function drawForest(ctx, px, py, x, y) {
   const h = hash(x, y);
