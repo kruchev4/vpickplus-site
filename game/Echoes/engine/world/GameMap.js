@@ -10,9 +10,10 @@ export class GameMap {
     this.height = json.height;
 
     // Tiles stored as flattened Uint8 arrays
-    this.tiles = Uint8Array.from(json.tiles);
-    this.variants = Uint8Array.from(json.variants);
+    const size = (json.width || 0) * (json.height || 0);
 
+this.tiles = Uint8Array.from(json.tiles || new Array(size).fill(0));
+this.variants = Uint8Array.from(json.variants || new Array(size).fill(0));
     this.theme = json.theme || null;
     this.metadata = json.metadata || {};
 
