@@ -2164,7 +2164,7 @@ function fillCharSheet(){
     } else {
       invEl.innerHTML = items.map(item=>
         `<div class="cs-inv-item">
-          <span class="cs-inv-icon">${item.icon||'📦'}</span>
+         
           <span class="cs-inv-name">${item.name}${item.qty>1?' x'+item.qty:''}</span>
         </div>`
       ).join('');
