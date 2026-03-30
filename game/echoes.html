@@ -2371,7 +2371,7 @@ if (window.GameState?.mode === 'town' && window.GameState?.activeMap?.isTown) {
       if (ny < 0)  { window.GameState._transitioning = true; window.transitionWorld("N").finally(() => window.GameState._transitioning = false); return; }
       if (ny >= H) { window.GameState._transitioning = true; window.transitionWorld("S").finally(() => window.GameState._transitioning = false); return; }
     }
-  }
+  
 
   // Bounds (non-transition case)
   if (nx < 0 || nx >= ctx.W || ny < 0 || ny >= ctx.H) return;
