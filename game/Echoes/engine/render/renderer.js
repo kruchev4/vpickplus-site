@@ -170,6 +170,7 @@ function drawDeepWater(ctx, px, py, x, y) {
   ctx.strokeStyle = 'rgba(0,5,20,0.4)';
   ctx.lineWidth = 1;
   ctx.strokeRect(px + 0.5, py + 0.5, TS - 1, TS - 1);
+}
 function drawBlight(ctx, px, py, x, y) {
   const h = hash(x, y);
 
@@ -204,13 +205,34 @@ function drawVolcano(ctx, px, py, x, y) {
   const h = hash(x, y);
   const t = (Date.now() / 1200 + h * 10) % 1;
 
+  // Basalt base
   ctx.fillStyle = h > 0.5 ? '#2b2b2b' : '#1f1f1f';
   ctx.fillRect(px, py, TS, TS);
 
+  // Lava fissures
   ctx.strokeStyle = `rgba(220,60,20,${0.4 + Math.sin(t * Math.PI * 2) * 0.2})`;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(px + Math.floor(h * TS), py);
+  ctx.lineTo(px + Math.floor(h * TS * 0.7), py + TS);
+  ctx.stroke();
+
+  // Molten pools
+  if (h > 0.7) {
+    ctx.fillStyle = `rgba(255,90,20,${0.25 + Math.sin(t * Math.PI * 3) * 0.15})`;
+    ctx.beginPath();
+    ctx.ellipse(
+      px + Math.floor(hash(x+1,y)*20)+4,
+      py + Math.floor(hash2(x,y+1)*20)+4,
+      5, 3, 0, 0, Math.PI*2
+    );
+    ctx.fill();
+  }
+
+  // Heat shimmer highlight
+  ctx.fillStyle = 'rgba(255,120,60,0.08)';
+  ctx.fillRect(px + 1, py + 1, TS - 2, TS - 2);
+}
 
 
 function drawShallow(ctx, px, py, x, y) {
@@ -734,7 +756,7 @@ function drawTownDeco(ctx, px, py, x, y) {
   ctx.fillStyle = `rgba(150,210,255,${0.5 + Math.sin(t*Math.PI*4)*0.2})`;
   ctx.fillRect(px + TS/2 - 1, py + TS*0.1, 2, TS*0.15);
 }
-}
+
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
