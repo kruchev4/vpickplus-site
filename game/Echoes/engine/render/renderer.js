@@ -477,7 +477,7 @@ function drawSprite(ctx, sx, sy, ts, cls) {
   ctx.beginPath();
   ctx.ellipse(sx + ts/2, sy + ts - 2*s, ts*0.32, ts*0.09, 0, 0, Math.PI*2);
   ctx.fill();
-  switch (cls) {
+   (cls) {
     case 'wizard':    drawWizard(ctx,sx,sy,s,c);    break;
     case 'sorcerer':  drawWizard(ctx,sx,sy,s,c);    break;
     case 'warlock':   drawWarlock(ctx,sx,sy,s,c);   break;
