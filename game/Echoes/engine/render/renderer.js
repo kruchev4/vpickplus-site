@@ -734,6 +734,7 @@ function drawTownDeco(ctx, px, py, x, y) {
   ctx.fillStyle = `rgba(150,210,255,${0.5 + Math.sin(t*Math.PI*4)*0.2})`;
   ctx.fillRect(px + TS/2 - 1, py + TS*0.1, 2, TS*0.15);
 }
+}
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
