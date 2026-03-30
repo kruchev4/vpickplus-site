@@ -2328,8 +2328,8 @@ function tryMove(dx, dy) {
   const ctx = window.getMoveCtx();
   if (!ctx.map) return;
 
-  const nx = G.x + dx;
-  const ny = G.y + dy;
+   nx = G.x + dx;
+   ny = G.y + dy;
 
   // ── Overworld transitions (only if worldId exists) ──────────
   // NOTE: this triggers only if you have transitionWorld + worldId set
