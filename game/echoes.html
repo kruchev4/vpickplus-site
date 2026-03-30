@@ -2308,31 +2308,7 @@ function tryMove(dx, dy) {
     return;
   }
 
-  // ── Normal movement ───────────────────────────────────────
-  G.prevX = G.x; G.prevY = G.y;
-  G.x = nx; G.y = ny;
-
-  if (!G._stepCount) G._stepCount = 0;
-  G._stepCount++;
-  if (G._stepCount % 4 === 0) playSound('step');
-
-  render(); updateHUD();
-}
-  const nx=G.x+dx,ny=G.y+dy;
-  if(nx<0||nx>=_W||ny<0||ny>=_H)return;
-  const type=_getTile(nx,ny);
-  if(!_PASSABLE.has(type))return;
-  G.prevX=G.x;G.prevY=G.y;G.x=nx;G.y=ny;
-
-  // ── Town entry ─────────────────────────────────────────────────────────────
-  if(type === _T.TOWN){
-  // Town entry is handled by town-map-system.js which intercepts
-  // at the window.tryMove level before this closure runs.
-  // This branch should never fire, but kept as fallback.
-  const town = window.TOWNS?.find(t=>t.x===nx&&t.y===ny) ||
-               (window.GameState?.activeMap?.towns||[]).find(t=>t.x===nx&&t.y===ny);
-  if(town){ (window.enterTownMap||enterTown)(town); return; }
-}
+  
 
   // ── Dungeon boss check ────────────────────────────────────────────────────
   if(window.GameState?.mode === 'dungeon'){
