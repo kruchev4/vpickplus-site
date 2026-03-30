@@ -34,4 +34,6 @@ export async function loadWorld(worldId) {
   if (!json.id) json.id = worldId;
 
   return new GameMap(json);
+  window.loadMap = loadMap;
+
 }
