@@ -39,7 +39,7 @@ function drawGrass(ctx, px, py, x, y) {
     ctx.fillRect(px + Math.floor(hash2(x,y)*26)+3, py + Math.floor(hash(x,y+1)*26)+3, 2, 2);
   }
 
-
+}
 function drawForest(ctx, px, py, x, y) {
   const h = hash(x, y);
   // Dark mossy floor
@@ -810,7 +810,7 @@ switch (tile) {
         case 24: drawTownService(ctx, px, py, tx, ty, '📜', '#33a'); break; // Library
         case 25: drawTownExit(ctx, px, py, tx, ty);  break;
         case 26: drawTownDeco(ctx, px, py, tx, ty);  break;
-        
+
         default: drawFloor(ctx, px, py, tx, ty);     break;
       }
 
@@ -822,7 +822,7 @@ switch (tile) {
       ctx.restore();
     }
   }
-}
+
 
   // Entities (player + bosses)
   for (const e of entities) {
