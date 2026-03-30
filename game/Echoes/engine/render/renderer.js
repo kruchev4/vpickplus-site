@@ -829,7 +829,8 @@ export function renderMap(ctx, map, camera, entities = []) {
     }
   }
 
-} // ✅ THIS brace was missing and caused the export error
+} // 
+      ctx.restore(); // ✅ THIS was missing✅ THIS brace was missing and caused the export error
 
   // Entities (player + bosses)
   for (const e of entities) {
