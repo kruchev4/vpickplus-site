@@ -2263,6 +2263,8 @@ function onKey(e){
   keys[e.key]=true;
 }
 function tryMove(dx, dy) {
+  console.log("tryMove fired", dx, dy);
+
   const _mapb = window.GameState?.activeMap;
 const _mapReady = true;
   
