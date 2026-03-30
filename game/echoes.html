@@ -2316,6 +2316,7 @@ function tryMove(dx, dy) {
     G.prevX = G.x; G.prevY = G.y;
     G.x = nx; G.y = ny;
     window.GameState.player = G;
+    type = _getTile(G.x, G.y);
 
     window.handleTownTile?.(tt, nx, ny);
 
