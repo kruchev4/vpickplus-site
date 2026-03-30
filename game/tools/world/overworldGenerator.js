@@ -118,3 +118,32 @@ function generateOverworldTiles({ worldId, seed }) {
   const biome = BIOMES[biomeKey];
   if (!biome) {
     throw new Error(`Unknown biome: ${biomeKey}`);
+  }
+
+  const tiles = new Array(WORLD_WIDTH * WORLD_HEIGHT);
+
+  for (let y = 0; y < WORLD_HEIGHT; y++) {
+    for (let x = 0; x < WORLD_WIDTH; x++) {
+      const i = y * WORLD_WIDTH + x;
+      const h = hash(x + seed, y + seed);
+
+      let t = biome.base;
+      for (const [alt, chance] of biome.noise) {
+        if (h < chance) {
+          t = alt;
+          break;
+        }
+      }
+
+      tiles[i] = t;
+    }
+  }
+
+  return tiles;
+}
+
+// ── DEV / CONSOLE HOOK ───────────────────────────────────────
+window.__generateOverworldTiles = generateOverworldTiles;
+globalThis.__generateOverworldTiles = generateOverworldTiles;
+
+console.log("✅ __generateOverworldTiles exposed to window");
