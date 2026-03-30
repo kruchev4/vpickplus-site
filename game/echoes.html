@@ -2334,12 +2334,12 @@ if (G._stepCount % 4 === 0) playSound('step');
 // Render
 render();
 updateHUD();
-``
+
 
   // ── Common setup ──────────────────────────────────────────
   const _map = window.GameState?.activeMap;
-  const _W = _map?.width  || window.MAP_W || 240;
-  const _H = _map?.height || window.MAP_H || 180;
+  _W = _map?.width  || window.MAP_W || 240;
+  _H = _map?.height || window.MAP_H || 180;
 
   const nx = G.x + dx;
   const ny = G.y + dy;
