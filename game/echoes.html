@@ -2322,9 +2322,7 @@ function tryMove(dx, dy) {
     G._stepCount++;
     if (G._stepCount % 4 === 0) playSound('step');
 
-    render(); updateHUD();
-    return;
-  }
+    
 
   // ── World/Dungeon movement using shared ctx ─────────────────
   const ctx = window.getMoveCtx();
