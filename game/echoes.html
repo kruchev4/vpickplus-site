@@ -950,32 +950,67 @@ const GameState = window.GameState;
   window.GameState._transitioning = false;
 'use strict';
 const worldCanvas = document.getElementById("world-cv");
-  async function transitionWorldEdge(dir) {
-  const GS = window.GameState || GameState;
+  window.transitionWorldEdge = async function transitionWorldEdge(dir) {
+  const GS = window.GameState;
+  if (!GS) return false;
 
-  const current = GS.currentWorldId || "overworld_C";
-  const nextId = WORLD_NEIGHBORS[current]?.[dir];
-
-  if (!nextId) return false;
+  // guard to prevent double-trigger while loading
   if (GS._transitioning) return true;
+
+  const curId  = GS.currentWorldId || "overworld_C";
+  const nextId = window.WORLD_NEIGHBORS?.[curId]?.[dir];
+
+  if (!nextId) {
+    console.warn("[transition] no neighbor", { curId, dir });
+    return false;
+  }
+
+  if (typeof window.loadWorld !== "function") {
+    console.error("[transition] window.loadWorld is not defined");
+    return false;
+  }
 
   GS._transitioning = true;
 
   try {
-    // ✅ load the NEXT world using the correct id
     const nextMap = await window.loadWorld(nextId);
 
-    // swap map
+    // swap active map + id
     GS.activeMap = nextMap;
     GS.currentWorldId = nextId;
 
-    // update globals used elsewhere (renderer/minimap/etc.)
+    // update global dims used by renderer/minimap/etc.
     window.MAP_W = nextMap.width;
     window.MAP_H = nextMap.height;
+
     if (window.worldMap) {
-      window.worldMap.width = nextMap.width;
+      window.worldMap.width  = nextMap.width;
       window.worldMap.height = nextMap.height;
     }
+
+    // wrap player to opposite edge
+    if (dir === "W") G.x = nextMap.width - 1;
+    if (dir === "E") G.x = 0;
+    if (dir === "N") G.y = nextMap.height - 1;
+    if (dir === "S") G.y = 0;
+
+    GS.player = G;
+
+    if (typeof addLog === "function") addLog(`You enter ${nextId.replace("overworld_", "")}.`);
+
+    render();
+    updateHUD();
+    return true;
+
+  } catch (e) {
+    console.error("[transition] failed:", e);
+    if (typeof toast === "function") toast(`World transition failed: ${e.message}`, "err");
+    return false;
+
+  } finally {
+    GS._transitioning = false;
+  }
+};
 
     // wrap player to opposite edge
     if (dir === "N") G.y = nextMap.height - 1;
@@ -1036,17 +1071,20 @@ function toggleSound(){
   toast(_soundEnabled?'Sound on':'Sound off');
 }
 // Overworld adjacency graph
-const WORLD_NEIGHBORS = {
+window.WORLD_NEIGHBORS = {
   overworld_C:  { N:"overworld_N",  S:"overworld_S",  E:"overworld_E",  W:"overworld_W" },
+
   overworld_N:  { S:"overworld_C",  E:"overworld_NE", W:"overworld_NW" },
   overworld_S:  { N:"overworld_C",  E:"overworld_SE", W:"overworld_SW" },
   overworld_E:  { W:"overworld_C",  N:"overworld_NE", S:"overworld_SE" },
   overworld_W:  { E:"overworld_C",  N:"overworld_NW", S:"overworld_SW" },
+
   overworld_NE: { W:"overworld_N",  S:"overworld_E" },
   overworld_NW: { E:"overworld_N",  S:"overworld_W" },
   overworld_SE: { W:"overworld_S",  N:"overworld_E" },
   overworld_SW: { E:"overworld_S",  N:"overworld_W" }
 };
+``
 
 
 
@@ -2406,14 +2444,20 @@ if (window.GameState?.mode === 'town' && window.GameState?.activeMap?.isTown) {
   const TP = new Set([20,22,23,24,25,26,27,28]);
   const nx = G.x + dx, ny = G.y + dy;
 
-  if (nx < 0 || nx >= tm.width || ny < 0 || ny >= tm.height) return;
+  
   // ── Overworld edge transitions ──────────────────────────────
-if (window.GameState?.currentWorldId && typeof transitionWorldEdge === "function") {
-  if (nx < 0)      { transitionWorldEdge("W"); return; }
-  if (nx >= ctx.W) { transitionWorldEdge("E"); return; }
-  if (ny < 0)      { transitionWorldEdge("N"); return; }
-  if (ny >= ctx.H) { transitionWorldEdge("S"); return; }
+// ── Edge transitions MUST happen before normal bounds return ──
+const W = window.GameState.activeMap.width;
+const H = window.GameState.activeMap.height;
+
+if (window.GameState.currentWorldId && typeof window.transitionWorldEdge === "function") {
+  if (nx < 0)  { window.transitionWorldEdge("W"); return; }
+  if (nx >= W) { window.transitionWorldEdge("E"); return; }
+  if (ny < 0)  { window.transitionWorldEdge("N"); return; }
+  if (ny >= H) { window.transitionWorldEdge("S"); return; }
 }
+  if (nx < 0 || nx >= tm.width || ny < 0 || ny >= tm.height) return;
+
 
 
   const tt = tm.getTile(nx, ny);
