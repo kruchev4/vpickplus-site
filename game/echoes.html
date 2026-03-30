@@ -2382,7 +2382,7 @@ if (window.GameState?.mode === 'town' && window.GameState?.activeMap?.isTown) {
   if (!ctx.passable.has(nextType)) return;
 
   // ── CO‑OP optimistic move (preserve behavior) ───────────────
-  /*if (!coopIsHost && coopActive) {
+  if (!coopIsHost && coopActive) {
     G.prevX = G.x; G.prevY = G.y;
     G.x = nx; G.y = ny;
     window.GameState.player = G;
@@ -2395,7 +2395,7 @@ if (window.GameState?.mode === 'town' && window.GameState?.activeMap?.isTown) {
 
     render(); updateHUD();
     return;
-  }*/
+  }
 
   // Apply move
   G.prevX = G.x; G.prevY = G.y;
@@ -2406,8 +2406,7 @@ if (window.GameState?.mode === 'town' && window.GameState?.activeMap?.isTown) {
   G._stepCount++;
   if (G._stepCount % 4 === 0) playSound('step');
 
-  render(); updateHUD();
-}
+ 
 window.tryMove = tryMove;
 
   
