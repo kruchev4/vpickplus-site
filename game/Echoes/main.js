@@ -31,6 +31,7 @@ import {
   menuReturnToWorld, menuNewChar
 } from "./ui/gameMenu.js";
 import "../tools/world/overworldGenerator.js";
+import "../tools/campaign/persistence/saveWorld.js";
 /* ===============================
   GLOBAL BRIDGES
   =============================== */
