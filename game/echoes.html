@@ -2296,6 +2296,45 @@ console.log("✅ ABOUT TO APPLY MOVEMENT");
     render(); updateHUD();
     return;
   }
+  // ── World / Dungeon movement ────────────────────────────────
+const _map = window.GameState?.activeMap;
+if (!_map) return;
+
+const _W = _map.width;
+const _H = _map.height;
+
+// Tile lookup
+const _getTile = (x, y) => _map.getTile(x, y);
+
+// Compute next position
+const nx = G.x + dx;
+const ny = G.y + dy;
+
+// Bounds
+if (nx < 0 || nx >= _W || ny < 0 || ny >= _H) return;
+
+// Passability (use YOUR current passable set)
+const nextType = _getTile(nx, ny);
+if (!_PASSABLE.has(nextType)) return;
+
+// ✅ APPLY MOVEMENT (THIS WAS MISSING)
+console.log("✅ ABOUT TO APPLY MOVEMENT (world)");
+G.prevX = G.x; 
+G.prevY = G.y;
+G.x = nx; 
+G.y = ny;
+window.GameState.player = G;
+console.log("✅ MOVEMENT APPLIED (world)", G.x, G.y);
+
+// Step sound
+if (!G._stepCount) G._stepCount = 0;
+G._stepCount++;
+if (G._stepCount % 4 === 0) playSound('step');
+
+// Render
+render();
+updateHUD();
+``
 
   // ── Common setup ──────────────────────────────────────────
   const _map = window.GameState?.activeMap;
@@ -2369,7 +2408,7 @@ const _getTile = (x, y) => _map ? _map.getTile(x, y) : _T.GRASS;
   if (!_PASSABLE.has(_getTile(nx, ny))) return;
 
  
-  /*if (!coopIsHost && coopActive) {
+  if (!coopIsHost && coopActive) {
     G.prevX = G.x; G.prevY = G.y;
     G.x = nx; G.y = ny;
     coopSendMove(dx, dy);
@@ -2380,7 +2419,7 @@ const _getTile = (x, y) => _map ? _map.getTile(x, y) : _T.GRASS;
 
     render(); updateHUD();
     return;
-  }*/
+  }
 
   
 
