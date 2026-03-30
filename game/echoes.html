@@ -2226,6 +2226,7 @@ function onKey(e){
   keys[e.key]=true;
 }
 function tryMove(dx, dy) {
+  let type = _getTile(G.x, G.y);
   if (G.inCombat) return;
 
   // ── Town mode (unchanged) ──────────────────────────────────
