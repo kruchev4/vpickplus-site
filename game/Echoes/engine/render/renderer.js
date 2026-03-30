@@ -781,60 +781,48 @@ export function renderMap(ctx, map, camera, entities = []) {
       const tile = map.tiles[ty * map.width + tx];
 
       ctx.save();
-    switch (tile) {
+switch (tile) {
+        // ── World tiles ─────────────────────────────
+        case 0:  drawGrass(ctx, px, py, tx, ty);     break;
+        case 1:  drawForest(ctx, px, py, tx, ty);    break;
+        case 2:  drawMountain(ctx, px, py, tx, ty);  break;
+        case 3:  drawDeepWater(ctx, px, py, tx, ty); break;
+        case 4:  drawShallow(ctx, px, py, tx, ty);   break;
+        case 5:  drawTown(ctx, px, py, tx, ty);      break;
+        case 6:  drawSand(ctx, px, py, tx, ty);      break;
+        case 7:  drawDanger(ctx, px, py, tx, ty);    break;
+        case 8:  drawBlight(ctx, px, py, tx, ty);    break;
+        case 9:  drawVolcano(ctx, px, py, tx, ty);   break;
 
-  // ── World tiles ─────────────────────────────
-  case 0:  drawGrass(ctx, px, py, tx, ty);     break;
-  case 1:  drawForest(ctx, px, py, tx, ty);    break;
-  case 2:  drawMountain(ctx, px, py, tx, ty);  break;
-  case 3:  drawDeepWater(ctx, px, py, tx, ty); break;
-  case 4:  drawShallow(ctx, px, py, tx, ty);   break;
-  case 5:  drawTown(ctx, px, py, tx, ty);      break;
-  case 6:  drawDanger(ctx, px, py, tx, ty);    break;
-  case 7:  drawSand(ctx, px, py, tx, ty);      break;
+        // ── Dungeon/Interior tiles ──────────────────
+        case 10: drawWall(ctx, px, py, tx, ty);      break;
+        case 11: drawFloor(ctx, px, py, tx, ty);     break;
+        case 12: drawDoor(ctx, px, py, tx, ty);      break;
+        case 13: drawChest(ctx, px, py, tx, ty);     break;
+        case 14: drawStairsUp(ctx, px, py, tx, ty);  break;
+        case 15: drawStairsDown(ctx, px, py, tx, ty); break;
 
-  // ── Expansion world tiles ───────────────────
-  case 15: drawJungle(ctx, px, py, tx, ty);    break;
-  case 16: drawVolcano(ctx, px, py, tx, ty);   break;
-  case 17: drawEldritch(ctx, px, py, tx, ty);  break;
-  case 18: drawObsidian(ctx, px, py, tx, ty);  break;
-  case 19: drawBlight(ctx, px, py, tx, ty);    break;
+        // ── Town Special tiles ──────────────────────
+        case 20: drawTownFloor(ctx, px, py, tx, ty); break;
+        case 21: drawTownWall(ctx, px, py, tx, ty);  break;
+        case 22: drawTownService(ctx, px, py, tx, ty, '⚔️', '#a33'); break; // Smithy
+        case 23: drawTownService(ctx, px, py, tx, ty, '🧪', '#3a3'); break; // Alchemist
+        case 24: drawTownService(ctx, px, py, tx, ty, '📜', '#33a'); break; // Library
+        case 25: drawTownExit(ctx, px, py, tx, ty);  break;
+        case 26: drawTownDeco(ctx, px, py, tx, ty);  break;
+        
+        default: drawFloor(ctx, px, py, tx, ty);     break;
+      }
 
-  // ── Dungeon tiles ──────────────────────────
-  case 8:  drawWall(ctx, px, py, tx, ty);       break;
-  case 9:  drawFloor(ctx, px, py, tx, ty);      break;
-  case 10: drawDoor(ctx, px, py, tx, ty);       break;
-  case 11: drawChest(ctx, px, py, tx, ty);      break;
-  case 12: drawStairsUp(ctx, px, py, tx, ty);   break;
-  case 13: drawStairsDown(ctx, px, py, tx, ty); break;
-  case 14: drawPortal(ctx, px, py, tx, ty);     break;
-
-  // ── Town interior tiles ────────────────────
-  case 20: drawTownFloor(ctx, px, py, tx, ty); break;
-  case 21: drawTownWall(ctx, px, py, tx, ty);  break;
-  case 22: drawTownService(ctx, px, py, tx, ty, '🏨', '#7a5030'); break;
-  case 23: drawTownService(ctx, px, py, tx, ty, '⚒', '#1a3a5a');  break;
-  case 24: drawTownService(ctx, px, py, tx, ty, '✝', '#4a2a6a');  break;
-  case 25: drawTownService(ctx, px, py, tx, ty, '🍺', '#3a2808'); break;
-  case 26: drawTownService(ctx, px, py, tx, ty, '💰', '#1a3a1a'); break;
-  case 27: drawTownService(ctx, px, py, tx, ty, '⚗', '#102a2a');  break;
-  case 28: drawTownExit(ctx, px, py, tx, ty);  break;
-  case 29: drawTownDeco(ctx, px, py, tx, ty);  break;
-
-  default: {
-    const colors = TILE_COLORS?.[tile];
-    if (colors) {
-      ctx.fillStyle = colors[0];
-      ctx.fillRect(px, py, TS, TS);
-    }
-  }
- // Portal overlay
+      // Draw portal overlay if it exists on this tile
       if (portalSet.has(`${tx},${ty}`)) {
         drawPortal(ctx, px, py, TS);
       }
+
       ctx.restore();
     }
   }
+}
 
   // Entities (player + bosses)
   for (const e of entities) {
