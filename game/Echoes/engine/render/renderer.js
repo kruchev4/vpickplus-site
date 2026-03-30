@@ -876,6 +876,23 @@ export function renderMap(ctx, map, camera, entities = []) {
         case 12: drawStairsUp(ctx, px, py, tx, ty);   break;
         case 13: drawStairsDown(ctx, px, py, tx, ty); break;
         case 20: drawTownFloor(ctx, px, py, tx, ty);   break;
+          
+// ── New expansion world tiles ──────────────
+  case 15: drawJungle(ctx, px, py, tx, ty);    break;
+  case 16: drawVolcano(ctx, px, py, tx, ty);   break;
+  case 17: drawEldritch(ctx, px, py, tx, ty);  break;
+  case 18: drawObsidian(ctx, px, py, tx, ty);  break;
+  case 19: drawBlight(ctx, px, py, tx, ty);    break;
+
+  // ── Dungeon tiles ──────────────────────────
+  case 8:  drawWall(ctx, px, py, tx, ty);       break;
+  case 9:  drawFloor(ctx, px, py, tx, ty);      break;
+  case 10: drawDoor(ctx, px, py, tx, ty);       break;
+  case 11: drawChest(ctx, px, py, tx, ty);      break;
+  case 12: drawStairsUp(ctx, px, py, tx, ty);   break;
+  case 13: drawStairsDown(ctx, px, py, tx, ty); break;
+  case 14: drawPortal(ctx, px, py, tx, ty);     break;
+
 case 21: drawTownWall(ctx, px, py, tx, ty);    break;
 case 22: drawTownService(ctx, px, py, tx, ty, '🏨', '#7a5030'); break;
 case 23: drawTownService(ctx, px, py, tx, ty, '⚒',  '#1a3a5a'); break;
