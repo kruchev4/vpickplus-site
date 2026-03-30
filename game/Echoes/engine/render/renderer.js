@@ -324,6 +324,7 @@ function drawJungle(ctx, px, py, x, y) {
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(px + TS - 3, py);
+  }
 
 
 function drawShallow(ctx, px, py, x, y) {
