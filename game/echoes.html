@@ -958,7 +958,9 @@ const worldCanvas = document.getElementById("world-cv");
 
   GameState._transitioning = true;
 
-  await loadMap(next); // whatever your real map loader is
+ const nextMap = await window.loadWorld(nextId);
+window.GameState.activeMap = nextMap;
+
 
   const map = GameState.activeMap;
 
