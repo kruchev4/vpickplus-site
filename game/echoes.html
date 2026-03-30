@@ -2313,13 +2313,6 @@ let type = _getTile(G.x, G.y);
 let nx = null, ny = null;
 let nextType = null;
 
-  
-const _map = window.GameState?.activeMap;
-  const _mapReady = !!_map;
-
-
-
-
   // ── Town mode (keep your existing behavior) ─────────────────
   if (window.GameState?.mode === 'town') {
     const tm = window.GameState.activeMap;
