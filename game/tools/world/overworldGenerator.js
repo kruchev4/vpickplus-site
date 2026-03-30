@@ -1,7 +1,7 @@
 // src/world/overworldGenerator.js
 console.log("✅ overworldGenerator.js executing");
 
-import { BIOMES } from "./biomes.js";
+
 
 export const WORLD_WIDTH  = 240;
 export const WORLD_HEIGHT = 180;
