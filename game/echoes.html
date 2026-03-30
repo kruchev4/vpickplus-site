@@ -1514,7 +1514,41 @@ window.showCharSelect = showCharSelect;
 }
 
 window.startCharacterCreation = startCharacterCreation;
+// ────────────────────────────────────────────────────────────
+// Shared movement helpers (define ONCE)
+// ────────────────────────────────────────────────────────────
+window.PASSABLE_TILES = new Set([
+  // Overworld base
+  0, 1, 4, 5, 6, 7,
+  // Optional: allow mountains while testing
+  2,
 
+  // Overworld expansion tiles
+  15, 16, 17, 18, 19,
+
+  // Dungeon tiles
+  9, 10, 11, 12, 13,
+
+  // Town interior passables (your set)
+  20, 22, 23, 24, 25, 26, 27, 28
+]);
+
+window.getMoveCtx = function getMoveCtx() {
+  const map = window.GameState?.activeMap || null;
+  const W = map?.width  || window.MAP_W || 240;
+  const H = map?.height || window.MAP_H || 180;
+
+  const getTile = (x, y) => map ? map.getTile(x, y) : 0; // default grass
+
+  return {
+    map,
+    mapReady: !!map,
+    W,
+    H,
+    getTile,
+    passable: window.PASSABLE_TILES
+  };
+};
 
 const EQUIP_SLOTS = ['head','shoulders','chest','pants','boots','mainhand','offhand','ring1','ring2','necklace'];
 const EQUIP_SLOT_LABELS = {
@@ -2263,29 +2297,24 @@ function onKey(e){
   keys[e.key]=true;
 }
 function tryMove(dx, dy) {
-  
-
- _map = window.GameState?.activeMap;
-const _mapReady = _map;
-  
   if (G.inCombat) return;
 
-  // ── Town mode (unchanged) ──────────────────────────────────
+  // ── Town mode (keep your existing behavior) ─────────────────
   if (window.GameState?.mode === 'town') {
-    const _tm = window.GameState.activeMap;
-    if (!_tm) return;
+    const tm = window.GameState.activeMap;
+    if (!tm) return;
 
-    const _TP = new Set([20,22,23,24,25,26,27,28]);
+    const TP = new Set([20,22,23,24,25,26,27,28]);
     const nx = G.x + dx, ny = G.y + dy;
-    if (nx < 0 || nx >= _tm.width || ny < 0 || ny >= _tm.height) return;
 
-    const tt = _tm.getTile(nx, ny);
-    if (!_TP.has(tt)) return;
-console.log("✅ ABOUT TO APPLY MOVEMENT");
+    if (nx < 0 || nx >= tm.width || ny < 0 || ny >= tm.height) return;
+
+    const tt = tm.getTile(nx, ny);
+    if (!TP.has(tt)) return;
+
     G.prevX = G.x; G.prevY = G.y;
     G.x = nx; G.y = ny;
     window.GameState.player = G;
-    console.log("✅ MOVEMENT APPLIED", G.x, G.y);
 
     window.handleTownTile?.(tt, nx, ny);
 
@@ -2296,121 +2325,40 @@ console.log("✅ ABOUT TO APPLY MOVEMENT");
     render(); updateHUD();
     return;
   }
-  // ── World / Dungeon movement ────────────────────────────────
-//const _map = window.GameState?.activeMap;
-if (!_map) return;
 
-const _W = _map.width;
-const _H = _map.height;
-
-// Tile lookup
-const _getTile = (x, y) => _map.getTile(x, y);
-
-// Compute next position
-const nx = G.x + dx;
-const ny = G.y + dy;
-
-// Bounds
-if (nx < 0 || nx >= _W || ny < 0 || ny >= _H) return;
-
-// Passability (use YOUR current passable set)
-const nextType = _getTile(nx, ny);
-if (!_PASSABLE.has(nextType)) return;
-
-// ✅ APPLY MOVEMENT (THIS WAS MISSING)
-console.log("✅ ABOUT TO APPLY MOVEMENT (world)");
-G.prevX = G.x; 
-G.prevY = G.y;
-G.x = nx; 
-G.y = ny;
-window.GameState.player = G;
-console.log("✅ MOVEMENT APPLIED (world)", G.x, G.y);
-
-// Step sound
-if (!G._stepCount) G._stepCount = 0;
-G._stepCount++;
-if (G._stepCount % 4 === 0) playSound('step');
-
-// Render
-render();
-updateHUD();
-
-
-  // ── Common setup ──────────────────────────────────────────
-  const _map = window.GameState?.activeMap;
-  _W = _map?.width  || window.MAP_W || 240;
-  _H = _map?.height || window.MAP_H || 180;
+  // ── World/Dungeon movement using shared ctx ─────────────────
+  const ctx = window.getMoveCtx();
+  if (!ctx.map) return;
 
   const nx = G.x + dx;
   const ny = G.y + dy;
 
-  // ── OVERWORLD EDGE TRANSITIONS ──────────────────────────────
-  if (_map && window.GameState.currentWorldId && !window.GameState._transitioning) {
-    if (nx < 0) {
-      window.GameState._transitioning = true;
-      transitionWorld("W").finally(() => window.GameState._transitioning = false);
-      return;
-    }
-    if (nx >= _W) {
-      window.GameState._transitioning = true;
-      transitionWorld("E").finally(() => window.GameState._transitioning = false);
-      return;
-    }
-    if (ny < 0) {
-      window.GameState._transitioning = true;
-      transitionWorld("N").finally(() => window.GameState._transitioning = false);
-      return;
-    }
-    if (ny >= _H) {
-      window.GameState._transitioning = true;
-      transitionWorld("S").finally(() => window.GameState._transitioning = false);
-      return;
+  // ── Overworld transitions (only if worldId exists) ──────────
+  // NOTE: this triggers only if you have transitionWorld + worldId set
+  if (window.GameState?.currentWorldId && typeof window.transitionWorld === "function") {
+    const W = ctx.W, H = ctx.H;
+
+    if (!window.GameState._transitioning) {
+      if (nx < 0)  { window.GameState._transitioning = true; window.transitionWorld("W").finally(() => window.GameState._transitioning = false); return; }
+      if (nx >= W) { window.GameState._transitioning = true; window.transitionWorld("E").finally(() => window.GameState._transitioning = false); return; }
+      if (ny < 0)  { window.GameState._transitioning = true; window.transitionWorld("N").finally(() => window.GameState._transitioning = false); return; }
+      if (ny >= H) { window.GameState._transitioning = true; window.transitionWorld("S").finally(() => window.GameState._transitioning = false); return; }
     }
   }
 
- 
-const _T = {
-  GRASS:0, FOREST:1, MOUNTAIN:2, DEEP_WATER:3, SHALLOW:4,
-  TOWN:5, DANGER:6, SAND:7
-};
+  // Bounds (non-transition case)
+  if (nx < 0 || nx >= ctx.W || ny < 0 || ny >= ctx.H) return;
 
-// ✅ UPDATED passable set (this is the fix)
-const _PASSABLE = new Set([
-  // Overworld base
-  0,  // GRASS
-  1,  // FOREST
-  2,  // MOUNTAIN (temporarily walkable)
-  4,  // SHALLOW
-  5,  // TOWN
-  6,  // DANGER
-  7,  // SAND
+  // Passability
+  const nextType = ctx.getTile(nx, ny);
+  if (!ctx.passable.has(nextType)) return;
 
-  // Overworld expansion tiles
-  15, // JUNGLE
-  16, // VOLCANO
-  17, // ELDRITCH
-  18, // OBSIDIAN
-  19, // BLIGHT
-
-  // Dungeon
-  9, 10, 11, 12, 13,
-
-  // Town interior / buildings
-  20, 22, 23, 24, 25, 26, 27, 28
-]);
-
-const _getTile = (x, y) => _map ? _map.getTile(x, y) : _T.GRASS;
-
- 
-  let type = _getTile(G.x, G.y);
-
-  if (nx < 0 || nx >= _W || ny < 0 || ny >= _H) return;
-  if (!_PASSABLE.has(_getTile(nx, ny))) return;
-
- 
+  // ── CO‑OP optimistic move (preserve behavior) ───────────────
   if (!coopIsHost && coopActive) {
     G.prevX = G.x; G.prevY = G.y;
     G.x = nx; G.y = ny;
+    window.GameState.player = G;
+
     coopSendMove(dx, dy);
 
     if (!G._stepCount) G._stepCount = 0;
@@ -2420,6 +2368,19 @@ const _getTile = (x, y) => _map ? _map.getTile(x, y) : _T.GRASS;
     render(); updateHUD();
     return;
   }
+
+  // Apply move
+  G.prevX = G.x; G.prevY = G.y;
+  G.x = nx; G.y = ny;
+  window.GameState.player = G;
+
+  if (!G._stepCount) G._stepCount = 0;
+  G._stepCount++;
+  if (G._stepCount % 4 === 0) playSound('step');
+
+  render(); updateHUD();
+}
+window.tryMove = tryMove;
 
   
 
