@@ -2482,6 +2482,15 @@ if(window.GameState?.mode==='town'){
       [_T.SAND]:'Hot sand crunches underfoot.',
       [_T.GRASS]:'You emerge onto open grassland.',
       [_T.SHALLOW]:'You wade through shallow waters.'
+      
+    [_T.JUNGLE]:   'Vines and towering foliage close in around you.',
+    [_T.VOLCANO]:  '🔥 The ground radiates unbearable heat.',
+    [_T.ELDRITCH]: 'Your mind aches as reality feels… wrong.',
+    [_T.OBSIDIAN]: 'Black volcanic glass reflects a scarred sky.',
+    [_T.BLIGHT]:   'The land here is sick. Nothing thrives.'
+
+    };
+    if(msgs[type])addLog(msgs[type]);
     };
     if(msgs[type])addLog(msgs[type]);
   }
@@ -3363,7 +3372,7 @@ function executePlayerAction({action,mpCost}){
 
     case 'Second Wind':{
       // Fighter — heal AND grant 1 round of 50% damage reduction
-      const h=rollDice(10,1)+G.level;
+      const h=rollDice(5,1)+G.level;
       G.hp=Math.min(G.hpMax,G.hp+h);
       G.passives=G.passives||{};
       G.passives.dmgReduce=(G.passives.dmgReduce||0)+Math.floor(G.level*1.5);
