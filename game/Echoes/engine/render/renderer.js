@@ -40,7 +40,7 @@ function drawGrass(ctx, px, py, x, y) {
   }
 }
 
-function drawForest(ctx, px, py, x, y) {
+function drawest(ctx, px, py, x, y) {
   const h = hash(x, y);
   // Dark mossy floor
   ctx.fillStyle = h > 0.5 ? '#1a3810' : '#122808';
@@ -52,7 +52,7 @@ function drawForest(ctx, px, py, x, y) {
   }
   // Tree trunks
   const treeCount = 1 + Math.floor(h * 2);
-  for (let i = 0; i < treeCount; i++) {
+   (let i = 0; i < treeCount; i++) {
     const hx = hash(x + i*7, y + i*3);
     const hy = hash(x + i*5, y + i*9);
     const r  = 6 + Math.floor(hx * 5);
@@ -827,7 +827,7 @@ export function renderMap(ctx, map, camera, entities = []) {
       ctx.fillStyle = colors[0];
       ctx.fillRect(px, py, TS, TS);
     }
-  }
+  }}}
 
 } // 
       ctx.restore(); // ✅ THIS was missing✅ THIS brace was missing and caused the export error
