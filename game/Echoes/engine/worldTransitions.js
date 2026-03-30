@@ -12,48 +12,64 @@ function syncMapGlobals(map) {
   }
 }
 
-export async function transitionWorld(dir) {
-  if (GameState._transitioning) return false;
-  GameState._transitioning = true;
+window.transitionWorldEdge = async function transitionWorldEdge(dir) {
+  const GS = window.GameState;
+  if (!GS) return false;
+
+  if (GS._transitioning) return true;
+
+  const curId = GS.currentWorldId || "overworld_C";
+  const nextId = (window.WORLD_NEIGHBORS?.[curId] || {})[dir];
+
+  if (!nextId) {
+    console.warn("[transition] no neighbor", { curId, dir });
+    return false;
+  }
+
+  if (typeof window.loadWorld !== "function") {
+    console.error("[transition] window.loadWorld is not defined");
+    return false;
+  }
+
+  GS._transitioning = true;
 
   try {
-    const currentId = GameState.currentWorldId || "overworld_C";
-    const nextId = WORLD_NEIGHBORS[currentId]?.[dir];
+    console.log("[transition] loading world", { from: curId, dir, to: nextId });
 
-    if (!nextId) {
-      // No neighbor defined for this direction (edge of your 3×3)
-      if (typeof addLog === "function") addLog("You cannot travel further that way.");
-      return false;
+    // ✅ Load from WORLDS table via exposed loader
+    const nextMap = await window.loadWorld(nextId);
+
+    // Swap active map + world id
+    GS.activeMap = nextMap;
+    GS.currentWorldId = nextId;
+
+    // Update globals used by renderer/minimap
+    window.MAP_W = nextMap.width;
+    window.MAP_H = nextMap.height;
+    if (window.worldMap) {
+      window.worldMap.width  = nextMap.width;
+      window.worldMap.height = nextMap.height;
     }
 
-    const nextMap = await loadWorld(nextId);
+    // Wrap player to opposite edge
+    if (dir === "W") G.x = nextMap.width - 1;
+    if (dir === "E") G.x = 0;
+    if (dir === "N") G.y = nextMap.height - 1;
+    if (dir === "S") G.y = 0;
 
-    // Wrap player coordinates to the opposite edge
-    if (dir === "W") GameState.player.x = nextMap.width - 1;
-    if (dir === "E") GameState.player.x = 0;
-    if (dir === "N") GameState.player.y = nextMap.height - 1;
-    if (dir === "S") GameState.player.y = 0;
+    GS.player = G;
 
-    GameState.activeMap = nextMap;
-    GameState.currentWorldId = nextId;
-
-    syncMapGlobals(nextMap);
-
-    if (typeof addLog === "function") {
-      addLog(`You enter ${nextId.replace("overworld_", "")}.`);
-    }
-
-    // Optional: clear/rebuild minimap/fog if you have per-map state
-    if (typeof updateMinimapMode === "function") updateMinimapMode();
-    if (typeof render === "function") render();
-    if (typeof updateHUD === "function") updateHUD();
-
+    if (typeof addLog === "function") addLog(`You enter ${nextId.replace("overworld_", "")}.`);
+    render(); updateHUD();
     return true;
+
   } catch (e) {
-    console.error("[transitionWorld] failed:", e);
-    if (typeof toast === "function") toast(`World load failed: ${e.message}`, "err");
+    console.error("[transition] failed:", e);
+    if (typeof toast === "function") toast(`World transition failed: ${e.message}`, "err");
     return false;
+
   } finally {
-    GameState._transitioning = false;
+    GS._transitioning = false;
   }
-}
+};
+
