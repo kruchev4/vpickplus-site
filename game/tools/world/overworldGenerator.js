@@ -10,11 +10,13 @@ export function generateOverworldTiles({ biomeKey, seed }) {
   if (!biome) {
     throw new Error(`Unknown biome: ${biomeKey}`);
   }
+  
   // Lightweight deterministic hash for world generation
 function hash(x, y) {
   const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
   return s - Math.floor(s);
 }
+window.__generateOverworldTiles = generateOverworldTiles;
 
   const tiles = new Array(WORLD_WIDTH * WORLD_HEIGHT);
 
