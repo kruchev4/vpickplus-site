@@ -2,6 +2,24 @@ import { generateEightDungeons } from "../../campaign/generator/generateEightDun
 import { saveDungeonToSupabase } from "../../campaign/persistence/saveDungeon.js";
 
 const generateBtn = document.getElementById("generate");
+import { OVERWORLD_DEFS } from "../world/overworldDefs.js";
+import { generateOverworldTiles } from "../world/overworldGenerator.js";
+import { saveWorld } from "../db/saveWorld.js";
+
+async function generateOverworlds(seed) {
+  for (const [id, def] of Object.entries(OVERWORLD_DEFS)) {
+    const tiles = generateOverworldTiles({
+      biomeKey: def.biome,
+      seed: `${seed}:${id}`,
+    });
+
+    await saveWorld({
+      id,
+      name: id.replace("overworld_", "").toUpperCase(),
+      tiles,
+    });
+  }
+}
 const list = document.getElementById("dungeon-list");
 
 generateBtn.onclick = async () => {
