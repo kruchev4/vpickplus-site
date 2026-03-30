@@ -16,7 +16,7 @@ function hash(x, y) {
   const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
   return s - Math.floor(s);
 }
-window.__generateOverworldTiles = generateOverworldTiles;
+
 
   const tiles = new Array(WORLD_WIDTH * WORLD_HEIGHT);
 
@@ -32,10 +32,10 @@ window.__generateOverworldTiles = generateOverworldTiles;
           break;
         }
       }
-      window.__generateOverworldTiles = generateOverworldTiles;
+      
       tiles[idx] = tile;
     }
   }
-
+window.__generateOverworldTiles = generateOverworldTiles;
   return tiles;
 }
