@@ -938,6 +938,38 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 
 'use strict';
 const worldCanvas = document.getElementById("world-cv");
+  async function transitionWorldEdge(dir) {
+  const current = GameState.currentWorldId;
+  const next = WORLD_NEIGHBORS[current]?.[dir];
+
+  if (!next) return false;
+
+  GameState._transitioning = true;
+
+  await loadMap(next); // whatever your real map loader is
+
+  const map = GameState.activeMap;
+
+  // Place player on opposite edge
+  if (dir === "N")  { G.y = map.height - 1; }
+  if (dir === "S")  { G.y = 0; }
+  if (dir === "W")  { G.x = map.width - 1; }
+  if (dir === "E")  { G.x = 0; }
+
+  if (dir === "NW") { G.x = map.width - 1; G.y = map.height - 1; }
+  if (dir === "NE") { G.x = 0;               G.y = map.height - 1; }
+  if (dir === "SW") { G.x = map.width - 1;   G.y = 0; }
+  if (dir === "SE") { G.x = 0;               G.y = 0; }
+
+  GameState.currentWorldId = next;
+  GameState.player = G;
+
+  GameState._transitioning = false;
+  render();
+  updateHUD();
+
+  return true;
+}
   
 
 
@@ -960,6 +992,7 @@ function resizeCanvasToDisplaySize(canvas) {
   }
   return false; // no change
 }
+GameState._transitioning = false;
 
 function toggleSound(){
   _soundEnabled=!_soundEnabled;
@@ -967,7 +1000,22 @@ function toggleSound(){
   if(btn) btn.textContent=_soundEnabled?'🔊':'🔇';
   toast(_soundEnabled?'Sound on':'Sound off');
 }
+// Overworld adjacency graph
+const WORLD_NEIGHBORS = {
+  overworld_C:  { N: "overworld_N",  NE: "overworld_NE", E: "overworld_E",
+                  SE: "overworld_SE", S: "overworld_S",  SW: "overworld_SW",
+                  W: "overworld_W",  NW: "overworld_NW" },
 
+  overworld_N:  { S: "overworld_C" },
+  overworld_S:  { N: "overworld_C" },
+  overworld_E:  { W: "overworld_C" },
+  overworld_W:  { E: "overworld_C" },
+
+  overworld_NE: { SW: "overworld_C" },
+  overworld_NW: { SE: "overworld_C" },
+  overworld_SE: { NW: "overworld_C" },
+  overworld_SW: { NE: "overworld_C" }
+};
 
 
 
@@ -2359,6 +2407,17 @@ if (window.GameState?.mode === 'town' && window.GameState?.activeMap?.isTown) {
 
    nx = G.x + dx;
    ny = G.y + dy;
+  // ── Overworld edge transitions ──────────────────────────────
+if (
+  GameState.currentWorldId &&
+  !GameState._transitioning &&
+  window.WORLD_NEIGHBORS
+) {
+  if (nx < 0)          { transitionWorldEdge("W"); return; }
+  if (nx >= ctx.W)     { transitionWorldEdge("E"); return; }
+  if (ny < 0)          { transitionWorldEdge("N"); return; }
+  if (ny >= ctx.H)     { transitionWorldEdge("S"); return; }
+}
 
   // ── Overworld transitions (only if worldId exists) ──────────
   // NOTE: this triggers only if you have transitionWorld + worldId set
