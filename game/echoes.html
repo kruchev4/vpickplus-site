@@ -2225,41 +2225,115 @@ function onKey(e){
   }
   keys[e.key]=true;
 }
-function tryMove(dx,dy){
-  if(G.inCombat)return;
-  // ADD THIS BLOCK right after that line:
-if(window.GameState?.mode==='town'){
-  const _tm=window.GameState.activeMap;
-  if(!_tm)return;
-  const _TP=new Set([20,22,23,24,25,26,27,28]);
-  const nx=G.x+dx,ny=G.y+dy;
-  if(nx<0||nx>=_tm.width||ny<0||ny>=_tm.height)return;
-  const tt=_tm.getTile(nx,ny);
-  if(!_TP.has(tt))return;
-  G.prevX=G.x;G.prevY=G.y;G.x=nx;G.y=ny;
-  window.GameState.player=G;
-  window.handleTownTile?.(tt,nx,ny);
-  if(!G._stepCount)G._stepCount=0;G._stepCount++;
-  if(G._stepCount%4===0)playSound('step');
-  render();updateHUD();
-  return;
-}
+function tryMove(dx, dy) {
+  if (G.inCombat) return;
 
-  // ── Read tile from new engine map ──────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────
+  // Town mode (UNCHANGED)
+  // ──────────────────────────────────────────────────────────
+  if (window.GameState?.mode === 'town') {
+    const _tm = window.GameState.activeMap;
+    if (!_tm) return;
+
+    const _TP = new Set([20,22,23,24,25,26,27,28]);
+    const nx = G.x + dx, ny = G.y + dy;
+
+    if (nx < 0 || nx >= _tm.width || ny < 0 || ny >= _tm.height) return;
+
+    const tt = _tm.getTile(nx, ny);
+    if (!_TP.has(tt)) return;
+
+    G.prevX = G.x; G.prevY = G.y;
+    G.x = nx; G.y = ny;
+    window.GameState.player = G;
+
+    window.handleTownTile?.(tt, nx, ny);
+
+    if (!G._stepCount) G._stepCount = 0;
+    G._stepCount++;
+    if (G._stepCount % 4 === 0) playSound('step');
+
+    render(); updateHUD();
+    return;
+  }
+
+  // ──────────────────────────────────────────────────────────
+  // World / dungeon movement
+  // ──────────────────────────────────────────────────────────
   const _map = window.GameState?.activeMap;
-  const _W = _map?.width  || window.MAP_W || 240;
-  const _H = _map?.height || window.MAP_H || 180;
+  const _W   = _map?.width  || window.MAP_W || 240;
+  const _H   = _map?.height || window.MAP_H || 180;
 
-  // Tile type constants (match constants.js)
-  const _T = { GRASS:0, FOREST:1, MOUNTAIN:2, DEEP_WATER:3, SHALLOW:4, TOWN:5, DANGER:6, SAND:7 };
-  const _PASSABLE = new Set([0,1,4,5,6,7,9,10,11,12,13]); // world tiles + dungeon: floor,door,chest,stairs
+  const nx = G.x + dx;
+  const ny = G.y + dy;
 
-  // If map not loaded yet, allow movement but skip encounters
+  // ──────────────────────────────────────────────────────────
+  // 🌍 OVERWORLD EDGE TRANSITION
+  // ──────────────────────────────────────────────────────────
+  if (_map && window.GameState.currentWorldId) {
+    // Prevent double-fire while loading
+    if (!window.GameState._transitioning) {
+      if (nx < 0) {
+        window.GameState._transitioning = true;
+        transitionWorld("W").finally(() => window.GameState._transitioning = false);
+        return;
+      }
+      if (nx >= _W) {
+        window.GameState._transitioning = true;
+        transitionWorld("E").finally(() => window.GameState._transitioning = false);
+        return;
+      }
+      if (ny < 0) {
+        window.GameState._transitioning = true;
+        transitionWorld("N").finally(() => window.GameState._transitioning = false);
+        return;
+      }
+      if (ny >= _H) {
+        window.GameState._transitioning = true;
+        transitionWorld("S").finally(() => window.GameState._transitioning = false);
+        return;
+      }
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────
+  // Tile logic (UNCHANGED)
+  // ──────────────────────────────────────────────────────────
+  const _T = {
+    GRASS: 0, FOREST: 1, MOUNTAIN: 2,
+    DEEP_WATER: 3, SHALLOW: 4, TOWN: 5,
+    DANGER: 6, SAND: 7
+  };
+
+  const _PASSABLE = new Set([
+    0, 1, 4, 5, 6, 7,   // overworld
+    9, 10, 11, 12, 13  // dungeon
+  ]);
+
   const _mapReady = !!_map;
   const _getTile = (x, y) => {
-    if (!_map) return _T.GRASS; // assume passable until map loads
+    if (!_map) return _T.GRASS;
     return _map.getTile(x, y);
   };
+
+  if (nx < 0 || nx >= _W || ny < 0 || ny >= _H) return;
+
+  const t = _getTile(nx, ny);
+  if (!_PASSABLE.has(t)) return;
+
+  // ──────────────────────────────────────────────────────────
+  // Apply movement (UNCHANGED)
+  // ──────────────────────────────────────────────────────────
+  G.prevX = G.x; G.prevY = G.y;
+  G.x = nx; G.y = ny;
+  window.GameState.player = G;
+
+  if (!G._stepCount) G._stepCount = 0;
+  G._stepCount++;
+  if (G._stepCount % 4 === 0) playSound('step');
+
+  render(); updateHUD();
+}
 
   // Peers: optimistic local move (client-side prediction) + notify host
   if(!coopIsHost && coopActive){
