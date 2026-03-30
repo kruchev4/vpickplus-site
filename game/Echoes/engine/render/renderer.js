@@ -40,7 +40,7 @@ function drawGrass(ctx, px, py, x, y) {
   }
 }
 
-function drawest(ctx, px, py, x, y) {
+function drawForest(ctx, px, py, x, y) {
   const h = hash(x, y);
   // Dark mossy floor
   ctx.fillStyle = h > 0.5 ? '#1a3810' : '#122808';
@@ -827,10 +827,13 @@ export function renderMap(ctx, map, camera, entities = []) {
       ctx.fillStyle = colors[0];
       ctx.fillRect(px, py, TS, TS);
     }
-  }}
-
-} // 
-      ctx.restore(); // ✅ THIS was missing✅ THIS brace was missing and caused the export error
+  }
+ // Portal overlay
+      if (portalSet.has(`${tx},${ty}`)) {
+        drawPortal(ctx, px, py, TS);
+      }
+      ctx.restore();
+    }
   }
 
   // Entities (player + bosses)
