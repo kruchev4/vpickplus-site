@@ -1810,6 +1810,30 @@ function onCanvasClick(e){
  
   const _W   = _map?.width  || window.MAP_W || 240;
   const _H   = _map?.height || window.MAP_H || 180;
+  // ── PASSABLE TILE SET (local to tryMove) ───────────────────
+const _PASSABLE = new Set([
+  // Overworld base
+  0,  // GRASS
+  1,  // FOREST
+  2,  // MOUNTAIN (optional, but recommended for now)
+  4,  // SHALLOW
+  5,  // TOWN
+  6,  // DANGER
+  7,  // SAND
+
+  // Overworld expansion tiles
+  15, // JUNGLE
+  16, // VOLCANO
+  17, // ELDRITCH
+  18, // OBSIDIAN
+  19, // BLIGHT
+
+  // Dungeons
+  9, 10, 11, 12, 13,
+
+  // Town interiors
+  20, 22, 23, 24, 25, 26, 27, 28
+]);
   const camX = _cam
   ? (_cam.x ?? G.x * _TS - wc.width  / (2 * (window.devicePixelRatio||1)) + _TS/2)
   : (G.x * _TS - wc.width  / (2 * (window.devicePixelRatio||1)) + _TS/2);
@@ -1908,7 +1932,19 @@ function bfsPath(sx, sy, tx, ty, maxSteps){
   if(sx===tx&&sy===ty) return [];
   const _map = window.GameState?.activeMap;
   const _getTile = (x,y) => _map ? _map.getTile(x,y) : null;
-  const _PASSABLE = new Set([0,1,4,5,6,7,9,10,11,12,13,20,22,23,24,25,26,27,28]);
+  const _PASSABLE = new Set([
+  // Overworld base
+  0, 1, 2, 4, 5, 6, 7,
+
+  // Overworld expansion tiles
+  15, 16, 17, 18, 19,
+
+  // Dungeon tiles
+  9, 10, 11, 12, 13,
+
+  // Town interior tiles
+  20, 22, 23, 24, 25, 26, 27, 28
+]);
   const _W = _map?.width  || window.MAP_W || 240;
   const _H = _map?.height || window.MAP_H || 180;
   const visited = new Set();
@@ -2292,7 +2328,41 @@ const _mapReady = true;
 
   // ── Tile logic ─────────────────────────────────────────────
   const _T = { GRASS:0, FOREST:1, MOUNTAIN:2, DEEP_WATER:3, SHALLOW:4, TOWN:5, DANGER:6, SAND:7 };
-  const _PASSABLE = new Set([0,1,4,5,6,7,9,10,11,12,13]);
+ // ── Tile logic ─────────────────────────────────────────────
+const _T = {
+  GRASS:0, FOREST:1, MOUNTAIN:2, DEEP_WATER:3, SHALLOW:4,
+  TOWN:5, DANGER:6, SAND:7
+};
+
+// ✅ UPDATED passable set (this is the fix)
+const _PASSABLE = new Set([
+  // Overworld base
+  0,  // GRASS
+  1,  // FOREST
+  2,  // MOUNTAIN (temporarily walkable)
+  4,  // SHALLOW
+  5,  // TOWN
+  6,  // DANGER
+  7,  // SAND
+
+  // Overworld expansion tiles
+  15, // JUNGLE
+  16, // VOLCANO
+  17, // ELDRITCH
+  18, // OBSIDIAN
+  19, // BLIGHT
+
+  // Dungeon
+  9, 10, 11, 12, 13,
+
+  // Town interior / buildings
+  20, 22, 23, 24, 25, 26, 27, 28
+]);
+
+const _getTile = (x, y) => _map ? _map.getTile(x, y) : _T.GRASS;
+
+// current tile (used for encounters)
+let type = _getTile(G.x, G.y);
   const _getTile = (x,y) => _map ? _map.getTile(x,y) : _T.GRASS;
   let type = _getTile(G.x, G.y);
 
