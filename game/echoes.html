@@ -2372,6 +2372,14 @@ if (window.GameState?.mode === 'town' && window.GameState?.activeMap?.isTown) {
   const nx = G.x + dx, ny = G.y + dy;
 
   if (nx < 0 || nx >= tm.width || ny < 0 || ny >= tm.height) return;
+  // ── Overworld edge transitions ──────────────────────────────
+if (window.GameState?.currentWorldId && typeof transitionWorldEdge === "function") {
+  if (nx < 0)      { transitionWorldEdge("W"); return; }
+  if (nx >= ctx.W) { transitionWorldEdge("E"); return; }
+  if (ny < 0)      { transitionWorldEdge("N"); return; }
+  if (ny >= ctx.H) { transitionWorldEdge("S"); return; }
+}
+
 
   const tt = tm.getTile(nx, ny);
   if (!TP.has(tt)) return;
