@@ -3984,7 +3984,7 @@ function checkCombatEnd(){
   if(!combat.active) return false;
 
   // Announce newly dead enemies
-  grantCombatLoot(combat.enemies);
+  //grantCombatLoot(combat.enemies);
   
 
   // Count alive enemies
@@ -3998,6 +3998,7 @@ function checkCombatEnd(){
       addCombatLog(`Targeting ${combat.enemies[nextAlive].def.name}!`,'sys');
       updateBattlefieldBars();
     }
+    
     return false; // still fighting
   }
 
@@ -4006,6 +4007,7 @@ function checkCombatEnd(){
     combat.active=false;
     G.inCombat=false; // clear immediately so movement resumes
     G._acBonus=0; G.defending=false;
+    window.grantCombatLoot(combat.enemies);
     if(combat.animFrame){cancelAnimationFrame(combat.animFrame);combat.animFrame=null;}
     _resetPlayerCast();
 
