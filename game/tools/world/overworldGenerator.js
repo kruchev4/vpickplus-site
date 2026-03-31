@@ -26,6 +26,14 @@ const TILE = {
   OBSIDIAN: 18,
   BLIGHT:   19
 };
+function roadTileForWorld(worldId) {
+  if (worldId === "overworld_E") return 29;  // ROAD_OBSIDIAN
+  if (worldId === "overworld_S") return 30;  // ROAD_BLIGHT
+  if (worldId === "overworld_NE") return 31; // ROAD_RUNIC
+  if (worldId === "overworld_N") return 28;  // ROAD_STONE
+  return 27;                                 // ROAD_DIRT default
+}
+
 
 // ── Lightweight deterministic hash ──────────────────────────
 // (matches the style already used in your renderer)
@@ -187,7 +195,13 @@ function decorateWorldPhase1({ worldId, seed, tiles, variants, W, H }) {
   // Tile IDs must match your renderer
   const T = {
     GRASS:0, FOREST:1, MOUNTAIN:2, DEEP:3, SHALLOW:4, TOWN:5, DANGER:6, SAND:7,
-    JUNGLE:15, VOLCANO:16, ELDRITCH:17, OBSIDIAN:18, BLIGHT:19
+    JUNGLE:15, VOLCANO:16, ELDRITCH:17, OBSIDIAN:18, BLIGHT:19,
+ROAD_DIRT: 27,
+ROAD_STONE: 28,
+ROAD_OBSIDIAN: 29,
+ROAD_BLIGHT: 30,
+ROAD_RUNIC: 31,
+
   };
 
   // 3×3 grid offsets so rivers/terrain can be edge-consistent
