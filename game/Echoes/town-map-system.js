@@ -212,7 +212,7 @@
 
   // Close old HTML overlay if open
   document.getElementById('ov-town')?.classList.remove('active');
-    const GS = window.GameState;
+     GS = window.GameState;
     const G  = window.G;
     if (!GS || !G) return;
 
