@@ -194,6 +194,7 @@
   // ══════════════════════════════════════════════════════════════
 
   window.enterTownMap = async function enterTownMap(town) {
+    window.GameState.inTown = true;
     const GS = window.GameState;
     const G  = window.G;
     if (!GS || !G) return;
