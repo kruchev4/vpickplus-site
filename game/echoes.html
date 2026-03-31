@@ -2066,8 +2066,8 @@ function showPlayerInteraction(member){
 function bfsPath(sx, sy, tx, ty, maxSteps){
   if(sx===tx&&sy===ty) return [];
   const _map = window.GameState?.activeMap;
-  _getTile = (x,y) => _map ? _map.getTile(x,y) : null;
-  const _getTile = (x, y) => _map ? _map.getTile(x, y) : 0;
+  const _getTile = (x,y) => _map ? _map.getTile(x,y) : null;
+  
   const _PASSABLE = new Set([
   // Overworld base
   0, 1, 2, 4, 5, 6, 7,
