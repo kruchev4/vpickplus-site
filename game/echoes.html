@@ -963,6 +963,7 @@ window.WORLD_NEIGHBORS = window.WORLD_NEIGHBORS || {
 
 // Transition function (single authoritative version)
 window.transitionWorldEdge = async function transitionWorldEdge(dir) {
+  if (GS.inTown || GS.mode === "town" || GS.mode === "dungeon" || GS.inCombat) return false;
   const GS = window.GameState;
   if (!GS) return false;
   if (GS._transitioning) return true;
