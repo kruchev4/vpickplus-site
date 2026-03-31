@@ -3108,12 +3108,7 @@ function habitatFromTileId(tileId) {
   }
 }
 
-// 3×3 tier: 0=center, 1=edge, 2=corner
-const _WORLD_OFFSETS = {
-  overworld_C:[0,0],
-  overworld_N:[0,-1], overworld_S:[0,1], overworld_E:[1,0], overworld_W:[-1,0],
-  overworld_NE:[1,-1], overworld_NW:[-1,-1], overworld_SE:[1,1], overworld_SW:[-1,1]
-};
+
 function worldTier(worldId) {
   const [dx, dy] = _WORLD_OFFSETS[worldId] || [0,0];
   return Math.max(Math.abs(dx), Math.abs(dy)); // 0..2
