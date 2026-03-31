@@ -237,22 +237,23 @@ ROAD_RUNIC: 31,
   };
 
   // Biome-matched road tiles (Phase 1 = tile-based roads)
-  function roadTileForWorld(worldId, sampleTile) {
-    // Volcano/obsidian worlds: brick/obsidian road
-    if (worldId === "overworld_E" || sampleTile === T.OBSIDIAN || sampleTile === T.VOLCANO) return T.OBSIDIAN;
+  // Biome-matched road tiles (Phase 1 = dedicated road tiles)
+function roadTileForWorld(worldId, sampleTile) {
+  // World-based primary mapping (stable and obvious)
+  if (worldId === "overworld_E") return T.ROAD_OBSIDIAN; // volcanic/obsidian world
+  if (worldId === "overworld_S") return T.ROAD_BLIGHT;   // blight world
+  if (worldId === "overworld_NE") return T.ROAD_RUNIC;   // eldritch corner (adjust if you want)
+  if (worldId === "overworld_N") return T.ROAD_STONE;    // mountainous north (adjust if you want)
 
-    // Blight worlds: ashen road (blight tile)
-    if (worldId === "overworld_S" || sampleTile === T.BLIGHT) return T.BLIGHT;
+  // Tile-based fallback (if you later reuse biomes in other worlds)
+  if (sampleTile === T.MOUNTAIN) return T.ROAD_STONE;
+  if (sampleTile === T.OBSIDIAN || sampleTile === T.VOLCANO) return T.ROAD_OBSIDIAN;
+  if (sampleTile === T.BLIGHT) return T.ROAD_BLIGHT;
+  if (sampleTile === T.ELDRITCH) return T.ROAD_RUNIC;
 
-    // Eldritch worlds: dark road
-    if (sampleTile === T.ELDRITCH) return T.OBSIDIAN;
-
-    // Jungle: packed dirt road (use sand for now)
-    if (sampleTile === T.JUNGLE) return T.SAND;
-
-    // Default: sand/dirt road
-    return T.SAND;
-  }
+  // Default dirt road for grass/forest/jungle
+  return T.ROAD_DIRT;
+}
 
   // ── PASS 1: mountain ridges (impassable belts) ─────────────
   for (let y=0;y<H;y++){
