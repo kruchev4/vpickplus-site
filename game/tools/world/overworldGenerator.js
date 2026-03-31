@@ -383,7 +383,21 @@ function decorateWorldPhase1({ worldId, seed, tiles, variants, W, H }) {
 
 
 // dev helper for console generation
+// ── DEV / CONSOLE HOOKS ──────────────────────────────────────
+// Keep these at TOP LEVEL (not inside any function)
+
+// Full world generator (tiles + variants + metadata)
 window.__generateOverworldWorld = generateOverworldWorld;
+globalThis.__generateOverworldWorld = generateOverworldWorld;
+
+// Base tiles-only generator (useful for debugging)
+window.__generateOverworldTiles = generateOverworldTiles;
+globalThis.__generateOverworldTiles = generateOverworldTiles;
+
+console.log("✅ overworldGenerator hooks exposed:", {
+  __generateOverworldWorld: typeof window.__generateOverworldWorld,
+  __generateOverworldTiles: typeof window.__generateOverworldTiles
+});
 
 // ── DEV / CONSOLE HOOK ───────────────────────────────────────
 window.__generateOverworldTiles = generateOverworldTiles;
