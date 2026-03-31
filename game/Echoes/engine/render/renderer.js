@@ -810,6 +810,12 @@ switch (tile) {
         case 24: drawTownService(ctx, px, py, tx, ty, '📜', '#33a'); break; // Library
         case 25: drawTownExit(ctx, px, py, tx, ty);  break;
         case 26: drawTownDeco(ctx, px, py, tx, ty);  break;
+    // ── Roads (biome-matched) ─────────────────
+        case 27: drawRoadDirt(ctx, px, py, tx, ty);     break; // grass/forest/jungle path
+        case 28: drawRoadStone(ctx, px, py, tx, ty);    break; // mountain/highland road
+        case 29: drawRoadObsidian(ctx, px, py, tx, ty); break; // volcanic/obsidian brick
+        case 30: drawRoadBlight(ctx, px, py, tx, ty);   break; // ashen/cursed road
+        case 31: drawRoadRunic(ctx, px, py, tx, ty);    break; // eldritch rune road
 
         default: drawFloor(ctx, px, py, tx, ty);     break;
       }
