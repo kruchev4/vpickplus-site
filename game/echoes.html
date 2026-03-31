@@ -1631,6 +1631,7 @@ window.PASSABLE_TILES = new Set([
 
   // Town interior passables (your set)
   20, 22, 23, 24, 25, 26, 27, 28
+  27, 28, 29, 30, 31
 ]);
 
 window.getMoveCtx = function getMoveCtx() {
@@ -2070,6 +2071,7 @@ function bfsPath(sx, sy, tx, ty, maxSteps){
   const _PASSABLE = new Set([
   // Overworld base
   0, 1, 2, 4, 5, 6, 7,
+    27, 28, 29, 30, 31,
 
   // Overworld expansion tiles
   15, 16, 17, 18, 19,
