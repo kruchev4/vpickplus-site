@@ -352,6 +352,8 @@
 
     // Give a brief encounter cooldown so player isn't immediately attacked
     if (window.G) window.G.encounterCooldown = 15;
+    window.enterTownMap = enterTownMap;
+    window.leaveTownMap = leaveTownMap;
   };
 
   // Keep old leaveTown working too
