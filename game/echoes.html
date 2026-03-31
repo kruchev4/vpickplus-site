@@ -2126,7 +2126,7 @@ const camY = _cam
     const towns = (_map?.towns || window.TOWNS || []);
     const t = towns.find(t=>Math.abs(tx-t.x)<=1&&Math.abs(ty-t.y)<=1);
     if(t){
-      if(Math.abs(G.x-t.x)<=2&&Math.abs(G.y-t.y)<=2){ enterTownTownMap(t); }
+      if(Math.abs(G.x-t.x)<=2&&Math.abs(G.y-t.y)<=2){ enterTownMap(t); }
       else { const p=bfsPath(G.x,G.y,t.x,t.y,500); if(p) startClickPath(p,cx,cy,()=>enterTownMap(t),t.x,t.y); }
       return;
     }
