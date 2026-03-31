@@ -1673,7 +1673,130 @@ const SLOT_ACCEPTS = {
   ring1:['ring','accessory'], ring2:['ring','accessory'],
   necklace:['necklace','amulet','accessory']
 };
+  window.biomeFromTile = function(tileId) {
+  // Roads: treat as "safe travel", biome by underlying worldId or treat as "road"
+  if (tileId >= 27 && tileId <= 31) return "road";
 
+  switch (tileId) {
+    case 1: return "forest";
+    case 2: return "mountain";
+    case 3:
+    case 4: return "water";
+    case 5: return "town";
+    case 6: return "sand";
+    case 7: return "danger";
+    case 8: return "blight";
+    case 9: return "volcano";
+    default: return "grass"; // 0
+  }
+};
+  // Each monster is a template; you clone on spawn
+// hp/atk/def scale by tier multiplier at runtime
+const MONSTERS = {
+  rat:   { id:"rat",   name:"Giant Rat",   hp: 8,  atk: 3,  def:0, xp: 4,  tags:["beast"] },
+  wolf:  { id:"wolf",  name:"Wolf",        hp: 14, atk: 5,  def:1, xp: 8,  tags:["beast"] },
+  bandit:{ id:"bandit",name:"Bandit",      hp: 18, atk: 6,  def:1, xp:10,  tags:["humanoid"] },
+
+  // Blight
+  spore: { id:"spore", name:"Sporeling",   hp: 16, atk: 6,  def:1, xp:12, tags:["blight"] },
+  ghoul: { id:"ghoul", name:"Bog Ghoul",   hp: 24, atk: 8,  def:2, xp:18, tags:["undead","blight"] },
+
+  // Volcano
+  imp:   { id:"imp",   name:"Cinder Imp",  hp: 18, atk: 8,  def:1, xp:16, tags:["demon","fire"] },
+  golem: { id:"golem", name:"Ash Golem",   hp: 34, atk: 10, def:3, xp:28, tags:["construct","fire"] },
+
+  // Mountain
+  harpy: { id:"harpy", name:"Harpy",       hp: 28, atk: 9,  def:2, xp:22, tags:["beast"] },
+  troll: { id:"troll", name:"Stone Troll", hp: 42, atk: 12, def:4, xp:38, tags:["giant"] },
+
+  // Danger (generic hard)
+  cult:  { id:"cult",  name:"Cultist",     hp: 26, atk: 9,  def:2, xp:22, tags:["humanoid"] },
+  wraith:{ id:"wraith",name:"Wraith",      hp: 36, atk: 12, def:3, xp:34, tags:["undead"] },
+};
+  const MONSTER_POOLS = {
+  0: { // center
+    grass:  [["rat", 6], ["wolf", 3], ["bandit", 2]],
+    forest: [["wolf", 6], ["bandit", 2], ["rat", 2]],
+    mountain:[["wolf", 3], ["bandit", 2], ["harpy", 1]],
+    sand:   [["bandit", 4], ["wolf", 2], ["rat", 2]],
+    danger: [["bandit", 4], ["cult", 1], ["wolf", 2]],
+    blight: [["spore", 5], ["ghoul", 1]],
+    volcano:[["imp", 5], ["golem", 1]],
+    road:   [["bandit", 2], ["wolf", 1]], // lower danger feel
+    town:   [] // no random encounters
+  },
+  1: { // edges
+    grass:  [["wolf", 5], ["bandit", 4], ["cult", 2]],
+    forest: [["wolf", 4], ["bandit", 4], ["cult", 2]],
+    mountain:[["harpy", 4], ["troll", 2], ["bandit", 2]],
+    danger: [["cult", 5], ["wraith", 2], ["bandit", 3]],
+    blight: [["spore", 4], ["ghoul", 3], ["wraith", 1]],
+    volcano:[["imp", 4], ["golem", 3], ["wraith", 1]],
+    road:   [["bandit", 2], ["wolf", 1]],
+    town:   []
+  },
+  2: { // corners (hard)
+    grass:  [["cult", 5], ["wraith", 4], ["troll", 2]],
+    forest: [["cult", 4], ["wraith", 4], ["harpy", 2]],
+    mountain:[["troll", 5], ["harpy", 3], ["wraith", 3]],
+    danger: [["wraith", 6], ["cult", 4], ["troll", 3]],
+    blight: [["ghoul", 5], ["wraith", 5], ["cult", 3]],
+    volcano:[["golem", 6], ["imp", 4], ["wraith", 3]],
+    road:   [["cult", 2], ["bandit", 1]],
+    town:   []
+  }
+};
+  const LOOT_TABLES = {
+  0: {
+    gold: [6, 18], // min/max
+    drops: [
+      ["potion_small", 8],
+      ["antidote", 2],
+      ["bomb_smoke", 1],
+      ["gem_shard", 1]
+    ],
+    rareChance: 0.03
+  },
+  1: {
+    gold: [14, 35],
+    drops: [
+      ["potion_small", 6],
+      ["potion_medium", 3],
+      ["antidote", 2],
+      ["gem_shard", 2],
+      ["weapon_common", 1]
+    ],
+    rareChance: 0.07
+  },
+  2: {
+    gold: [28, 70],
+    drops: [
+      ["potion_medium", 5],
+      ["potion_large", 2],
+      ["gem_shard", 3],
+      ["weapon_common", 2],
+      ["armor_common", 2]
+    ],
+    rareChance: 0.12
+  }
+};
+  function pickWeighted(list) {
+  let total = 0;
+  for (const [,w] of list) total += w;
+  let r = Math.random() * total;
+  for (const [id,w] of list) {
+    r -= w;
+    if (r <= 0) return id;
+  }
+  return list[list.length - 1][0];
+}
+function rollLoot(tier) {
+  const t = LOOT_TABLES[tier] || LOOT_TABLES[0];
+  const gold = Math.floor(t.gold[0] + Math.random()*(t.gold[1]-t.gold[0]+1));
+  const item = pickWeighted(t.drops);
+  const rare = Math.random() < t.rareChance;
+  return { gold, item, rare };
+}
 // Types that go in each slot
 const SLOT_FOR_TYPE = {
   // item.type  →  G.equipped key
@@ -1923,9 +2046,19 @@ function usePotion(idx){
   if(item.qty<=0)G.inventory.splice(idx,1);
   buildInventoryUI();updateHUD();
 }
+  // Zone tier from world id: 0=center, 1=edge, 2=corner
+window.WORLD_OFFSETS = {
+  overworld_C:[0,0],
+  overworld_N:[0,-1], overworld_S:[0,1], overworld_E:[1,0], overworld_W:[-1,0],
+  overworld_NE:[1,-1], overworld_NW:[-1,-1], overworld_SE:[1,1], overworld_SW:[-1,1]
+};
 
-// Keep useItem as alias for backward compat (combat quick-use)
-function useItem(idx){ openItemModal(idx); }
+window.worldTier = function(worldId) {
+  const [dx, dy] = window.WORLD_OFFSETS[worldId] || [0,0];
+  return Math.max(Math.abs(dx), Math.abs(dy)); // 0,1,2
+};
+
+
 
 
 // ── CLICK TO MOVE ──
@@ -2841,6 +2974,155 @@ function triggerDungeonBoss(bossMonster){
   if(combat.animFrame) cancelAnimationFrame(combat.animFrame);
   combat.animFrame=requestAnimationFrame(tickCombat);
 }
+  // ─────────────────────────────────────────────────────────────
+// Phase 1: Zone/Biome monster pools + loot tables
+// Paste ABOVE function triggerCombat(tileType){...}
+// ─────────────────────────────────────────────────────────────
+
+// World tier: 0=center, 1=edge, 2=corner
+const _WORLD_OFFSETS = {
+  overworld_C:[0,0],
+  overworld_N:[0,-1], overworld_S:[0,1], overworld_E:[1,0], overworld_W:[-1,0],
+  overworld_NE:[1,-1], overworld_NW:[-1,-1], overworld_SE:[1,1], overworld_SW:[-1,1]
+};
+function worldTier(worldId) {
+  const [dx, dy] = _WORLD_OFFSETS[worldId] || [0,0];
+  return Math.max(Math.abs(dx), Math.abs(dy)); // 0,1,2
+}
+
+// Biome key from renderer-aligned tile IDs
+function biomeFromTile(tileId) {
+  // Roads (27–31) are safer travel lanes
+  if (tileId >= 27 && tileId <= 31) return "road";
+
+  switch (tileId) {
+    case 1: return "forest";
+    case 2: return "mountain";
+    case 3:
+    case 4: return "water";
+    case 5: return "town";
+    case 6: return "sand";     // renderer case 6 drawSand
+    case 7: return "danger";   // renderer case 7 drawDanger
+    case 8: return "blight";   // renderer case 8 drawBlight
+    case 9: return "volcano";  // renderer case 9 drawVolcano
+    default: return "grass";   // 0
+  }
+}
+
+// Weighted pick helper: list = [[id, weight], ...]
+function pickWeighted(list) {
+  let total = 0;
+  for (const [,w] of list) total += w;
+  let r = Math.random() * total;
+  for (const [id,w] of list) {
+    r -= w;
+    if (r <= 0) return id;
+  }
+  return list[list.length - 1][0];
+}
+
+// Monster templates (Phase 1 starter set)
+// NOTE: makeEnemy(mon, zl, delay) already scales with zl, so keep base stats modest.
+const MONSTER_DEFS = {
+  rat:   { id:"rat",   name:"Giant Rat",     hp: 8,  atk: 3,  def:0, xp: 4,  tags:["beast"] },
+  wolf:  { id:"wolf",  name:"Wolf",          hp: 14, atk: 5,  def:1, xp: 8,  tags:["beast"] },
+  bandit:{ id:"bandit",name:"Bandit",        hp: 18, atk: 6,  def:1, xp: 10, tags:["humanoid"] },
+
+  spore: { id:"spore", name:"Sporeling",     hp: 16, atk: 6,  def:1, xp: 12, tags:["blight"] },
+  ghoul: { id:"ghoul", name:"Bog Ghoul",     hp: 24, atk: 8,  def:2, xp: 18, tags:["undead","blight"] },
+
+  imp:   { id:"imp",   name:"Cinder Imp",    hp: 18, atk: 8,  def:1, xp: 16, tags:["demon","fire"] },
+  golem: { id:"golem", name:"Ash Golem",     hp: 34, atk: 10, def:3, xp: 28, tags:["construct","fire"] },
+
+  harpy: { id:"harpy", name:"Harpy",         hp: 28, atk: 9,  def:2, xp: 22, tags:["beast"] },
+  troll: { id:"troll", name:"Stone Troll",   hp: 42, atk: 12, def:4, xp: 38, tags:["giant"] },
+
+  cult:  { id:"cult",  name:"Cultist",       hp: 26, atk: 9,  def:2, xp: 22, tags:["humanoid"] },
+  wraith:{ id:"wraith",name:"Wraith",        hp: 36, atk: 12, def:3, xp: 34, tags:["undead"] }
+};
+
+// Pools by tier (0 center, 1 edges, 2 corners) and biome key
+const MONSTER_POOLS = {
+  0: {
+    grass:  [["rat", 6], ["wolf", 3], ["bandit", 2]],
+    forest: [["wolf", 6], ["bandit", 2], ["rat", 2]],
+    mountain:[["wolf", 3], ["bandit", 2], ["harpy", 1]],
+    sand:   [["bandit", 4], ["wolf", 2], ["rat", 2]],
+    danger: [["bandit", 4], ["cult", 1], ["wolf", 2]],
+    blight: [["spore", 5], ["ghoul", 1]],
+    volcano:[["imp", 5], ["golem", 1]],
+    road:   [["bandit", 2], ["wolf", 1]],
+    water:  [["rat", 2], ["wolf", 1]],
+    town:   []
+  },
+  1: {
+    grass:  [["wolf", 5], ["bandit", 4], ["cult", 2]],
+    forest: [["wolf", 4], ["bandit", 4], ["cult", 2]],
+    mountain:[["harpy", 4], ["troll", 2], ["bandit", 2]],
+    sand:   [["bandit", 5], ["cult", 2], ["wolf", 2]],
+    danger: [["cult", 5], ["wraith", 2], ["bandit", 3]],
+    blight: [["spore", 4], ["ghoul", 3], ["wraith", 1]],
+    volcano:[["imp", 4], ["golem", 3], ["wraith", 1]],
+    road:   [["bandit", 2], ["wolf", 1]],
+    water:  [["wolf", 2], ["bandit", 1]],
+    town:   []
+  },
+  2: {
+    grass:  [["cult", 5], ["wraith", 4], ["troll", 2]],
+    forest: [["cult", 4], ["wraith", 4], ["harpy", 2]],
+    mountain:[["troll", 5], ["harpy", 3], ["wraith", 3]],
+    sand:   [["cult", 4], ["wraith", 3], ["bandit", 2]],
+    danger: [["wraith", 6], ["cult", 4], ["troll", 3]],
+    blight: [["ghoul", 5], ["wraith", 5], ["cult", 3]],
+    volcano:[["golem", 6], ["imp", 4], ["wraith", 3]],
+    road:   [["cult", 2], ["bandit", 1]],
+    water:  [["wraith", 1], ["cult", 1]],
+    town:   []
+  }
+};
+
+// Zone-aware monster picker used by triggerCombat
+function pickMonsterByZone(tileType, zl) {
+  const worldId = window.GameState?.currentWorldId || "overworld_C";
+  const tier = worldTier(worldId);
+  const biome = biomeFromTile(tileType);
+
+  // Town tiles: no random encounters
+  if (biome === "town") return null;
+
+  // Choose from pool; fallback to existing pickMonster if needed
+  const pool = MONSTER_POOLS[tier]?.[biome] || MONSTER_POOLS[tier]?.grass;
+  if (!pool || pool.length === 0) {
+    // fallback to your old logic if pool missing
+    return pickMonster(tileType);
+  }
+
+  const id = pickWeighted(pool);
+  const def = MONSTER_DEFS[id];
+
+  // If somehow missing, fallback
+  return def || pickMonster(tileType);
+}
+
+// ── Phase 1 Loot tables (wire in once you paste your combat victory function) ──
+const LOOT_TABLES = {
+  0: { gold:[6,18],  drops:[["potion_small",8],["antidote",2],["gem_shard",1]], rareChance:0.03 },
+  1: { gold:[14,35], drops:[["potion_small",6],["potion_medium",3],["antidote",2],["gem_shard",2],["weapon_common",1]], rareChance:0.07 },
+  2: { gold:[28,70], drops:[["potion_medium",5],["potion_large",2],["gem_shard",3],["weapon_common",2],["armor_common",2]], rareChance:0.12 }
+};
+
+function rollLootForCurrentWorld() {
+  const worldId = window.GameState?.currentWorldId || "overworld_C";
+  const tier = worldTier(worldId);
+  const t = LOOT_TABLES[tier] || LOOT_TABLES[0];
+
+  const gold = Math.floor(t.gold[0] + Math.random()*(t.gold[1]-t.gold[0]+1));
+  const item = pickWeighted(t.drops);
+  const rare = Math.random() < t.rareChance;
+
+  return { tier, gold, item, rare };
+}
+
 
 function triggerCombat(tileType){
   const zl = getZoneLevel();
@@ -2848,7 +3130,8 @@ function triggerCombat(tileType){
   const count = zl>=8 ? randInt(2,3) : zl>=4 ? (Math.random()<.4?2:1) : 1;
   combat.enemies = [];
   for(let i=0;i<count;i++){
-    const mon = pickMonster(tileType);
+    const mon = pickMonsterByZone(tileType, zl);
+if (!mon) continue; // (e.g., town tile returns null)
     // Stagger enemy timers so they don't all fire at once
     const delay = i===0 ? randInt(500,1200) : randInt(1500,3500);
     combat.enemies.push(makeEnemy(mon, zl, delay));
