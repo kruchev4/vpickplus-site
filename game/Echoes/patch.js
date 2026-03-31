@@ -190,10 +190,10 @@
       const t = towns.find(t => Math.abs(tx - t.x) <= 1 && Math.abs(ty - t.y) <= 1);
       if (t) {
         if (Math.abs(G.x - t.x) <= 2 && Math.abs(G.y - t.y) <= 2) {
-          if (typeof window.enterTown === 'function') window.enterTown(t);
+          if (typeof window.enterTown === 'function') window.enterTownMap(town)(t);
         } else {
           const p = window.bfsPath(G.x, G.y, t.x, t.y, 500);
-          if (p) window.startClickPath(p, cx, cy, () => window.enterTown(t), t.x, t.y);
+          if (p) window.startClickPath(p, cx, cy, () => window.enterTownMap(town)(t), t.x, t.y);
         }
         return;
       }
