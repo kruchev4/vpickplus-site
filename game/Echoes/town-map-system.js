@@ -193,7 +193,7 @@
   // ENTER TOWN MAP
   // ══════════════════════════════════════════════════════════════
 
-  window.enter = async function enterTownMap(town) {
+  window.enterTown = async function enterTownMap(town) {
     window.enterTown = window.enterTownMap
   window.GameState.inTown = true;
 
