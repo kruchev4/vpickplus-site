@@ -1746,7 +1746,7 @@ const MONSTERS = {
     town:   []
   }
 };*/
-  const LOOT_TABLES = {
+ /* const LOOT_TABLES = {
   0: {
     gold: [6, 18], // min/max
     drops: [
@@ -1789,7 +1789,7 @@ const MONSTERS = {
     if (r <= 0) return id;
   }
   return list[list.length - 1][0];
-}
+}*/
 function rollLoot(tier) {
   const t = LOOT_TABLES[tier] || LOOT_TABLES[0];
   const gold = Math.floor(t.gold[0] + Math.random()*(t.gold[1]-t.gold[0]+1));
