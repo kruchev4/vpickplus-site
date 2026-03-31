@@ -2216,8 +2216,8 @@ function bfsPath(sx, sy, tx, ty, maxSteps){
   // Town interior tiles
   20, 22, 23, 24, 25, 26, 27, 28
 ]);
-   const _W = _map?.width  || window.MAP_W || 240;
-   const _H = _map?.height || window.MAP_H || 180;
+   let _W = _map?.width  || window.MAP_W || 240;
+   let _H = _map?.height || window.MAP_H || 180;
   const visited = new Set();
   const queue   = [[sx,sy,[]]];
   visited.add(sx+','+sy);
