@@ -902,8 +902,8 @@
   //     ctx.fillText(svcIcon, screenX + tileSize/2, screenY + tileSize/2);
   //   }
   // ══════════════════════════════════════════════════════════════
-  window.enterTownMap = enterTownMap;
-window.leaveTownMap = leaveTownMap;
+  //window.enterTownMap = enterTownMap;
+//window.leaveTownMap = leaveTownMap;
 
 
   console.log('[Town Map System] ✅ Loaded — towns now render on canvas');
