@@ -78,7 +78,7 @@
   //         services placed at fixed spots, exit at south center.
   // ══════════════════════════════════════════════════════════════
 
-  function generateTownMap(town) {
+  function generate(town) {
     const W = 40, H = 40;
     const tiles = new Array(W * H).fill(T.FLOOR);
 
@@ -193,7 +193,7 @@
   // ENTER TOWN MAP
   // ══════════════════════════════════════════════════════════════
 
-  window.enterTownMap = async function enterTownMap(town) {
+  window.enter = async function enterTownMap(town) {
     window.enterTown = window.enterTownMap
   window.GameState.inTown = true;
 
@@ -902,6 +902,9 @@
   //     ctx.fillText(svcIcon, screenX + tileSize/2, screenY + tileSize/2);
   //   }
   // ══════════════════════════════════════════════════════════════
+  window.enterTownMap = enterTownMap;
+window.leaveTownMap = leaveTownMap;
+
 
   console.log('[Town Map System] ✅ Loaded — towns now render on canvas');
   console.log('[Town Map System] 📝 Add town tile colors to main.js renderer (see MAIN.JS RENDERER PATCH NOTE)');
