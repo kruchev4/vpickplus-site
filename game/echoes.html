@@ -2058,15 +2058,16 @@ window.worldTier = function(worldId) {
   return Math.max(Math.abs(dx), Math.abs(dy)); // 0,1,2
 };
 
- const _map = window.GameState?.activeMap;
- const _W   = _map?.width  || window.MAP_W || 240;
- const _H   = _map?.height || window.MAP_H || 180;
+ 
 
 // ── CLICK TO MOVE ──
 let _clickPath = [];       // queued steps [[dx,dy],...]
 let _clickMoveTimer = null;
 
 function onCanvasClick(e){
+  const _map = window.GameState?.activeMap;
+ const _W   = _map?.width  || window.MAP_W || 240;
+ const _H   = _map?.height || window.MAP_H || 180;
   if(G.inCombat||G.inTown) return;
   const wc   = document.getElementById('world-cv');
   const rect = wc.getBoundingClientRect();
@@ -2215,8 +2216,8 @@ function bfsPath(sx, sy, tx, ty, maxSteps){
   // Town interior tiles
   20, 22, 23, 24, 25, 26, 27, 28
 ]);
-   _W = _map?.width  || window.MAP_W || 240;
-   _H = _map?.height || window.MAP_H || 180;
+   const _W = _map?.width  || window.MAP_W || 240;
+   const _H = _map?.height || window.MAP_H || 180;
   const visited = new Set();
   const queue   = [[sx,sy,[]]];
   visited.add(sx+','+sy);
