@@ -141,6 +141,40 @@ function generateOverworldTiles({ worldId, seed }) {
 
   return tiles;
 }
+export function generateOverworldWorld({ worldId, seed }) {
+  // 1) base tiles (your existing generator)
+  const tiles = generateOverworldTiles({ worldId, seed });
+
+  // 2) variants required by GameMap
+  const size = WORLD_WIDTH * WORLD_HEIGHT;
+  const variants = new Array(size).fill(0);
+
+  // 3) decorate geography + towns + roads + dungeon markers
+  const meta = decorateWorldPhase1({ worldId, seed, tiles, variants });
+
+  // 4) return GameMap-compatible world JSON
+  return {
+    id: worldId,
+    name: worldId.replace("overworld_", "").toUpperCase(),
+    type: "world",
+    width: WORLD_WIDTH,
+    height: WORLD_HEIGHT,
+    tiles,
+    variants,
+
+    // Phase 1: store POIs in metadata (engine can ignore for now)
+    towns: meta.towns,
+    portals: meta.portals,
+    npcs: [],
+    entities: [],
+    encounters: [],
+
+    metadata: meta.metadata
+  };
+}
+
+// dev helper for console generation
+window.__generateOverworldWorld = generateOverworldWorld;
 
 // ── DEV / CONSOLE HOOK ───────────────────────────────────────
 window.__generateOverworldTiles = generateOverworldTiles;
