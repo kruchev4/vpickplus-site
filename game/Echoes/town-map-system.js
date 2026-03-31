@@ -329,6 +329,7 @@
 
   // Keep old leaveTown working too
   window.leaveTown = function leaveTown() {
+    window.GameState.inTown = false;
     if (window.GameState?.mode === 'town') {
       window.leaveTownMap();
     } else {
