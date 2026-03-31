@@ -194,7 +194,23 @@
   // ══════════════════════════════════════════════════════════════
 
   window.enterTownMap = async function enterTownMap(town) {
-    window.GameState.inTown = true;
+  window.GameState.inTown = true;
+
+  // ✅ Phase 1: mark state so movement/transitions can gate correctly
+  window.GameState.mode = "town";
+
+  // Optional: mark current map as town-context (useful for other guards/debug)
+  if (window.GameState.activeMap) {
+    window.GameState.activeMap.isTown = true;
+    window.GameState.activeMap.type = "town";
+  }
+
+  const GS = window.GameState;
+  const G  = window.G;
+  if (!GS || !G) return;
+
+  // Close old HTML overlay if open
+  document.getElementById('ov-town')?.classList.remove('active');
     const GS = window.GameState;
     const G  = window.G;
     if (!GS || !G) return;
@@ -302,6 +318,16 @@
       GS.activeMap = GS.returnMap;
       GS.returnMap = null;
     }
+    // ✅ Phase 1: clear town state so world transitions / movement gating works
+    GS.inTown = false;
+    GS.mode = "world";
+
+    // Restore map flags for overworld traversal
+    if (GS.activeMap) {
+      GS.activeMap.isTown = false;
+      GS.activeMap.type = "world";
+    }
+
 
     G.x = GS.returnX ?? G.x;
     G.y = GS.returnY ?? G.y;
