@@ -12,6 +12,75 @@ function hash(x, y) {
 function hash2(x, y) { return hash(x ^ 0xDEAD, y ^ 0xBEEF); }
 
 // ── Tile drawers ──────────────────────────────────────────────────────────────
+function drawRoadDirt(ctx, px, py, tx, ty) {
+  ctx.fillStyle = "#8b6a44";
+  ctx.fillRect(px, py, tx, ty);
+
+  // central track
+  ctx.fillStyle = "rgba(0,0,0,0.14)";
+  ctx.fillRect(px + tx*0.18, py + ty*0.40, tx*0.64, ty*0.20);
+
+  // light grit
+  ctx.fillStyle = "rgba(255,255,255,0.08)";
+  ctx.fillRect(px + tx*0.12, py + ty*0.55, tx*0.12, ty*0.07);
+  ctx.fillRect(px + tx*0.70, py + ty*0.35, tx*0.10, ty*0.06);
+}
+
+function drawRoadStone(ctx, px, py, tx, ty) {
+  ctx.fillStyle = "#7c7f86";
+  ctx.fillRect(px, py, tx, ty);
+
+  // stone blocks
+  ctx.strokeStyle = "rgba(0,0,0,0.18)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(px + tx*0.10, py + ty*0.20, tx*0.35, ty*0.28);
+  ctx.strokeRect(px + tx*0.55, py + ty*0.20, tx*0.35, ty*0.28);
+  ctx.strokeRect(px + tx*0.20, py + ty*0.55, tx*0.35, ty*0.28);
+  ctx.strokeRect(px + tx*0.60, py + ty*0.55, tx*0.25, ty*0.28);
+}
+
+function drawRoadObsidian(ctx, px, py, tx, ty) {
+  ctx.fillStyle = "#1b1b22";
+  ctx.fillRect(px, py, tx, ty);
+
+  // faint magma seam
+  ctx.fillStyle = "rgba(255,120,40,0.16)";
+  ctx.fillRect(px + tx*0.12, py + ty*0.48, tx*0.76, ty*0.06);
+
+  // glossy highlights
+  ctx.fillStyle = "rgba(200,200,255,0.06)";
+  ctx.fillRect(px + tx*0.18, py + ty*0.22, tx*0.18, ty*0.06);
+  ctx.fillRect(px + tx*0.64, py + ty*0.68, tx*0.18, ty*0.06);
+}
+
+function drawRoadBlight(ctx, px, py, tx, ty) {
+  ctx.fillStyle = "#2b2626";
+  ctx.fillRect(px, py, tx, ty);
+
+  // sickly streak
+  ctx.fillStyle = "rgba(120,220,120,0.14)";
+  ctx.fillRect(px + tx*0.22, py + ty*0.38, tx*0.56, ty*0.24);
+
+  // ash specks
+  ctx.fillStyle = "rgba(255,255,255,0.06)";
+  ctx.fillRect(px + tx*0.15, py + ty*0.25, tx*0.06, ty*0.06);
+  ctx.fillRect(px + tx*0.78, py + ty*0.62, tx*0.06, ty*0.06);
+}
+
+function drawRoadRunic(ctx, px, py, tx, ty) {
+  ctx.fillStyle = "#0f0f18";
+  ctx.fillRect(px, py, tx, ty);
+
+  // rune cross
+  ctx.fillStyle = "rgba(60,220,255,0.22)";
+  ctx.fillRect(px + tx*0.48, py + ty*0.12, tx*0.04, ty*0.76);
+  ctx.fillRect(px + tx*0.12, py + ty*0.48, tx*0.76, ty*0.04);
+
+  // small glyph dots
+  ctx.fillStyle = "rgba(60,220,255,0.12)";
+  ctx.fillRect(px + tx*0.22, py + ty*0.22, tx*0.04, ty*0.04);
+  ctx.fillRect(px + tx*0.74, py + ty*0.74, tx*0.04, ty*0.04);
+}
 
 function drawGrass(ctx, px, py, x, y) {
   const h = hash(x, y);
