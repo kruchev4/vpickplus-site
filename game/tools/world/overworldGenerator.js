@@ -11,20 +11,31 @@ const WORLD_HEIGHT = 180;
 
 // Tile IDs (must match your renderer switch)
 const TILE = {
-  GRASS:    0,
-  FOREST:   1,
-  MOUNTAIN: 2,
-  DEEP:     3,
-  SHALLOW:  4,
-  TOWN:     5,
-  DANGER:   6,
-  SAND:     7,
+  
+GRASS:0,
+  FOREST:1,
+  MOUNTAIN:2,
+  DEEP:3,
+  SHALLOW:4,
+  TOWN:5,
+  SAND:6,      // ✅ matches renderer case 6 drawSand
+  DANGER:7,    // ✅ matches renderer case 7 drawDanger
+  BLIGHT:8,    // ✅ matches renderer case 8 drawBlight
+  VOLCANO:9,  
+
 
   JUNGLE:   15,
   VOLCANO:  16,
   ELDRITCH: 17,
   OBSIDIAN: 18,
-  BLIGHT:   19
+  BLIGHT:   19,
+  
+ROAD_DIRT:27,
+  ROAD_STONE:28,
+  ROAD_OBSIDIAN:29,
+  ROAD_BLIGHT:30,
+  ROAD_RUNIC:31
+
 };
 function roadTileForWorld(worldId) {
   if (worldId === "overworld_E") return 29;  // ROAD_OBSIDIAN
