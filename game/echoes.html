@@ -935,6 +935,9 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 'use strict';
 
 window.IS_NEW_ENGINE = true;
+  // Legacy alias: some code still calls enterTown(...)
+window.enterTown = window.enterTownMap;
+
 
 // Never replace GameState entirely — only fill missing fields
 window.GameState = window.GameState || {};
