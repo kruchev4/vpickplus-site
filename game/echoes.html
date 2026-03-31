@@ -2058,7 +2058,7 @@ window.worldTier = function(worldId) {
   return Math.max(Math.abs(dx), Math.abs(dy)); // 0,1,2
 };
 
-
+ const _map = window.GameState?.activeMap;
  const _W   = _map?.width  || window.MAP_W || 240;
  const _H   = _map?.height || window.MAP_H || 180;
 
