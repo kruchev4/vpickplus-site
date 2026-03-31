@@ -37,6 +37,7 @@ import {
 } from "./ui/gameMenu.js";
 import "../tools/world/overworldGenerator.js";
 import "../tools/campaign/persistence/saveWorld.js";
+import "./town-map-system.js";
 /* ===============================
   GLOBAL BRIDGES
   =============================== */
