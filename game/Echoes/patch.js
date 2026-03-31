@@ -185,19 +185,43 @@
     const _T_TOWN    = 5;
 
     // Click on TOWN tile → walk there then enter
-    if (type === _T_TOWN) {
-      const towns = _map?.towns || window.TOWNS || [];
-      const t = towns.find(t => Math.abs(tx - t.x) <= 1 && Math.abs(ty - t.y) <= 1);
-      if (t) {
-        if (Math.abs(G.x - t.x) <= 2 && Math.abs(G.y - t.y) <= 2) {
-          if (typeof window.enterTown === 'function') window.enterTownMap(town)(t);
-        } else {
-          const p = window.bfsPath(G.x, G.y, t.x, t.y, 500);
-          if (p) window.startClickPath(p, cx, cy, () => window.enterTownMap(town)(t), t.x, t.y);
-        }
-        return;
+   // Click on TOWN tile → walk there then enter
+if (type === _T_TOWN) {
+  const towns = _map?.towns || window.TOWNS || [];
+  const t = towns.find(t => Math.abs(tx - t.x) <= 1 && Math.abs(ty - t.y) <= 1);
+
+  if (t) {
+    // If already close, enter immediately
+    if (Math.abs(G.x - t.x) <= 2 && Math.abs(G.y - t.y) <= 2) {
+      if (typeof window.enterTownMap === "function") {
+        window.enterTownMap(t);
+      } else if (typeof window.enterTown === "function") {
+        // optional legacy alias fallback
+        window.enterTown(t);
+      } else {
+        console.warn("No enterTownMap/enterTown function is defined on window.");
+      }
+    } else {
+      // Otherwise path to the town, then enter on arrival
+      const p = window.bfsPath(G.x, G.y, t.x, t.y, 500);
+      if (p) {
+        window.startClickPath(
+          p,
+          cx,
+          cy,
+          () => {
+            if (typeof window.enterTownMap === "function") window.enterTownMap(t);
+            else if (typeof window.enterTown === "function") window.enterTown(t);
+          },
+          t.x,
+          t.y
+        );
       }
     }
+    return;
+  }
+}
+
 
     // Click on PORTAL
     const portals = _map?.portals || window.PORTALS || [];
