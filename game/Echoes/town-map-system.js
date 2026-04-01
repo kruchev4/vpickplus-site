@@ -207,9 +207,7 @@
     window.GameState.activeMap.type = "town";
   }
 
-  const GS = window.GameState;
-  const G  = window.G;
-  if (!GS || !G) return;
+  
 
   // Close old HTML overlay if open
   document.getElementById('ov-town')?.classList.remove('active');
