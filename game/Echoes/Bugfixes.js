@@ -93,6 +93,9 @@
     }
 
     // ── WORLD MODE ───────────────────────────────────────────────
+    // Bounds check — edge transitions are handled by the original
+    // tryMove closure in index.html which has access to loadWorld.
+    // We must NOT intercept them here or the same map reloads.
     if (nx < 0 || nx >= W || ny < 0 || ny >= H) return;
 
     const WORLD_P = window.PASSABLE_TILES || new Set([0,1,4,5,6,7,15,16,17,18,19,9,10,11,12,13,20,22,23,24,25,26,27,28]);
