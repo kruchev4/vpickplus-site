@@ -2552,7 +2552,7 @@ function onKey(e){
 function tryMove(dx, dy) {
   if (G.inCombat) return;
   // Gate: town movement handled by town-map-system
-/*if(window.GameState?.mode === 'town') {
+if(window.GameState?.mode === 'town') {
   const _tm = window.GameState.activeMap;
   if(!_tm) return;
   const _TP = new Set([20,22,23,24,25,26,27,28]);
@@ -2584,7 +2584,7 @@ if(window.GameState?.mode === 'dungeon') {
   markVisited(G.x,G.y,4);
   if(G._stepCount%3===0)updateMinimapMode();
   render(); updateHUD(); return;
-}*/
+}
   const _map = window.GameState?.activeMap;
   const _mapReady = !!_map;
   
