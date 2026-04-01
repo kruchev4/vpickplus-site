@@ -1027,29 +1027,6 @@ return true;
 };
  // ── Shared movement context (keyboard + mouse) ───────────────
 // Single source of truth to avoid scope mismatch bugs
-window.getMoveCtx = function getMoveCtx() {
-  const GS = window.GameState;
-  const map = GS?.activeMap || null;
-
-  const W = map?.width ?? window.MAP_W ?? 240;
-  const H = map?.height ?? window.MAP_H ?? 180;
-
-  return {
-    GS,
-    map,
-    W,
-    H,
-    getTile: (x, y) => (map && typeof map.getTile === "function") ? map.getTile(x, y) : 0,
-    passable: window.PASSABLE_TILES || new Set([0,1,4,5,6,7,8,9,27,28,29,30,31])
-  };
-};
-
-
-
-
-    
-  
-
 
 
 //const worldCanvas = document.getElementById("world-cv");
@@ -2236,8 +2213,7 @@ function bfsPath(sx, sy, tx, ty, maxSteps) {
   // Optional: prevent BFS in town/dungeon/combat if you want
   if (ctx.GS?.inCombat || ctx.GS?.inTown || ctx.GS?.mode === "dungeon") return null;
 
-  // ... keep the rest of your BFS as-is, but use _W/_H/_getTile/_PASSABLE ...
-}
+
   const _map = window.GameState?.activeMap;
   const _getTile = (x,y) => _map ? _map.getTile(x,y) : null;
   
