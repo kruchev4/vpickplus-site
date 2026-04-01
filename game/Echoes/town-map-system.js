@@ -187,7 +187,7 @@
     }
     return services;
   }
-
+ window.generateTown = generate;
 
   // ══════════════════════════════════════════════════════════════
   // ENTER TOWN MAP
