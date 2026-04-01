@@ -194,7 +194,7 @@
   // ══════════════════════════════════════════════════════════════
 
   window.enterTown = async function enterTownMap(town) {
-    window.enterTown = window.enterTownMap
+    
   window.GameState.inTown = true;
 
   // ✅ Phase 1: mark state so movement/transitions can gate correctly
