@@ -194,6 +194,7 @@
   // ══════════════════════════════════════════════════════════════
 
   window.enterTown = async function enterTownMap(town) {
+    console.log("entering town");
     
   window.GameState.inTown = true;
 
@@ -201,10 +202,10 @@
   window.GameState.mode = "town";
 
   // Optional: mark current map as town-context (useful for other guards/debug)
-  if (window.GameState.activeMap) {
+  /*if (window.GameState.activeMap) {
     window.GameState.activeMap.isTown = true;
     window.GameState.activeMap.type = "town";
-  }
+  }*/
 
   const GS = window.GameState;
   const G  = window.G;
