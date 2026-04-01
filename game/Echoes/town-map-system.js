@@ -267,7 +267,7 @@ const G  = window.G;
 
     // Fall back to procedural generation
     if (!townMap) {
-      townMap = generateTownMap(town);
+      townMap = generateTown(town);
       console.log('[enterTownMap] Using generated map for:', town.name);
     }
 
