@@ -263,6 +263,7 @@
       } catch(e) {
         console.warn('[enterTownMap] Supabase load failed, using generated map:', e.message);
       }
+      window.enterTownMap = window.enterTown;
     }
 
     // Fall back to procedural generation
