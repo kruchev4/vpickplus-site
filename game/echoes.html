@@ -965,23 +965,7 @@ window.WORLD_NEIGHBORS = window.WORLD_NEIGHBORS || {
   overworld_SW: { E:"overworld_S", N:"overworld" }
 };
   // ── Shared movement context (keyboard + mouse) ───────────────
-// Single source of truth to avoid scope mismatch bugs
-window.getMoveCtx = function getMoveCtx() {
-  const GS = window.GameState;
-  const map = GS?.activeMap || null;
 
-  const W = map?.width ?? window.MAP_W ?? 240;
-  const H = map?.height ?? window.MAP_H ?? 180;
-
-  return {
-    GS,
-    map,
-    W,
-    H,
-    getTile: (x, y) => (map && typeof map.getTile === "function") ? map.getTile(x, y) : 0,
-    passable: window.PASSABLE_TILES || new Set([0,1,4,5,6,7,8,9,27,28,29,30,31])
-  };
-};
 
 // Transition function (single authoritative version)
   const GS = window.GameState;
