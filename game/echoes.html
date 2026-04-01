@@ -6774,10 +6774,10 @@ function getPlayerToken(){
 // ── saveGame: ONLY writes to localStorage — instant, zero network ──
 // Cloud sync is handled separately via cloudSyncNow() or the
 // debounced auto-sync which fires at most once per 60 seconds.
-window.saveGame = function saveGame() {
-  if(G.inCombat) return;
-    const G = window.G;
-    if (!G || !G.name || !G.cls) return;
+
+  window.saveGame = function saveGame() {
+  const G = window.G;         // declare first
+  if(!G || G.inCombat) return; // then use it
  
     // Keep GameState in sync
     if (window.GameState?.player) Object.assign(window.GameState.player, G);
