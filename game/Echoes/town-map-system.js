@@ -213,7 +213,9 @@
 
   // Close old HTML overlay if open
   document.getElementById('ov-town')?.classList.remove('active');
-    
+    GS = window.GameState;
+    G  = window.G;
+    if (!GS || !G) return; 
   
 
     // Save world return point
