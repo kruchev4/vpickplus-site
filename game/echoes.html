@@ -4007,6 +4007,7 @@ function checkCombatEnd(){
   }
   if(G.hp<=0){
     combat.active=false; // stop loop immediately
+    G.inCombat=false;
     if(combat.animFrame){cancelAnimationFrame(combat.animFrame);combat.animFrame=null;}
     addCombatLog('You have fallen…','hit');
     setTimeout(()=>{
@@ -6775,6 +6776,7 @@ function getPlayerToken(){
 // Cloud sync is handled separately via cloudSyncNow() or the
 // debounced auto-sync which fires at most once per 60 seconds.
 window.saveGame = function saveGame() {
+  if(G.inCombat) return;
     const G = window.G;
     if (!G || !G.name || !G.cls) return;
  
