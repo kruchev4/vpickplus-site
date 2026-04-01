@@ -2372,9 +2372,9 @@ function fillCharSheet(){
     if(!items.length){
       invEl.innerHTML = '<div style="opacity:.4;font-size:.7rem;padding:4px;">Empty</div>';
     } else {
-      invEl.innerHTML = items.map(item=>
-        `<div class="cs-inv-item">
-          <span class="cs-inv-icon">${item.icon||'📦'}</span>
+      invEl.innerHTML = items.filter(Boolean).map(item=>
+  `<div class="cs-inv-item">
+    <span class="cs-inv-icon">${item.icon||'📦'}</span>
           <span class="cs-inv-name">${item.name}${item.qty>1?' x'+item.qty:''}</span>
         </div>`
       ).join('');
@@ -3952,9 +3952,7 @@ function checkCombatEnd(){
             addLog(`⭐ LEGENDARY: ${item.name}`, 'legendary');
             toast(`⭐ Legendary: ${item.name}!`);
             addToInventory({...item, qty:1});
-          } else if(G.inventory.length<20){
-            addToInventory({...item,qty:1});
-          }
+          } else if(G.inventory.filter(Boolean).length<20){G.inventory.push({...itemDef,qty:1});}
         });
       }
       addLog(`Victory! Defeated ${e.def.name}.`,'sys');
