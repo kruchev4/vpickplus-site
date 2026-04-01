@@ -304,7 +304,7 @@
     // Show the town name briefly as a floating label
     showTownNameBanner(town.name);
   };
-
+  window.enterTownMap = window.enterTown;
 
   // ══════════════════════════════════════════════════════════════
   // LEAVE TOWN MAP
