@@ -449,10 +449,10 @@
   };
 
   // Also override window.enterTown as a fallback for any direct calls
-  window.enterTown = function enterTown(town) {
+ /* window.enterTown = function enterTown(town) {
     if (!town) return;
     enterTownMap(town);
-  };
+  };*/
 
 
   // ══════════════════════════════════════════════════════════════
