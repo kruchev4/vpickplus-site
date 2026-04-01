@@ -6690,6 +6690,28 @@ function triggerDeath(){
   }
   document.getElementById('ov-death').classList.add('active');
 }
+  function respawn(){
+  // Keep level/class/race, reset HP/XP, penalise gold
+  G.hp=G.hpMax;G.mp=G.mpMax;G.gold=Math.max(0,Math.floor(G.gold*.5));
+  G.xp=0;G.level=1;G.xpNext=200;
+  G.inCombat=false;
+  // If in dungeon, return to overworld on death
+  const GS = window.GameState;
+  if(GS && GS.mode === 'dungeon'){
+    GS.mode = 'world';
+    if(GS.returnMap) GS.activeMap = GS.returnMap;
+    GS.returnMap = null;
+    G.x = GS.returnX || 120;
+    G.y = GS.returnY || 90;
+    addLog('You are dragged out of the dungeon, barely alive.','sys');
+  } else {
+    G.x=120;G.y=90;
+  }
+  document.getElementById('ov-death').classList.remove('active');
+  addLog('You rise again, weakened but alive.','sys');
+  addLog('Half your gold was lost.','sys');
+  updateHUD();saveGame();render();
+}
 
 
 
