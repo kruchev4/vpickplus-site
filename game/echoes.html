@@ -2222,8 +2222,22 @@ function showPlayerInteraction(member){
   setTimeout(()=>d?.remove(),8000);
 }
 
-function bfsPath(sx, sy, tx, ty, maxSteps){
-  if(sx===tx&&sy===ty) return [];
+function bfsPath(sx, sy, tx, ty, maxSteps) {
+  if (sx === tx && sy === ty) return [];
+
+  const ctx = window.getMoveCtx();
+  if (!ctx.map) return null;
+
+  const _W = ctx.W;
+  const _H = ctx.H;
+  const _getTile = ctx.getTile;
+  const _PASSABLE = ctx.passable;
+
+  // Optional: prevent BFS in town/dungeon/combat if you want
+  if (ctx.GS?.inCombat || ctx.GS?.inTown || ctx.GS?.mode === "dungeon") return null;
+
+  // ... keep the rest of your BFS as-is, but use _W/_H/_getTile/_PASSABLE ...
+}
   const _map = window.GameState?.activeMap;
   const _getTile = (x,y) => _map ? _map.getTile(x,y) : null;
   
