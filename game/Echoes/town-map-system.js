@@ -214,8 +214,7 @@
   // Close old HTML overlay if open
   document.getElementById('ov-town')?.classList.remove('active');
     
-    // Close old HTML overlay if open
-    document.getElementById('ov-town')?.classList.remove('active');
+  
 
     // Save world return point
     GS.returnMap  = GS.activeMap;
