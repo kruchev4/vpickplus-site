@@ -2856,10 +2856,12 @@ function pickMonster(tileType){
 
 function makeEnemy(mon, zoneLevel, startDelayMs){
   const lvlBonus = Math.floor(zoneLevel/3);
-  const hpMax = rollDice(mon.hd, 1+lvlBonus) + zoneLevel*2;
+  const hpMax = mon.hd
+  ? rollDice(mon.hd, 1+lvlBonus) + zoneLevel*2
+  : Math.floor((mon.hp||10) * (1 + lvlBonus*0.3)) + zoneLevel*2;
   return {
     def:mon, hp:hpMax, hpMax,
-    atk:2+lvlBonus, dmg:Math.floor(mon.hd/4)+1+lvlBonus,
+    atk:2+lvlBonus, dmg:Math.floor((mon.hd||mon.atk||4)/4)+1+lvlBonus,,
     ac:9+lvlBonus,
     // Enemy async timer
     timer:0, timerMax:randInt(1800,3000),
@@ -3869,7 +3871,7 @@ function checkCombatEnd(){
   if(!combat.active) return false;
 
   // Announce newly dead enemies
-  grantCombatLoot(combat.enemies);
+  //grantCombatLoot(combat.enemies);
   
 
   // Count alive enemies
