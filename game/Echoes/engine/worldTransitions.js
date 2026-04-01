@@ -14,7 +14,7 @@ function syncMapGlobals(map) {
 
 async function transitionWorldEdge(dir) {
   // Prefer window.GameState for reliability across script/module scopes
-  const GS = window.GameState || GameState;
+  const GS = window.GameState;
 
   const current = GS.currentWorldId || "overworld_C";
   const nextId = WORLD_NEIGHBORS[current]?.[dir];
