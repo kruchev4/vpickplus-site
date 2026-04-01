@@ -6692,8 +6692,8 @@ function triggerDeath(){
 }
   function respawn(){
   // Keep level/class/race, reset HP/XP, penalise gold
-  G.hp=G.hpMax;G.mp=G.mpMax;G.gold=Math.max(0,Math.floor(G.gold*.5));
-  G.xp=0;G.level=1;G.xpNext=200;
+  G.hp=G.hpMax;G.mp=G.mpMax;G.gold=Math.max(0,Math.floor(G.gold*1));
+  
   G.inCombat=false;
   // If in dungeon, return to overworld on death
   const GS = window.GameState;
