@@ -2207,8 +2207,7 @@ function bfsPath(sx, sy, tx, ty, maxSteps) {
   const ctx = window.getMoveCtx();
   if (!ctx.map) return null;
 
-  const _W = ctx.W;
-  const _H = ctx.H;
+ 
   
   // Optional: prevent BFS in town/dungeon/combat if you want
   if (ctx.GS?.inCombat || ctx.GS?.inTown || ctx.GS?.mode === "dungeon") return null;
