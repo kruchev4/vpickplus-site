@@ -93,15 +93,7 @@
     }
 
     // ── WORLD MODE ───────────────────────────────────────────────
-    // Edge transitions — ONLY in world mode
-    if (GS?.currentWorldId && !GS._transitioning && window.WORLD_NEIGHBORS) {
-      if (nx < 0)  { window.transitionWorldEdge?.('W'); return; }
-      if (nx >= W) { window.transitionWorldEdge?.('E'); return; }
-      if (ny < 0)  { window.transitionWorldEdge?.('N'); return; }
-      if (ny >= H) { window.transitionWorldEdge?.('S'); return; }
-    } else {
-      if (nx < 0 || nx >= W || ny < 0 || ny >= H) return;
-    }
+    if (nx < 0 || nx >= W || ny < 0 || ny >= H) return;
 
     const WORLD_P = window.PASSABLE_TILES || new Set([0,1,4,5,6,7,15,16,17,18,19,9,10,11,12,13,20,22,23,24,25,26,27,28]);
     const tileType = getTile(nx, ny);
