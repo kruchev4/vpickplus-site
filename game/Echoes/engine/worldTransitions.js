@@ -29,12 +29,17 @@ async function transitionWorldEdge(dir) {
     const nextMap = await window.loadWorld(nextId);
 
     // ✅ Swap active map + world id
-    GS.activeMap = nextMap;
-    GS.currentWorldId = nextId;
-
-    // ✅ Update globals used by renderer/minimap (if you rely on them elsewhere)
+    // Always use window.GameState for activeMap — module-imported GameState
+// is a different reference than what the renderer reads
+    window.GameState.activeMap = nextMap;
+    window.GameState.currentWorldId = nextId;
+    GS.currentWorldId = nextId; // keep both in sync
     window.MAP_W = nextMap.width;
     window.MAP_H = nextMap.height;
+    if (window.worldMap) {
+      window.worldMap.width  = nextMap.width;
+      window.worldMap.height = nextMap.height;
+}
     if (window.worldMap) {
       window.worldMap.width = nextMap.width;
       window.worldMap.height = nextMap.height;
