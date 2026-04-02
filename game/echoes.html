@@ -2614,17 +2614,7 @@ if (window.GameState?.mode === 'town' && window.GameState?.activeMap?.isTown) {
   const nx = G.x + dx, ny = G.y + dy;
 
   
-  // ── Overworld edge transitions ──────────────────────────────
-// ── Edge transitions MUST happen before normal bounds return ──
-const W = window.GameState.activeMap.width;
-const H = window.GameState.activeMap.height;
-
-if (window.GameState.currentWorldId && typeof window.transitionWorldEdge === "function" && !window.GameState?.mode === 'town') {
-  if (nx < 0)  { window.transitionWorldEdge("W"); return; }
-  if (nx >= W) { window.transitionWorldEdge("E"); return; }
-  if (ny < 0)  { window.transitionWorldEdge("N"); return; }
-  if (ny >= H) { window.transitionWorldEdge("S"); return; }
-}
+  
   if (nx < 0 || nx >= tm.width || ny < 0 || ny >= tm.height) return;
 
 
