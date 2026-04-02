@@ -30,11 +30,13 @@
   <script src="./Echoes/constants-predecl.js"></script>
 <script type="module" src="./Echoes/main.js"></script>
   <script src="./Echoes/equipment-system.js"></script>
-  <script src="./Echoes/equipment-system.js"></script>
+  
 <script src="./Echoes/paperdoll-fix.js"></script>
-  <script src="./Echoes/town-map-system.js"></script>
+  
   <script src="./Echoes/patch-v3.js"></script>
   <script src="./Echoes/patch.js"></script>
+  <script src="./Echoes/town-map-system.js"></script>
+   <script src="./Echoes/Bugfixes.js"></script> 
  
 
 <title>Realm of Echoes v2.4</title>
@@ -935,6 +937,9 @@ body{background:#060300;font-family:'Crimson Text',serif;color:var(--parch);over
 'use strict';
 
 window.IS_NEW_ENGINE = true;
+  // Legacy alias: some code still calls enterTown(...)
+window.enterTown = window.enterTownMap;
+
 
 // Never replace GameState entirely — only fill missing fields
 window.GameState = window.GameState || {};
@@ -950,20 +955,24 @@ const worldCanvas = document.getElementById("world-cv");
 
 // Ensure neighbors are on window (avoids scope surprises)
 window.WORLD_NEIGHBORS = window.WORLD_NEIGHBORS || {
-  overworld_C:  { N:"overworld_N", S:"overworld_S", E:"overworld_E", W:"overworld_W" },
+  overworld_C:  { N:"overworld_N", S:"overworld_S", E:"overworld_E", W:"overworld" },
   overworld_N:  { S:"overworld_C", E:"overworld_NE", W:"overworld_NW" },
   overworld_S:  { N:"overworld_C", E:"overworld_SE", W:"overworld_SW" },
   overworld_E:  { W:"overworld_C", N:"overworld_NE", S:"overworld_SE" },
-  overworld_W:  { E:"overworld_C", N:"overworld_NW", S:"overworld_SW" },
+  overworld:  { E:"overworld_C", N:"overworld_NW", S:"overworld_SW" },
   overworld_NE: { W:"overworld_N", S:"overworld_E" },
-  overworld_NW: { E:"overworld_N", S:"overworld_W" },
+  overworld_NW: { E:"overworld_N", S:"overworld" },
   overworld_SE: { W:"overworld_S", N:"overworld_E" },
-  overworld_SW: { E:"overworld_S", N:"overworld_W" }
+  overworld_SW: { E:"overworld_S", N:"overworld" }
 };
+  // ── Shared movement context (keyboard + mouse) ───────────────
+
 
 // Transition function (single authoritative version)
-window.transitionWorldEdge = async function transitionWorldEdge(dir) {
   const GS = window.GameState;
+window.transitionWorldEdge = async function transitionWorldEdge(dir) {
+  if (GS.inTown || GS.mode === "town" || GS.mode === "dungeon" || GS.inCombat) return false;
+  
   if (!GS) return false;
   if (GS._transitioning) return true;
 
@@ -1019,12 +1028,8 @@ return true;
   GS._transitioning = false;
 }
 };
-
-
-
-    
-  
-
+ // ── Shared movement context (keyboard + mouse) ───────────────
+// Single source of truth to avoid scope mismatch bugs
 
 
 //const worldCanvas = document.getElementById("world-cv");
@@ -1619,7 +1624,7 @@ window.startCharacterCreation = startCharacterCreation;
 // ────────────────────────────────────────────────────────────
 window.PASSABLE_TILES = new Set([
   // Overworld base
-  0, 1, 4, 5, 6, 7,
+  0, 1, 4, 5, 6, 7,8
   // Optional: allow mountains while testing
   
 
@@ -1713,7 +1718,83 @@ const MONSTERS = {
   cult:  { id:"cult",  name:"Cultist",     hp: 26, atk: 9,  def:2, xp:22, tags:["humanoid"] },
   wraith:{ id:"wraith",name:"Wraith",      hp: 36, atk: 12, def:3, xp:34, tags:["undead"] },
 };
-  
+  /*const MONSTER_POOLS = {
+  0: { // center
+    grass:  [["rat", 6], ["wolf", 3], ["bandit", 2]],
+    forest: [["wolf", 6], ["bandit", 2], ["rat", 2]],
+    mountain:[["wolf", 3], ["bandit", 2], ["harpy", 1]],
+    sand:   [["bandit", 4], ["wolf", 2], ["rat", 2]],
+    danger: [["bandit", 4], ["cult", 1], ["wolf", 2]],
+    blight: [["spore", 5], ["ghoul", 1]],
+    volcano:[["imp", 5], ["golem", 1]],
+    road:   [["bandit", 2], ["wolf", 1]], // lower danger feel
+    town:   [] // no random encounters
+  },
+  1: { // edges
+    grass:  [["wolf", 5], ["bandit", 4], ["cult", 2]],
+    forest: [["wolf", 4], ["bandit", 4], ["cult", 2]],
+    mountain:[["harpy", 4], ["troll", 2], ["bandit", 2]],
+    danger: [["cult", 5], ["wraith", 2], ["bandit", 3]],
+    blight: [["spore", 4], ["ghoul", 3], ["wraith", 1]],
+    volcano:[["imp", 4], ["golem", 3], ["wraith", 1]],
+    road:   [["bandit", 2], ["wolf", 1]],
+    town:   []
+  },
+  2: { // corners (hard)
+    grass:  [["cult", 5], ["wraith", 4], ["troll", 2]],
+    forest: [["cult", 4], ["wraith", 4], ["harpy", 2]],
+    mountain:[["troll", 5], ["harpy", 3], ["wraith", 3]],
+    danger: [["wraith", 6], ["cult", 4], ["troll", 3]],
+    blight: [["ghoul", 5], ["wraith", 5], ["cult", 3]],
+    volcano:[["golem", 6], ["imp", 4], ["wraith", 3]],
+    road:   [["cult", 2], ["bandit", 1]],
+    town:   []
+  }
+};*/
+ /* const LOOT_TABLES = {
+  0: {
+    gold: [6, 18], // min/max
+    drops: [
+      ["potion_small", 8],
+      ["antidote", 2],
+      ["bomb_smoke", 1],
+      ["gem_shard", 1]
+    ],
+    rareChance: 0.03
+  },
+  1: {
+    gold: [14, 35],
+    drops: [
+      ["potion_small", 6],
+      ["potion_medium", 3],
+      ["antidote", 2],
+      ["gem_shard", 2],
+      ["weapon_common", 1]
+    ],
+    rareChance: 0.07
+  },
+  2: {
+    gold: [28, 70],
+    drops: [
+      ["potion_medium", 5],
+      ["potion_large", 2],
+      ["gem_shard", 3],
+      ["weapon_common", 2],
+      ["armor_common", 2]
+    ],
+    rareChance: 0.12
+  }
+};
+  function pickWeighted(list) {
+  let total = 0;
+  for (const [,w] of list) total += w;
+  let r = Math.random() * total;
+  for (const [id,w] of list) {
+    r -= w;
+    if (r <= 0) return id;
+  }
+  return list[list.length - 1][0];
+}*/
 function rollLoot(tier) {
   const t = LOOT_TABLES[tier] || LOOT_TABLES[0];
   const gold = Math.floor(t.gold[0] + Math.random()*(t.gold[1]-t.gold[0]+1));
@@ -1982,14 +2063,16 @@ window.worldTier = function(worldId) {
   return Math.max(Math.abs(dx), Math.abs(dy)); // 0,1,2
 };
 
-
-
+ 
 
 // ── CLICK TO MOVE ──
 let _clickPath = [];       // queued steps [[dx,dy],...]
 let _clickMoveTimer = null;
 
 function onCanvasClick(e){
+  const _map = window.GameState?.activeMap;
+ const _W   = _map?.width  || window.MAP_W || 240;
+ const _H   = _map?.height || window.MAP_H || 180;
   if(G.inCombat||G.inTown) return;
   const wc   = document.getElementById('world-cv');
   const rect = wc.getBoundingClientRect();
@@ -1998,10 +2081,9 @@ function onCanvasClick(e){
   // Use new engine camera from GameState
   const _cam = window.GameState?.camera || window._engineCamera;
   const _TS  = window.TILE_SIZE || window.GameState?.TILE || 32;
-  const _map = window.GameState?.activeMap;
+  
  
-  const _W   = _map?.width  || window.MAP_W || 240;
-  const _H   = _map?.height || window.MAP_H || 180;
+ 
   // ── PASSABLE TILE SET (local to tryMove) ───────────────────
 const _PASSABLE = new Set([
   // Overworld base
@@ -2043,8 +2125,8 @@ const camY = _cam
     const towns = (_map?.towns || window.TOWNS || []);
     const t = towns.find(t=>Math.abs(tx-t.x)<=1&&Math.abs(ty-t.y)<=1);
     if(t){
-      if(Math.abs(G.x-t.x)<=2&&Math.abs(G.y-t.y)<=2){ enterTown(t); }
-      else { const p=bfsPath(G.x,G.y,t.x,t.y,500); if(p) startClickPath(p,cx,cy,()=>enterTown(t),t.x,t.y); }
+      if(Math.abs(G.x-t.x)<=2&&Math.abs(G.y-t.y)<=2){enterTownMap(t); }
+      else { const p=bfsPath(G.x,G.y,t.x,t.y,500); if(p) startClickPath(p,cx,cy,()=>enterTownMap(t),t.x,t.y); }
       return;
     }
   }
@@ -2120,8 +2202,18 @@ function showPlayerInteraction(member){
   setTimeout(()=>d?.remove(),8000);
 }
 
-function bfsPath(sx, sy, tx, ty, maxSteps){
-  if(sx===tx&&sy===ty) return [];
+function bfsPath(sx, sy, tx, ty, maxSteps) {
+  if (sx === tx && sy === ty) return [];
+
+  const ctx = window.getMoveCtx();
+  if (!ctx.map) return null;
+
+ 
+  
+  // Optional: prevent BFS in town/dungeon/combat if you want
+  if (ctx.GS?.inCombat || ctx.GS?.inTown || ctx.GS?.mode === "dungeon") return null;
+
+
   const _map = window.GameState?.activeMap;
   const _getTile = (x,y) => _map ? _map.getTile(x,y) : null;
   
@@ -2139,8 +2231,8 @@ function bfsPath(sx, sy, tx, ty, maxSteps){
   // Town interior tiles
   20, 22, 23, 24, 25, 26, 27, 28
 ]);
-   const_W = _map?.width  || window.MAP_W || 240;
-   const_H = _map?.height || window.MAP_H || 180;
+   let _W = _map?.width  || window.MAP_W || 240;
+   let _H = _map?.height || window.MAP_H || 180;
   const visited = new Set();
   const queue   = [[sx,sy,[]]];
   visited.add(sx+','+sy);
@@ -2149,7 +2241,8 @@ function bfsPath(sx, sy, tx, ty, maxSteps){
     const [x,y,path] = queue.shift();
     if(path.length >= maxSteps) continue;
     for(const [dx,dy] of dirs){
-      nx=x+dx, ny=y+dy;
+      const nx = x + dx;
+      const ny = y + dy;
       const key=nx+','+ny;
       if(visited.has(key)) continue;
       if(nx<0||nx>=_W||ny<0||ny>=_H) continue;
@@ -2279,9 +2372,9 @@ function fillCharSheet(){
     if(!items.length){
       invEl.innerHTML = '<div style="opacity:.4;font-size:.7rem;padding:4px;">Empty</div>';
     } else {
-      invEl.innerHTML = items.map(item=>
-        `<div class="cs-inv-item">
-          <span class="cs-inv-icon">${item.icon||'📦'}</span>
+      invEl.innerHTML = items.filter(Boolean).map(item=>
+  `<div class="cs-inv-item">
+    <span class="cs-inv-icon">${item.icon||'📦'}</span>
           <span class="cs-inv-name">${item.name}${item.qty>1?' x'+item.qty:''}</span>
         </div>`
       ).join('');
@@ -2456,216 +2549,149 @@ function onKey(e){
   }
   keys[e.key]=true;
 }
-function tryMove(dx, dy) {
-  if (G.inCombat) return;
-  const _map = window.GameState?.activeMap;
-  const _mapReady = !!_map;
-  
-const _T = { 
-  GRASS:0, FOREST:1, MOUNTAIN:2, 
-  DEEP_WATER:3, SHALLOW:4, TOWN:5, 
-  DANGER:6, SAND:7 
-};
- 
-const _W = _map?.width  || window.MAP_W || 240;
-const _H = _map?.height || window.MAP_H || 180;
-
-const _getTile = (x, y) => _map ? _map.getTile(x, y) : 0;
-
-// declare once, then reassign
-let type = _getTile(G.x, G.y);
-let nx = null, ny = null;
-let nextType = null;
-
-  // ── Town mode (keep your existing behavior) ─────────────────
- // ── Town mode (keep your existing behavior) ─────────────────
-if (window.GameState?.mode === 'town' && window.GameState?.activeMap?.isTown) {
-  const tm = window.GameState.activeMap;
-  if (!tm) return;
-
-  const TP = new Set([20,22,23,24,25,26,27,28]);
-  const nx = G.x + dx, ny = G.y + dy;
 
   
-  // ── Overworld edge transitions ──────────────────────────────
-// ── Edge transitions MUST happen before normal bounds return ──
-const W = window.GameState.activeMap.width;
-const H = window.GameState.activeMap.height;
+function tryMove(dx,dy){
+  if(G.inCombat) return;
 
-if (window.GameState.currentWorldId && typeof window.transitionWorldEdge === "function" && !window.GameState?.mode === 'town' && !window.GameState?.mode === 'dungeon') {
-  if (nx < 0)  { window.transitionWorldEdge("W"); return; }
-  if (nx >= W) { window.transitionWorldEdge("E"); return; }
-  if (ny < 0)  { window.transitionWorldEdge("N"); return; }
-  if (ny >= H) { window.transitionWorldEdge("S"); return; }
-}
-  if (nx < 0 || nx >= tm.width || ny < 0 || ny >= tm.height) return;
-
-
-
-  const tt = tm.getTile(nx, ny);
-  if (!TP.has(tt)) return;
-
-  G.prevX = G.x; G.prevY = G.y;
-  G.x = nx; G.y = ny;
-  window.GameState.player = G;
-
-  // If you want type updated in town mode:
-  // type = _getTile(G.x, G.y);
-
-  window.handleTownTile?.(tt, nx, ny);
-
-  if (!G._stepCount) G._stepCount = 0;
-  G._stepCount++;
-  if (G._stepCount % 4 === 0) playSound('step');
-
-  render();
-  updateHUD();
-  return;               // ✅ IMPORTANT: don’t fall through into world logic
-}                        // ✅ IMPORTANT: close town block
-
-
-    
-
-  // ── World/Dungeon movement using shared ctx ─────────────────
-  const ctx = window.getMoveCtx();
-  if (!ctx.map) return;
-
-   nx = G.x + dx;
-   ny = G.y + dy;
-  // ── Overworld edge transitions ──────────────────────────────
-if (
-  GameState.currentWorldId &&
-  !GameState._transitioning &&
-  window.WORLD_NEIGHBORS
-) {
-  if (nx < 0)          { transitionWorldEdge("W"); return; }
-  if (nx >= ctx.W)     { transitionWorldEdge("E"); return; }
-  if (ny < 0)          { transitionWorldEdge("N"); return; }
-  if (ny >= ctx.H)     { transitionWorldEdge("S"); return; }
-}
-
-  // ── Overworld transitions (only if worldId exists) ──────────
-  // NOTE: this triggers only if you have transitionWorld + worldId set
-  if (window.GameState?.currentWorldId && typeof window.transitionWorld === "function") {
-    const W = ctx.W, H = ctx.H;
-
-    if (!window.GameState._transitioning) {
-      if (nx < 0)  { window.GameState._transitioning = true; window.transitionWorld("W").finally(() => window.GameState._transitioning = false); return; }
-      if (nx >= W) { window.GameState._transitioning = true; window.transitionWorld("E").finally(() => window.GameState._transitioning = false); return; }
-      if (ny < 0)  { window.GameState._transitioning = true; window.transitionWorld("N").finally(() => window.GameState._transitioning = false); return; }
-      if (ny >= H) { window.GameState._transitioning = true; window.transitionWorld("S").finally(() => window.GameState._transitioning = false); return; }
-    }
+  // ── Town mode gate ─────────────────────────────────────────────────────────
+  if(window.GameState?.mode === 'town') {
+    const _tm = window.GameState.activeMap;
+    if(!_tm) return;
+    const _TP = new Set([20,22,23,24,25,26,27,28]);
+    const nx=G.x+dx, ny=G.y+dy;
+    if(nx<0||nx>=_tm.width||ny<0||ny>=_tm.height) return;
+    const tt=_tm.getTile(nx,ny);
+    if(!_TP.has(tt)) return;
+    G.prevX=G.x; G.prevY=G.y; G.x=nx; G.y=ny;
+    window.GameState.player=G;
+    window.handleTownTile?.(tt,nx,ny);
+    if(!G._stepCount)G._stepCount=0; G._stepCount++;
+    if(G._stepCount%4===0)playSound('step');
+    render(); updateHUD(); return;
   }
-  
 
-  // Bounds (non-transition case)
-  if (nx < 0 || nx >= ctx.W || ny < 0 || ny >= ctx.H) return;
+  // ── Read tile from new engine map ──────────────────────────────────────────
+  const _map = window.GameState?.activeMap;
+  const _W = _map?.width  || window.MAP_W || 240;
+  const _H = _map?.height || window.MAP_H || 180;
 
-  // Passability
-  nextType = ctx.getTile(nx, ny);
-  if (!ctx.passable.has(nextType)) return;
+  const _T = { GRASS:0, FOREST:1, MOUNTAIN:2, DEEP_WATER:3, SHALLOW:4, TOWN:5, DANGER:6, SAND:7 };
+  const _PASSABLE = new Set([0,1,4,5,6,7,9,10,11,12,13,20,22,23,24,25,26,27,28]);
 
-  // ── CO‑OP optimistic move (preserve behavior) ───────────────
-  if (!coopIsHost && coopActive) {
-    G.prevX = G.x; G.prevY = G.y;
-    G.x = nx; G.y = ny;
-    window.GameState.player = G;
+  const _mapReady = !!_map;
+  const _getTile = (x, y) => {
+    if (!_map) return _T.GRASS;
+    return _map.getTile(x, y);
+  };
 
-    coopSendMove(dx, dy);
+  // ── Dungeon mode gate — no edge transitions ────────────────────────────────
+  if(window.GameState?.mode === 'dungeon') {
+    const nx=G.x+dx, ny=G.y+dy;
+    if(nx<0||nx>=_W||ny<0||ny>=_H) return;
+    const dt=_getTile(nx,ny);
+    const _DP = new Set([9,10,11,12,13]);
+    if(!_DP.has(dt)) return;
+    G.prevX=G.x; G.prevY=G.y; G.x=nx; G.y=ny;
+    window.GameState.player=G;
+    // Boss proximity
+    const boss=(window._dungeonMonsters||[]).find(m=>m.alive&&m.isBoss&&Math.abs(nx-m.x)<=2&&Math.abs(ny-m.y)<=2);
+    if(boss){boss.alive=false;triggerDungeonBoss(boss);return;}
+    // Stairs
+    if(dt===13){if(confirm('Exit the dungeon?'))exitDungeon();else{G.x=G.prevX;G.y=G.prevY;}return;}
+    // Encounters
+    if(_mapReady&&G.encounterCooldown<=0){
+      let chance=0;
+      if(dt===9)chance=0.15;else if(dt===10)chance=0.08;
+      if(chance>0&&Math.random()<chance&&!checkEncounterAvoid()){triggerDungeonEncounter();return;}
+    }
+    G.encounterCooldown=Math.max(0,G.encounterCooldown-1);
+    if(!G._stepCount)G._stepCount=0;G._stepCount++;
+    if(G._stepCount%3===0)playSound('step');
+    markVisited(G.x,G.y,4);
+    if(G._stepCount%3===0)updateMinimapMode();
+    render();updateHUD();return;
+  }
 
-    if (!G._stepCount) G._stepCount = 0;
-    G._stepCount++;
-    if (G._stepCount % 3 === 0) playSound('step');
+  // ── World mode ─────────────────────────────────────────────────────────────
 
+  // Peers: optimistic local move
+  if(!coopIsHost && coopActive && coopConns.length>0){
+    const nx=G.x+dx, ny=G.y+dy;
+    if(nx<0||nx>=_W||ny<0||ny>=_H) return;
+    if(!_PASSABLE.has(_getTile(nx,ny))) return;
+    G.prevX=G.x; G.prevY=G.y; G.x=nx; G.y=ny;
+    coopSendMove(dx,dy);
+    if(!G._stepCount) G._stepCount=0; G._stepCount++;
+    if(G._stepCount%3===0) playSound('step');
     render(); updateHUD();
     return;
   }
 
-  // Apply move
-  G.prevX = G.x; G.prevY = G.y;
-  G.x = nx; G.y = ny;
-  window.GameState.player = G;
+  const nx=G.x+dx,ny=G.y+dy;
 
-  if (!G._stepCount) G._stepCount = 0;
-  G._stepCount++;
-  if (G._stepCount % 4 === 0) playSound('step');
-
- 
-window.tryMove = tryMove;
-
-  
-
-  // ── Dungeon boss check ────────────────────────────────────────────────────
-  if(window.GameState?.mode === 'dungeon'){
-    const boss = (window._dungeonMonsters||[]).find(m=>m.alive && m.isBoss &&
-      Math.abs(nx-m.x)<=2 && Math.abs(ny-m.y)<=2);
-    if(boss){
-      boss.alive = false; // mark as engaged
-      triggerDungeonBoss(boss);
-      return;
-    }
+  // ── World edge transitions ─────────────────────────────────────────────────
+  if(GameState.currentWorldId && !GameState._transitioning && window.WORLD_NEIGHBORS){
+    if(nx<0)          {transitionWorldEdge("W");return;}
+    if(nx>=_W)        {transitionWorldEdge("E");return;}
+    if(ny<0)          {transitionWorldEdge("N");return;}
+    if(ny>=_H)        {transitionWorldEdge("S");return;}
+  } else {
+    if(nx<0||nx>=_W||ny<0||ny>=_H)return;
   }
 
-  // ── Dungeon stairs ─────────────────────────────────────────────────────────
-  if(type === 13){ // STAIRS_DOWN = exit dungeon
-    if(window.GameState?.mode === 'dungeon'){
-      // Confirm before exiting
-      if(confirm('Exit the dungeon and return to the world?')) exitDungeon();
-      else G.x=G.prevX; G.y=G.prevY; // step back
-    }
-    return;
-  }
+  const type=_getTile(nx,ny);
+  if(!_PASSABLE.has(type))return;
+  G.prevX=G.x;G.prevY=G.y;G.x=nx;G.y=ny;
 
-  // ── World boss check ───────────────────────────────────────────────────────
+  // ── Town entry ─────────────────────────────────────────────────────────────
+ if(type === _T.TOWN){
+  const town = window.GameState?.activeMap?.getTownAt(nx, ny) ||
+               window.TOWNS?.find(t=>Math.abs(t.x-nx)<=1&&Math.abs(t.y-ny)<=1);
+  if(town){ G.inTown=false; (window.enterTownMap||enterTown)(town); return; }
+}
+
   if(typeof worldBosses!=='undefined'){
-    const boss=worldBosses.find(b=>b.alive&&Math.abs(nx-b.x)<=1&&Math.abs(ny-b.y)<=1);
-    if(boss){ triggerBossCombat(boss); return; }
-  }
+  const mapBosses = window.GameState?.activeMap?.bosses || [];
+  const allBosses = [...worldBosses, ...mapBosses.filter(b=>
+    !worldBosses.find(wb=>wb.id===b.id))];
+  const boss = allBosses.find(b=>b.alive&&Math.abs(nx-b.x)<=1&&Math.abs(ny-b.y)<=1);
+  if(boss){ triggerBossCombat(boss); return; }
+}
 
-  // ── Portal check ───────────────────────────────────────────────────────────
-  if(typeof checkPortal==='function' && checkPortal(nx,ny)) return;
+ if(typeof checkPortal==='function' && checkPortal(nx,ny)) return;
 
   // ── Encounter check ────────────────────────────────────────────────────────
   const prevType = _getTile(G.prevX, G.prevY);
   if(_mapReady && G.encounterCooldown<=0){
     let chance=0;
-    const inDungeon = window.GameState?.mode === 'dungeon';
-    if(inDungeon){
-      // Dungeon encounter rates by tile
-      if(type===9)  chance=0.15; // floor
-      if(type===10) chance=0.08; // door
-    } else {
-      if     (type===_T.DANGER)   chance=.30;
-      else if(type===_T.FOREST)   chance=.12;
-      else if(type===_T.MOUNTAIN) chance=.10;
-      else if(type===_T.GRASS)    chance=.04;
-      else if(type===_T.SAND)     chance=.06;
-    }
+    if     (type===_T.DANGER)   chance=.30;
+    else if(type===_T.FOREST)   chance=.12;
+    else if(type===_T.MOUNTAIN) chance=.10;
+    else if(type===_T.GRASS)    chance=.04;
+    else if(type===_T.SAND)     chance=.06;
     if(chance>0 && Math.random()<chance){
-      if(!checkEncounterAvoid()){
-        // Check dungeon monsters first
-        if(inDungeon) triggerDungeonEncounter();
-        else triggerCombat(type);
-        return;
-      }
+      if(!checkEncounterAvoid()){ triggerCombat(type); return; }
     }
   }
   G.encounterCooldown=Math.max(0,G.encounterCooldown-1);
 
-  // Zone level hint based on distance from spawn
-  const _zl=Math.min(15,Math.floor(Math.sqrt((G.x-120)**2+(G.y-90)**2)/15));
-  if(G._lastZone !== _zl){
-    G._lastZone=_zl;
-    if(_zl>0){
-      const zoneNames=['','Borderlands','Contested Wilds','Dark Reaches','Shadow Lands',
-        'Cursed Wastes','Blighted Fields','The Howling Deep','Riftlands','Void Marches',
-        'Desolation','The Screaming Dark','Oblivion Edge','The Shattered Realm',
-        "World's End",'Boss Territory'];
-      toast(`${zoneNames[_zl]} — Zone ${_zl}`);
+  // ── Zone hint — only on central overworld ─────────────────────────────────
+  if(!GameState.currentWorldId || GameState.currentWorldId==='overworld_C' || GameState.currentWorldId==='overworld_generated'){
+    const _zl=Math.min(15,Math.floor(Math.sqrt((G.x-120)**2+(G.y-90)**2)/15));
+    if(G._lastZone !== _zl){
+      G._lastZone=_zl;
+      if(_zl>0){
+        const zoneNames=['','Borderlands','Contested Wilds','Dark Reaches','Shadow Lands',
+          'Cursed Wastes','Blighted Fields','The Howling Deep','Riftlands','Void Marches',
+          'Desolation','The Screaming Dark','Oblivion Edge','The Shattered Realm',
+          "World's End",'Boss Territory'];
+        toast(`${zoneNames[_zl]} — Zone ${_zl}`);
+      }
     }
   }
 
-  // Flavour logs on biome change
+  // ── Biome flavour ──────────────────────────────────────────────────────────
   if(type!==prevType){
     const msgs={
       [_T.FOREST]:'You enter a dense, shadowed forest.',
@@ -2677,22 +2703,21 @@ window.tryMove = tryMove;
     };
     if(msgs[type])addLog(msgs[type]);
   }
+
   if(!G._stepCount)G._stepCount=0;
   G._stepCount++;
   if(G._stepCount%3===0) playSound('step');
   if(G._stepCount%20===0) saveGame();
-  // Broadcast position to party (every step, throttled by Firebase)
   if(coopActive && coopMyId && _fbRoomRef){
     _fbRoomRef.child('players/'+coopMyId).update({x:G.x, y:G.y, hp:G.hp, ts:Date.now()});
   }
-  // Mark visited tiles for fog of war (reveal radius 4 in dungeon, 6 in world)
   const _fogRadius = window.GameState?.mode==='dungeon' ? 4 : 6;
   markVisited(G.x, G.y, _fogRadius);
-  // Update minimap every step
   if(G._stepCount%3===0) updateMinimapMode();
   render(); updateHUD();
 }
-window.tryMove = tryMove; // expose for main.js setupInput
+window.tryMove = tryMove;
+ 
 
 // ╔══════════════════════════════════════════════════════╗
 // ║                    COMBAT                           ║
@@ -2747,26 +2772,17 @@ function getZoneLevel(){
 }
 
 function pickMonster(tileType){
-  // Tile numbers match constants.js: 0=GRASS,1=FOREST,2=MOUNTAIN,3=DEEP_WATER,4=SHALLOW,5=TOWN,6=DANGER,7=SAND
-  const tMap={0:'GRASS',1:'FOREST',2:'MOUNTAIN',4:'SHALLOW',6:'DANGER',7:'SAND'};
-  const tName = tMap[tileType] || 'GRASS';
-  let eligible=MONSTERS.filter(m=>
-    m.habitat.includes(tName)&&G.level>=m.lvlRange[0]-1&&G.level<=m.lvlRange[1]+2
-  );
-  // Fallback: any monster within level range
-  if(!eligible.length){
-    eligible=MONSTERS.filter(m=>G.level>=m.lvlRange[0]-1&&G.level<=m.lvlRange[1]+2);
-  }
-  if(!eligible.length) eligible=MONSTERS;
-  return eligible[Math.floor(Math.random()*eligible.length)];
+  return pickMonsterByZone(tileType, getZoneLevel());
 }
 
 function makeEnemy(mon, zoneLevel, startDelayMs){
   const lvlBonus = Math.floor(zoneLevel/3);
-  const hpMax = rollDice(mon.hd, 1+lvlBonus) + zoneLevel*2;
+  const hpMax = mon.hd
+  ? rollDice(mon.hd, 1+lvlBonus) + zoneLevel*2
+  : Math.floor((mon.hp||10) * (1 + lvlBonus*0.3)) + zoneLevel*2;
   return {
     def:mon, hp:hpMax, hpMax,
-    atk:2+lvlBonus, dmg:Math.floor(mon.hd/4)+1+lvlBonus,
+    atk:2+lvlBonus, dmg:Math.floor((mon.hd||mon.atk||4)/4)+1+lvlBonus,
     ac:9+lvlBonus,
     // Enemy async timer
     timer:0, timerMax:randInt(1800,3000),
@@ -3006,218 +3022,26 @@ const MONSTER_POOLS = {
 };
 
 // Zone-aware monster picker used by triggerCombat
-// TileId -> habitat string mapping (must match your renderer IDs)
-function habitatFromTileId(tileId) {
-  // Roads 27–31: treat as safer "ROAD" or map to SAND
-  if (tileId >= 27 && tileId <= 31) return "ROAD";
-
-  switch (tileId) {
-    case 0: return "GRASS";
-    case 1: return "FOREST";
-    case 2: return "MOUNTAIN";
-    case 3:
-    case 4: return "WATER";
-    case 5: return "TOWN";
-    case 6: return "SAND";     // renderer case 6 drawSand
-    case 7: return "DANGER";   // renderer case 7 drawDanger
-    case 8: return "BLIGHT";   // renderer case 8 drawBlight
-    case 9: return "VOLCANO";  // renderer case 9 drawVolcano
-    default: return "GRASS";
-  }
-}
-
-// 3×3 tier: 0=center, 1=edge, 2=corner
-/*const _WORLD_OFFSETS = {
-  overworld_C:[0,0],
-  overworld_N:[0,-1], overworld_S:[0,1], overworld_E:[1,0], overworld_W:[-1,0],
-  overworld_NE:[1,-1], overworld_NW:[-1,-1], overworld_SE:[1,1], overworld_SW:[-1,1]
-};*/
-function worldTier(worldId) {
-  const [dx, dy] = _WORLD_OFFSETS[worldId] || [0,0];
-  return Math.max(Math.abs(dx), Math.abs(dy)); // 0..2
-}
-
-// Weighted pick helper
-function pickWeighted(list) {
-  let total = 0;
-  for (const [,w] of list) total += w;
-  let r = Math.random() * total;
-  for (const [item,w] of list) {
-    r -= w;
-    if (r <= 0) return item;
-  }
-  return list[list.length - 1][0];
-}
-
-// ✅ Encapsulated picker: uses MONSTERS array (from your monsters file)
-// TileId -> habitat string mapping (must match your renderer IDs)
-function habitatFromTileId(tileId) {
-  // Roads 27–31: treat as safer "ROAD" or map to SAND
-  if (tileId >= 27 && tileId <= 31) return "ROAD";
-
-  switch (tileId) {
-    case 0: return "GRASS";
-    case 1: return "FOREST";
-    case 2: return "MOUNTAIN";
-    case 3:
-    case 4: return "WATER";
-    case 5: return "TOWN";
-    case 6: return "SAND";     // renderer case 6 drawSand
-    case 7: return "DANGER";   // renderer case 7 drawDanger
-    case 8: return "BLIGHT";   // renderer case 8 drawBlight
-    case 9: return "VOLCANO";  // renderer case 9 drawVolcano
-    default: return "GRASS";
-  }
-}
-
-function worldTier(worldId) {
-  const [dx, dy] = _WORLD_OFFSETS[worldId] || [0,0];
-  return Math.max(Math.abs(dx), Math.abs(dy)); // 0..2
-}
-
-// Weighted pick helper
-function pickWeighted(list) {
-  let total = 0;
-  for (const [,w] of list) total += w;
-  let r = Math.random() * total;
-  for (const [item,w] of list) {
-    r -= w;
-    if (r <= 0) return item;
-  }
-  return list[list.length - 1][0];
-}
-
-// ✅ Encapsulated picker: uses MONSTERS array (from your monsters file)
-// TileId -> habitat string mapping (must match your renderer IDs)
-function habitatFromTileId(tileId) {
-  // Roads 27–31: treat as safer "ROAD" or map to SAND
-  if (tileId >= 27 && tileId <= 31) return "ROAD";
-
-  switch (tileId) {
-    case 0: return "GRASS";
-    case 1: return "FOREST";
-    case 2: return "MOUNTAIN";
-    case 3:
-    case 4: return "WATER";
-    case 5: return "TOWN";
-    case 6: return "SAND";     // renderer case 6 drawSand
-    case 7: return "DANGER";   // renderer case 7 drawDanger
-    case 8: return "BLIGHT";   // renderer case 8 drawBlight
-    case 9: return "VOLCANO";  // renderer case 9 drawVolcano
-    default: return "GRASS";
-  }
-}
-
-
-function worldTier(worldId) {
-  const [dx, dy] = _WORLD_OFFSETS[worldId] || [0,0];
-  return Math.max(Math.abs(dx), Math.abs(dy)); // 0..2
-}
-
-// Weighted pick helper
-function pickWeighted(list) {
-  let total = 0;
-  for (const [,w] of list) total += w;
-  let r = Math.random() * total;
-  for (const [item,w] of list) {
-    r -= w;
-    if (r <= 0) return item;
-  }
-  return list[list.length - 1][0];
-}
-
-// TileId -> habitat string mapping (must match your renderer IDs)
-function habitatFromTileId(tileId) {
-  // Roads 27–31: treat as safer "ROAD" or map to SAND
-  if (tileId >= 27 && tileId <= 31) return "ROAD";
-
-  switch (tileId) {
-    case 0: return "GRASS";
-    case 1: return "FOREST";
-    case 2: return "MOUNTAIN";
-    case 3:
-    case 4: return "WATER";
-    case 5: return "TOWN";
-    case 6: return "SAND";     // renderer case 6 drawSand
-    case 7: return "DANGER";   // renderer case 7 drawDanger
-    case 8: return "BLIGHT";   // renderer case 8 drawBlight
-    case 9: return "VOLCANO";  // renderer case 9 drawVolcano
-    default: return "GRASS";
-  }
-}
-
-
-function worldTier(worldId) {
-  const [dx, dy] = _WORLD_OFFSETS[worldId] || [0,0];
-  return Math.max(Math.abs(dx), Math.abs(dy)); // 0..2
-}
-
-// Weighted pick helper
-function pickWeighted(list) {
-  let total = 0;
-  for (const [,w] of list) total += w;
-  let r = Math.random() * total;
-  for (const [item,w] of list) {
-    r -= w;
-    if (r <= 0) return item;
-  }
-  return list[list.length - 1][0];
-}
-
-// ✅ Encapsulated picker: uses MONSTERS array (from your monsters file)
 function pickMonsterByZone(tileType, zl) {
   const worldId = window.GameState?.currentWorldId || "overworld_C";
   const tier = worldTier(worldId);
+  const biome = biomeFromTile(tileType);
 
-  const habitat = habitatFromTileId(tileType);
+  // Town tiles: no random encounters
+  if (biome === "town") return null;
 
-  // No random encounters in town tiles
-  if (habitat === "TOWN") return null;
+  // Choose from pool; fallback to existing pickMonster if needed
+  const pool = MONSTER_POOLS[tier]?.[biome] || MONSTER_POOLS[tier]?.grass;
+  if (!pool || pool.length === 0) {
+    // fallback to your old logic if pool missing
+    return pickMonster(tileType);
+  }
 
-  // Roads are safer: treat as SAND for spawn purposes (Phase 1)
-  const effectiveHabitat = (habitat === "ROAD") ? "SAND" : habitat;
+  const id = pickWeighted(pool);
+  const def = MONSTER_DEFS[id];
 
-  // Filter by level range + habitat match
-  const candidates = MONSTERS.filter(m => {
-    const [lo, hi] = m.lvlRange || [1, 99];
-    if (zl < lo || zl > hi) return false;
-
-    const habs = m.habitat || [];
-    // direct match
-    if (habs.includes(effectiveHabitat)) return true;
-
-    // Phase 1 bias: in corners, allow DANGER monsters to bleed into most terrain
-    if (tier >= 2 && habs.includes("DANGER")) return true;
-
-    // Optional: allow BLIGHT monsters to appear on DANGER tiles in blight world
-    if (effectiveHabitat === "DANGER" && habs.includes("BLIGHT") && worldId === "overworld_S") return true;
-
-    return false;
-  });
-
-  // Fallback: anything in level range
-  const fallback = MONSTERS.filter(m => {
-    const [lo, hi] = m.lvlRange || [1, 99];
-    return zl >= lo && zl <= hi;
-  });
-
-  const pool = candidates.length ? candidates : fallback.length ? fallback : MONSTERS;
-
-  // Weight: prefer monsters whose level range mid is near zl, and boost higher tiers
-  const weighted = pool.map(m => {
-    const [lo, hi] = m.lvlRange || [1, 99];
-    const mid = (lo + hi) / 2;
-
-    const closeness = Math.max(0.25, 1.2 - Math.abs(zl - mid) / 6);
-    const tierBoost = 1 + tier * 0.30; // edges/corners more likely to pick “stronger” in-range monsters
-
-    // Optional: roads are safer (push weight down)
-    const roadPenalty = (habitat === "ROAD") ? 0.55 : 1;
-
-    return [m, closeness * tierBoost * roadPenalty];
-  });
-
-  return pickWeighted(weighted);
+  // If somehow missing, fallback
+  return def || pickMonster(tileType);
 }
 
 // ── Phase 1 Loot tables (wire in once you paste your combat victory function) ──
@@ -3246,7 +3070,7 @@ function triggerCombat(tileType){
   const count = zl>=8 ? randInt(2,3) : zl>=4 ? (Math.random()<.4?2:1) : 1;
   combat.enemies = [];
   for(let i=0;i<count;i++){
-    const mon = pickMonsterByZone(tileType, zl) || pickMonster(tileType);
+    const mon = pickMonsterByZone(tileType, zl);
 if (!mon) continue; // (e.g., town tile returns null)
     // Stagger enemy timers so they don't all fire at once
     const delay = i===0 ? randInt(500,1200) : randInt(1500,3500);
@@ -3982,7 +3806,6 @@ function checkCombatEnd(){
       addCombatLog(`Targeting ${combat.enemies[nextAlive].def.name}!`,'sys');
       updateBattlefieldBars();
     }
-    
     return false; // still fighting
   }
 
@@ -3991,7 +3814,6 @@ function checkCombatEnd(){
     combat.active=false;
     G.inCombat=false; // clear immediately so movement resumes
     G._acBonus=0; G.defending=false;
-    window.grantCombatLoot(combat.enemies);
     if(combat.animFrame){cancelAnimationFrame(combat.animFrame);combat.animFrame=null;}
     _resetPlayerCast();
 
@@ -4017,9 +3839,7 @@ function checkCombatEnd(){
             addLog(`⭐ LEGENDARY: ${item.name}`, 'legendary');
             toast(`⭐ Legendary: ${item.name}!`);
             addToInventory({...item, qty:1});
-          } else if(G.inventory.length<20){
-            addToInventory({...item,qty:1});
-          }
+          } else if(G.inventory.filter(Boolean).length<20){G.inventory.push({...itemDef,qty:1});}
         });
       }
       addLog(`Victory! Defeated ${e.def.name}.`,'sys');
@@ -4072,6 +3892,7 @@ function checkCombatEnd(){
   }
   if(G.hp<=0){
     combat.active=false; // stop loop immediately
+    G.inCombat=false;
     if(combat.animFrame){cancelAnimationFrame(combat.animFrame);combat.animFrame=null;}
     addCombatLog('You have fallen…','hit');
     setTimeout(()=>{
@@ -6756,11 +6577,10 @@ function triggerDeath(){
   }
   document.getElementById('ov-death').classList.add('active');
 }
-
-function respawn(){
+  function respawn(){
   // Keep level/class/race, reset HP/XP, penalise gold
-  G.hp=G.hpMax;G.mp=G.mpMax;G.gold=Math.max(0,Math.floor(G.gold*.5));
-  G.xp=0;G.level=1;G.xpNext=200;
+  G.hp=G.hpMax;G.mp=G.mpMax;G.gold=Math.max(0,Math.floor(G.gold*1));
+  
   G.inCombat=false;
   // If in dungeon, return to overworld on death
   const GS = window.GameState;
@@ -6779,6 +6599,8 @@ function respawn(){
   addLog('Half your gold was lost.','sys');
   updateHUD();saveGame();render();
 }
+
+
 
 function newChar(){
   localStorage.removeItem('realmSave');
@@ -6839,9 +6661,10 @@ function getPlayerToken(){
 // ── saveGame: ONLY writes to localStorage — instant, zero network ──
 // Cloud sync is handled separately via cloudSyncNow() or the
 // debounced auto-sync which fires at most once per 60 seconds.
-window.saveGame = function saveGame() {
-    const G = window.G;
-    if (!G || !G.name || !G.cls) return;
+
+  window.saveGame = function saveGame() {
+  const G = window.G;         // declare first
+  if(!G || G.inCombat) return; // then use it
  
     // Keep GameState in sync
     if (window.GameState?.player) Object.assign(window.GameState.player, G);
