@@ -1718,83 +1718,7 @@ const MONSTERS = {
   cult:  { id:"cult",  name:"Cultist",     hp: 26, atk: 9,  def:2, xp:22, tags:["humanoid"] },
   wraith:{ id:"wraith",name:"Wraith",      hp: 36, atk: 12, def:3, xp:34, tags:["undead"] },
 };
-  /*const MONSTER_POOLS = {
-  0: { // center
-    grass:  [["rat", 6], ["wolf", 3], ["bandit", 2]],
-    forest: [["wolf", 6], ["bandit", 2], ["rat", 2]],
-    mountain:[["wolf", 3], ["bandit", 2], ["harpy", 1]],
-    sand:   [["bandit", 4], ["wolf", 2], ["rat", 2]],
-    danger: [["bandit", 4], ["cult", 1], ["wolf", 2]],
-    blight: [["spore", 5], ["ghoul", 1]],
-    volcano:[["imp", 5], ["golem", 1]],
-    road:   [["bandit", 2], ["wolf", 1]], // lower danger feel
-    town:   [] // no random encounters
-  },
-  1: { // edges
-    grass:  [["wolf", 5], ["bandit", 4], ["cult", 2]],
-    forest: [["wolf", 4], ["bandit", 4], ["cult", 2]],
-    mountain:[["harpy", 4], ["troll", 2], ["bandit", 2]],
-    danger: [["cult", 5], ["wraith", 2], ["bandit", 3]],
-    blight: [["spore", 4], ["ghoul", 3], ["wraith", 1]],
-    volcano:[["imp", 4], ["golem", 3], ["wraith", 1]],
-    road:   [["bandit", 2], ["wolf", 1]],
-    town:   []
-  },
-  2: { // corners (hard)
-    grass:  [["cult", 5], ["wraith", 4], ["troll", 2]],
-    forest: [["cult", 4], ["wraith", 4], ["harpy", 2]],
-    mountain:[["troll", 5], ["harpy", 3], ["wraith", 3]],
-    danger: [["wraith", 6], ["cult", 4], ["troll", 3]],
-    blight: [["ghoul", 5], ["wraith", 5], ["cult", 3]],
-    volcano:[["golem", 6], ["imp", 4], ["wraith", 3]],
-    road:   [["cult", 2], ["bandit", 1]],
-    town:   []
-  }
-};*/
- /* const LOOT_TABLES = {
-  0: {
-    gold: [6, 18], // min/max
-    drops: [
-      ["potion_small", 8],
-      ["antidote", 2],
-      ["bomb_smoke", 1],
-      ["gem_shard", 1]
-    ],
-    rareChance: 0.03
-  },
-  1: {
-    gold: [14, 35],
-    drops: [
-      ["potion_small", 6],
-      ["potion_medium", 3],
-      ["antidote", 2],
-      ["gem_shard", 2],
-      ["weapon_common", 1]
-    ],
-    rareChance: 0.07
-  },
-  2: {
-    gold: [28, 70],
-    drops: [
-      ["potion_medium", 5],
-      ["potion_large", 2],
-      ["gem_shard", 3],
-      ["weapon_common", 2],
-      ["armor_common", 2]
-    ],
-    rareChance: 0.12
-  }
-};
-  function pickWeighted(list) {
-  let total = 0;
-  for (const [,w] of list) total += w;
-  let r = Math.random() * total;
-  for (const [id,w] of list) {
-    r -= w;
-    if (r <= 0) return id;
-  }
-  return list[list.length - 1][0];
-}*/
+ 
 function rollLoot(tier) {
   const t = LOOT_TABLES[tier] || LOOT_TABLES[0];
   const gold = Math.floor(t.gold[0] + Math.random()*(t.gold[1]-t.gold[0]+1));
@@ -2094,6 +2018,7 @@ const _PASSABLE = new Set([
   5,  // TOWN
   6,  // DANGER
   7,  // SAND
+  8,
 
   // Overworld expansion tiles
   15, // JUNGLE
@@ -2219,7 +2144,7 @@ function bfsPath(sx, sy, tx, ty, maxSteps) {
   
   const _PASSABLE = new Set([
   // Overworld base
-  0, 1, 2, 4, 5, 6, 7,
+  0, 1, 2, 4, 5, 6, 7,8,
     27, 28, 29, 30, 31,
 
   // Overworld expansion tiles
@@ -2577,7 +2502,7 @@ function tryMove(dx,dy){
   const _H = _map?.height || window.MAP_H || 180;
 
   const _T = { GRASS:0, FOREST:1, MOUNTAIN:2, DEEP_WATER:3, SHALLOW:4, TOWN:5, DANGER:6, SAND:7 };
-  const _PASSABLE = new Set([0,1,4,5,6,7,9,10,11,12,13,20,22,23,24,25,26,27,28]);
+  const _PASSABLE = new Set([0,1,4,5,6,7,8,9,10,11,12,13,20,22,23,24,25,26,27,28]);
 
   const _mapReady = !!_map;
   const _getTile = (x, y) => {
