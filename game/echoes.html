@@ -2617,9 +2617,9 @@ if (
   window.WORLD_NEIGHBORS
 ) {
   if (nx < 0)          { transitionWorldEdge("W"); return; }
-  if (nx >= ctx.W)     { transitionWorldEdge("E"); return; }
+  if (nx >= _W)     { transitionWorldEdge("E"); return; }
   if (ny < 0)          { transitionWorldEdge("N"); return; }
-  if (ny >= ctx.H)     { transitionWorldEdge("S"); return; }
+  if (ny >= _H)     { transitionWorldEdge("S"); return; }
 }
 
   // ── Overworld transitions (only if worldId exists) ──────────
