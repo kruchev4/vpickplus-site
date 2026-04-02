@@ -1624,7 +1624,7 @@ window.startCharacterCreation = startCharacterCreation;
 // ────────────────────────────────────────────────────────────
 window.PASSABLE_TILES = new Set([
   // Overworld base
-  0, 1, 4, 5, 6, 7,8,
+  0, 1, 4, 5, 6, 7,8,9,10,11,12,13,14,
   // Optional: allow mountains while testing
   
 
@@ -1632,7 +1632,7 @@ window.PASSABLE_TILES = new Set([
   15, 16, 17, 18, 19,
 
   // Dungeon tiles
-  9, 10, 11, 12, 13,
+ 
 
   // Town interior passables (your set)
   20, 22, 23, 24, 25, 26, 27, 28,
@@ -2024,6 +2024,7 @@ const _PASSABLE = new Set([
   6,  // DANGER
   7,  // SAND
   8,
+  14,
 
   // Overworld expansion tiles
   15, // JUNGLE
@@ -2153,7 +2154,7 @@ function bfsPath(sx, sy, tx, ty, maxSteps) {
     27, 28, 29, 30, 31,
 
   // Overworld expansion tiles
-  15, 16, 17, 18, 19,
+  14, 15, 16, 17, 18, 19,
 
   // Dungeon tiles
   9, 10, 11, 12, 13,
@@ -2507,7 +2508,7 @@ function tryMove(dx,dy){
   const _H = _map?.height || window.MAP_H || 180;
 
   const _T = { GRASS:0, FOREST:1, MOUNTAIN:2, DEEP_WATER:3, SHALLOW:4, TOWN:5, DANGER:6, SAND:7 };
-  const _PASSABLE = new Set([0,1,4,5,6,7,8,9,10,11,12,13,20,22,23,24,25,26,27,28]);
+  const _PASSABLE = new Set([0,1,2,3,4,5,6,7,8,9,10,11,12,1314,15,16,17,18,19,20,22,23,24,25,26,27,28]);
 
   const _mapReady = !!_map;
   const _getTile = (x, y) => {
