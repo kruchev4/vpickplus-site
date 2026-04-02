@@ -2640,8 +2640,8 @@ if (
   if (nx < 0 || nx >= _W || ny < 0 || ny >= _H) return;
 
   // Passability
-  nextType = ctx.getTile(nx, ny);
-  if (!ctx.passable.has(nextType)) return;
+  nextType = _getTile(nx, ny);
+  if (!_PASSABLE.has(nextType)) return;
 
   // ── CO‑OP optimistic move (preserve behavior) ───────────────
   if (!coopIsHost && coopActive) {
