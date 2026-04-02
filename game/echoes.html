@@ -2828,7 +2828,7 @@ function pickMonster(tileType){
   // Tile numbers match constants.js: 0=GRASS,1=FOREST,2=MOUNTAIN,3=DEEP_WATER,4=SHALLOW,5=TOWN,6=DANGER,7=SAND
   const tMap={0:'GRASS',1:'FOREST',2:'MOUNTAIN',4:'SHALLOW',6:'DANGER',7:'SAND'};
   const tName = tMap[tileType] || 'GRASS';
-  let eligible=MONSTERS.filter(m=>
+  let eligible=Object.values(MONSTERS).filter(m=>
     m.habitat.includes(tName)&&G.level>=m.lvlRange[0]-1&&G.level<=m.lvlRange[1]+2
   );
   // Fallback: any monster within level range
