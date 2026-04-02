@@ -2549,127 +2549,174 @@ function onKey(e){
   }
   keys[e.key]=true;
 }
-function tryMove(dx, dy) {
-  if (G.inCombat) return;
-  // Gate: town movement handled by town-map-system
-if(window.GameState?.mode === 'town') {
-  const _tm = window.GameState.activeMap;
-  if(!_tm) return;
-  const _TP = new Set([20,22,23,24,25,26,27,28]);
-  const nx=G.x+dx, ny=G.y+dy;
-  if(nx<0||nx>=_tm.width||ny<0||ny>=_tm.height) return;
-  const tt=_tm.getTile(nx,ny);
-  if(!_TP.has(tt)) return;
-  G.prevX=G.x; G.prevY=G.y; G.x=nx; G.y=ny;
-  window.GameState.player=G;
-  window.handleTownTile?.(tt,nx,ny);
-  if(!G._stepCount)G._stepCount=0; G._stepCount++;
-  if(G._stepCount%4===0)playSound('step');
-  render(); updateHUD(); return;
-}
+function tryMove(dx,dy){
+  if(G.inCombat) return;
 
-// Gate: dungeon movement — no edge transitions
-if(window.GameState?.mode === 'dungeon') {
-  const _dm = window.GameState.activeMap;
-  if(!_dm) return;
-  const _DP = new Set([9,10,11,12,13]);
-  const nx=G.x+dx, ny=G.y+dy;
-  if(nx<0||nx>=_dm.width||ny<0||ny>=_dm.height) return;
-  const dt=_dm.getTile(nx,ny);
-  if(!_DP.has(dt)) return;
-  G.prevX=G.x; G.prevY=G.y; G.x=nx; G.y=ny;
-  window.GameState.player=G;
-  if(!G._stepCount)G._stepCount=0; G._stepCount++;
-  if(G._stepCount%3===0)playSound('step');
-  markVisited(G.x,G.y,4);
-  if(G._stepCount%3===0)updateMinimapMode();
-  render(); updateHUD(); return;
-}
-  const _map = window.GameState?.activeMap;
-  const _mapReady = !!_map;
-  
-const _T = { 
-  GRASS:0, FOREST:1, MOUNTAIN:2, 
-  DEEP_WATER:3, SHALLOW:4, TOWN:5, 
-  DANGER:6, SAND:7 
-};
- 
-const _W = _map?.width  || window.MAP_W || 240;
-const _H = _map?.height || window.MAP_H || 180;
-const _PASSABLE = window.PASSABLE_TILES || new Set([0,1,4,5,6,7,8,15,16,17,18,19,9,10,11,12,13,20,22,23,24,25,26,27,28]);
-const _getTile = (x, y) => _map ? _map.getTile(x, y) : 0;
-
-// declare once, then reassign
-let type = _getTile(G.x, G.y);
-let nx = null, ny = null;
-let nextType = null;
-
-
-    
-
- 
-   nx = G.x + dx;
-   ny = G.y + dy;
-  // ── Overworld edge transitions ──────────────────────────────
-if (
-  GameState.currentWorldId &&
-  !GameState._transitioning &&
-  window.WORLD_NEIGHBORS
-) {
-  if (nx < 0)          { transitionWorldEdge("W"); return; }
-  if (nx >= _W)     { transitionWorldEdge("E"); return; }
-  if (ny < 0)          { transitionWorldEdge("N"); return; }
-  if (ny >= _H)     { transitionWorldEdge("S"); return; }
-}
-
-  // ── Overworld transitions (only if worldId exists) ──────────
-  // NOTE: this triggers only if you have transitionWorld + worldId set
-  if (window.GameState?.currentWorldId && typeof window.transitionWorld === "function") {
-    const W = ctx.W, H = ctx.H;
-
-    if (!window.GameState._transitioning) {
-      if (nx < 0)  { window.GameState._transitioning = true; window.transitionWorld("W").finally(() => window.GameState._transitioning = false); return; }
-      if (nx >= W) { window.GameState._transitioning = true; window.transitionWorld("E").finally(() => window.GameState._transitioning = false); return; }
-      if (ny < 0)  { window.GameState._transitioning = true; window.transitionWorld("N").finally(() => window.GameState._transitioning = false); return; }
-      if (ny >= H) { window.GameState._transitioning = true; window.transitionWorld("S").finally(() => window.GameState._transitioning = false); return; }
-    }
+  // ── Town mode gate ─────────────────────────────────────────────────────────
+  if(window.GameState?.mode === 'town') {
+    const _tm = window.GameState.activeMap;
+    if(!_tm) return;
+    const _TP = new Set([20,22,23,24,25,26,27,28]);
+    const nx=G.x+dx, ny=G.y+dy;
+    if(nx<0||nx>=_tm.width||ny<0||ny>=_tm.height) return;
+    const tt=_tm.getTile(nx,ny);
+    if(!_TP.has(tt)) return;
+    G.prevX=G.x; G.prevY=G.y; G.x=nx; G.y=ny;
+    window.GameState.player=G;
+    window.handleTownTile?.(tt,nx,ny);
+    if(!G._stepCount)G._stepCount=0; G._stepCount++;
+    if(G._stepCount%4===0)playSound('step');
+    render(); updateHUD(); return;
   }
-  
 
-  // Bounds (non-transition case)
-  if (nx < 0 || nx >= _W || ny < 0 || ny >= _H) return;
+  // ── Read tile from new engine map ──────────────────────────────────────────
+  const _map = window.GameState?.activeMap;
+  const _W = _map?.width  || window.MAP_W || 240;
+  const _H = _map?.height || window.MAP_H || 180;
 
-  // Passability
-  nextType = _getTile(nx, ny);
-  if (!_PASSABLE.has(nextType)) return;
+  const _T = { GRASS:0, FOREST:1, MOUNTAIN:2, DEEP_WATER:3, SHALLOW:4, TOWN:5, DANGER:6, SAND:7 };
+  const _PASSABLE = new Set([0,1,4,5,6,7,9,10,11,12,13,20,22,23,24,25,26,27,28]);
 
-  // ── CO‑OP optimistic move (preserve behavior) ───────────────
-  if (!coopIsHost && coopActive) {
-    G.prevX = G.x; G.prevY = G.y;
-    G.x = nx; G.y = ny;
-    window.GameState.player = G;
+  const _mapReady = !!_map;
+  const _getTile = (x, y) => {
+    if (!_map) return _T.GRASS;
+    return _map.getTile(x, y);
+  };
 
-    coopSendMove(dx, dy);
+  // ── Dungeon mode gate — no edge transitions ────────────────────────────────
+  if(window.GameState?.mode === 'dungeon') {
+    const nx=G.x+dx, ny=G.y+dy;
+    if(nx<0||nx>=_W||ny<0||ny>=_H) return;
+    const dt=_getTile(nx,ny);
+    const _DP = new Set([9,10,11,12,13]);
+    if(!_DP.has(dt)) return;
+    G.prevX=G.x; G.prevY=G.y; G.x=nx; G.y=ny;
+    window.GameState.player=G;
+    // Boss proximity
+    const boss=(window._dungeonMonsters||[]).find(m=>m.alive&&m.isBoss&&Math.abs(nx-m.x)<=2&&Math.abs(ny-m.y)<=2);
+    if(boss){boss.alive=false;triggerDungeonBoss(boss);return;}
+    // Stairs
+    if(dt===13){if(confirm('Exit the dungeon?'))exitDungeon();else{G.x=G.prevX;G.y=G.prevY;}return;}
+    // Encounters
+    if(_mapReady&&G.encounterCooldown<=0){
+      let chance=0;
+      if(dt===9)chance=0.15;else if(dt===10)chance=0.08;
+      if(chance>0&&Math.random()<chance&&!checkEncounterAvoid()){triggerDungeonEncounter();return;}
+    }
+    G.encounterCooldown=Math.max(0,G.encounterCooldown-1);
+    if(!G._stepCount)G._stepCount=0;G._stepCount++;
+    if(G._stepCount%3===0)playSound('step');
+    markVisited(G.x,G.y,4);
+    if(G._stepCount%3===0)updateMinimapMode();
+    render();updateHUD();return;
+  }
 
-    if (!G._stepCount) G._stepCount = 0;
-    G._stepCount++;
-    if (G._stepCount % 3 === 0) playSound('step');
+  // ── World mode ─────────────────────────────────────────────────────────────
 
+  // Peers: optimistic local move
+  if(!coopIsHost && coopActive && coopConns.length>0){
+    const nx=G.x+dx, ny=G.y+dy;
+    if(nx<0||nx>=_W||ny<0||ny>=_H) return;
+    if(!_PASSABLE.has(_getTile(nx,ny))) return;
+    G.prevX=G.x; G.prevY=G.y; G.x=nx; G.y=ny;
+    coopSendMove(dx,dy);
+    if(!G._stepCount) G._stepCount=0; G._stepCount++;
+    if(G._stepCount%3===0) playSound('step');
     render(); updateHUD();
     return;
   }
 
-  // Apply move
-  G.prevX = G.x; G.prevY = G.y;
-  G.x = nx; G.y = ny;
-  window.GameState.player = G;
+  const nx=G.x+dx,ny=G.y+dy;
 
-  if (!G._stepCount) G._stepCount = 0;
+  // ── World edge transitions ─────────────────────────────────────────────────
+  if(GameState.currentWorldId && !GameState._transitioning && window.WORLD_NEIGHBORS){
+    if(nx<0)          {transitionWorldEdge("W");return;}
+    if(nx>=_W)        {transitionWorldEdge("E");return;}
+    if(ny<0)          {transitionWorldEdge("N");return;}
+    if(ny>=_H)        {transitionWorldEdge("S");return;}
+  } else {
+    if(nx<0||nx>=_W||ny<0||ny>=_H)return;
+  }
+
+  const type=_getTile(nx,ny);
+  if(!_PASSABLE.has(type))return;
+  G.prevX=G.x;G.prevY=G.y;G.x=nx;G.y=ny;
+
+  // ── Town entry ─────────────────────────────────────────────────────────────
+  if(type === _T.TOWN){
+    const town = window.TOWNS?.find(t=>t.x===nx&&t.y===ny) ||
+                 (window.GameState?.activeMap?.towns||[]).find(t=>t.x===nx&&t.y===ny);
+    if(town){ G.inTown=false; (window.enterTownMap||enterTown)(town); return; }
+  }
+
+  // ── World boss check ───────────────────────────────────────────────────────
+  if(typeof worldBosses!=='undefined'){
+    const boss=worldBosses.find(b=>b.alive&&Math.abs(nx-b.x)<=1&&Math.abs(ny-b.y)<=1);
+    if(boss){ triggerBossCombat(boss); return; }
+  }
+
+  // ── Portal check ───────────────────────────────────────────────────────────
+  if(typeof checkPortal==='function' && checkPortal(nx,ny)) return;
+
+  // ── Encounter check ────────────────────────────────────────────────────────
+  const prevType = _getTile(G.prevX, G.prevY);
+  if(_mapReady && G.encounterCooldown<=0){
+    let chance=0;
+    if     (type===_T.DANGER)   chance=.30;
+    else if(type===_T.FOREST)   chance=.12;
+    else if(type===_T.MOUNTAIN) chance=.10;
+    else if(type===_T.GRASS)    chance=.04;
+    else if(type===_T.SAND)     chance=.06;
+    if(chance>0 && Math.random()<chance){
+      if(!checkEncounterAvoid()){ triggerCombat(type); return; }
+    }
+  }
+  G.encounterCooldown=Math.max(0,G.encounterCooldown-1);
+
+  // ── Zone hint — only on central overworld ─────────────────────────────────
+  if(!GameState.currentWorldId || GameState.currentWorldId==='overworld_C' || GameState.currentWorldId==='overworld_generated'){
+    const _zl=Math.min(15,Math.floor(Math.sqrt((G.x-120)**2+(G.y-90)**2)/15));
+    if(G._lastZone !== _zl){
+      G._lastZone=_zl;
+      if(_zl>0){
+        const zoneNames=['','Borderlands','Contested Wilds','Dark Reaches','Shadow Lands',
+          'Cursed Wastes','Blighted Fields','The Howling Deep','Riftlands','Void Marches',
+          'Desolation','The Screaming Dark','Oblivion Edge','The Shattered Realm',
+          "World's End",'Boss Territory'];
+        toast(`${zoneNames[_zl]} — Zone ${_zl}`);
+      }
+    }
+  }
+
+  // ── Biome flavour ──────────────────────────────────────────────────────────
+  if(type!==prevType){
+    const msgs={
+      [_T.FOREST]:'You enter a dense, shadowed forest.',
+      [_T.MOUNTAIN]:'The path grows steep and rocky.',
+      [_T.DANGER]:'⚠ A chill runs through you. Something lurks here.',
+      [_T.SAND]:'Hot sand crunches underfoot.',
+      [_T.GRASS]:'You emerge onto open grassland.',
+      [_T.SHALLOW]:'You wade through shallow waters.'
+    };
+    if(msgs[type])addLog(msgs[type]);
+  }
+
+  if(!G._stepCount)G._stepCount=0;
   G._stepCount++;
-  if (G._stepCount % 4 === 0) playSound('step');
+  if(G._stepCount%3===0) playSound('step');
+  if(G._stepCount%20===0) saveGame();
+  if(coopActive && coopMyId && _fbRoomRef){
+    _fbRoomRef.child('players/'+coopMyId).update({x:G.x, y:G.y, hp:G.hp, ts:Date.now()});
+  }
+  const _fogRadius = window.GameState?.mode==='dungeon' ? 4 : 6;
+  markVisited(G.x, G.y, _fogRadius);
+  if(G._stepCount%3===0) updateMinimapMode();
+  render(); updateHUD();
+}
+window.tryMove = tryMove;
 
  
-window.tryMove = tryMove;
+
 
   
 
