@@ -32,10 +32,14 @@ export async function loadWorld(worldId) {
   );
 
   if (!json.id) json.id = worldId;
-
-  return new GameMap(json);
-  window.loadWorld = loadWorld;
-  console.log("[worldLoader] json keys:", Object.keys(json || {}));
-console.log("[worldLoader] tiles typeof:", typeof json?.tiles, "isArray:", Array.isArray(json?.tiles));
-
+  const map = new GameMap(json);
+  window.GameState.activeMap = map;
+  window.MAP_W = map.width;
+  window.MAP_H = map.height;
+  if (window.worldMap) {
+    window.worldMap.width  = map.width;
+    window.worldMap.height = map.height;
+  }
+  return map;
 }
+window.loadWorld = loadWorld;
