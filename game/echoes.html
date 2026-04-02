@@ -2637,7 +2637,7 @@ if (
   
 
   // Bounds (non-transition case)
-  if (nx < 0 || nx >= ctx.W || ny < 0 || ny >= ctx.H) return;
+  if (nx < 0 || nx >= _W || ny < 0 || ny >= _H) return;
 
   // Passability
   nextType = ctx.getTile(nx, ny);
