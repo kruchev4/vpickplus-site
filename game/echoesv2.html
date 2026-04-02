@@ -1693,6 +1693,11 @@ const SLOT_ACCEPTS = {
     case 8: return "blight";
     case 9: return "volcano";
     default: return "grass"; // 0
+      case 15: return "jungle";
+case 16: return "volcano";
+case 17: return "eldritch";
+case 18: return "obsidian";
+case 19: return "blight";
   }
 };
   // Each monster is a template; you clone on spawn
@@ -2855,24 +2860,7 @@ function worldTier(worldId) {
   return Math.max(Math.abs(dx), Math.abs(dy)); // 0,1,2
 }
 
-// Biome key from renderer-aligned tile IDs
-function biomeFromTile(tileId) {
-  // Roads (27–31) are safer travel lanes
-  if (tileId >= 27 && tileId <= 31) return "road";
 
-  switch (tileId) {
-    case 1: return "forest";
-    case 2: return "mountain";
-    case 3:
-    case 4: return "water";
-    case 5: return "town";
-    case 6: return "sand";     // renderer case 6 drawSand
-    case 7: return "danger";   // renderer case 7 drawDanger
-    case 8: return "blight";   // renderer case 8 drawBlight
-    case 9: return "volcano";  // renderer case 9 drawVolcano
-    default: return "grass";   // 0
-  }
-}
 
 // Weighted pick helper: list = [[id, weight], ...]
 function pickWeighted(list) {
