@@ -2549,6 +2549,8 @@ function onKey(e){
   }
   keys[e.key]=true;
 }
+
+  
 function tryMove(dx,dy){
   if(G.inCombat) return;
 
@@ -2714,110 +2716,7 @@ function tryMove(dx,dy){
   render(); updateHUD();
 }
 window.tryMove = tryMove;
-
  
-
-
-  
-
-  // ── Dungeon boss check ────────────────────────────────────────────────────
-  if(window.GameState?.mode === 'dungeon'){
-    const boss = (window._dungeonMonsters||[]).find(m=>m.alive && m.isBoss &&
-      Math.abs(nx-m.x)<=2 && Math.abs(ny-m.y)<=2);
-    if(boss){
-      boss.alive = false; // mark as engaged
-      triggerDungeonBoss(boss);
-      return;
-    }
-  }
-
-  // ── Dungeon stairs ─────────────────────────────────────────────────────────
-  if(type === 13){ // STAIRS_DOWN = exit dungeon
-    if(window.GameState?.mode === 'dungeon'){
-      // Confirm before exiting
-      if(confirm('Exit the dungeon and return to the world?')) exitDungeon();
-      else G.x=G.prevX; G.y=G.prevY; // step back
-    }
-    return;
-  }
-
-  // ── World boss check ───────────────────────────────────────────────────────
-  if(typeof worldBosses!=='undefined'){
-    const boss=worldBosses.find(b=>b.alive&&Math.abs(nx-b.x)<=1&&Math.abs(ny-b.y)<=1);
-    if(boss){ triggerBossCombat(boss); return; }
-  }
-
-  // ── Portal check ───────────────────────────────────────────────────────────
-  if(typeof checkPortal==='function' && checkPortal(nx,ny)) return;
-
-  // ── Encounter check ────────────────────────────────────────────────────────
-  const prevType = _getTile(G.prevX, G.prevY);
-  if(_mapReady && G.encounterCooldown<=0){
-    let chance=0;
-    const inDungeon = window.GameState?.mode === 'dungeon';
-    if(inDungeon){
-      // Dungeon encounter rates by tile
-      if(type===9)  chance=0.15; // floor
-      if(type===10) chance=0.08; // door
-    } else {
-      if     (type===_T.DANGER)   chance=.30;
-      else if(type===_T.FOREST)   chance=.12;
-      else if(type===_T.MOUNTAIN) chance=.10;
-      else if(type===_T.GRASS)    chance=.04;
-      else if(type===_T.SAND)     chance=.06;
-    }
-    if(chance>0 && Math.random()<chance){
-      if(!checkEncounterAvoid()){
-        // Check dungeon monsters first
-        if(inDungeon) triggerDungeonEncounter();
-        else triggerCombat(type);
-        return;
-      }
-    }
-  }
-  G.encounterCooldown=Math.max(0,G.encounterCooldown-1);
-
-  // Zone level hint based on distance from spawn
-  const _zl=Math.min(15,Math.floor(Math.sqrt((G.x-120)**2+(G.y-90)**2)/15));
-  if(G._lastZone !== _zl){
-    G._lastZone=_zl;
-    if(_zl>0){
-      const zoneNames=['','Borderlands','Contested Wilds','Dark Reaches','Shadow Lands',
-        'Cursed Wastes','Blighted Fields','The Howling Deep','Riftlands','Void Marches',
-        'Desolation','The Screaming Dark','Oblivion Edge','The Shattered Realm',
-        "World's End",'Boss Territory'];
-      toast(`${zoneNames[_zl]} — Zone ${_zl}`);
-    }
-  }
-
-  // Flavour logs on biome change
-  if(type!==prevType){
-    const msgs={
-      [_T.FOREST]:'You enter a dense, shadowed forest.',
-      [_T.MOUNTAIN]:'The path grows steep and rocky.',
-      [_T.DANGER]:'⚠ A chill runs through you. Something lurks here.',
-      [_T.SAND]:'Hot sand crunches underfoot.',
-      [_T.GRASS]:'You emerge onto open grassland.',
-      [_T.SHALLOW]:'You wade through shallow waters.'
-    };
-    if(msgs[type])addLog(msgs[type]);
-  }
-  if(!G._stepCount)G._stepCount=0;
-  G._stepCount++;
-  if(G._stepCount%3===0) playSound('step');
-  if(G._stepCount%20===0) saveGame();
-  // Broadcast position to party (every step, throttled by Firebase)
-  if(coopActive && coopMyId && _fbRoomRef){
-    _fbRoomRef.child('players/'+coopMyId).update({x:G.x, y:G.y, hp:G.hp, ts:Date.now()});
-  }
-  // Mark visited tiles for fog of war (reveal radius 4 in dungeon, 6 in world)
-  const _fogRadius = window.GameState?.mode==='dungeon' ? 4 : 6;
-  markVisited(G.x, G.y, _fogRadius);
-  // Update minimap every step
-  if(G._stepCount%3===0) updateMinimapMode();
-  render(); updateHUD();
-}
-window.tryMove = tryMove; // expose for main.js setupInput
 
 // ╔══════════════════════════════════════════════════════╗
 // ║                    COMBAT                           ║
