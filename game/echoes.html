@@ -2604,49 +2604,10 @@ let type = _getTile(G.x, G.y);
 let nx = null, ny = null;
 let nextType = null;
 
-  // ── Town mode (keep your existing behavior) ─────────────────
- // ── Town mode (keep your existing behavior) ─────────────────
-if (window.GameState?.mode === 'town' && window.GameState?.activeMap?.isTown) {
-  const tm = window.GameState.activeMap;
-  if (!tm) return;
-
-  const TP = new Set([20,22,23,24,25,26,27,28]);
-  const nx = G.x + dx, ny = G.y + dy;
-
-  
-  
-  if (nx < 0 || nx >= tm.width || ny < 0 || ny >= tm.height) return;
-
-
-
-  const tt = tm.getTile(nx, ny);
-  if (!TP.has(tt)) return;
-
-  G.prevX = G.x; G.prevY = G.y;
-  G.x = nx; G.y = ny;
-  window.GameState.player = G;
-
-  // If you want type updated in town mode:
-  // type = _getTile(G.x, G.y);
-
-  window.handleTownTile?.(tt, nx, ny);
-
-  if (!G._stepCount) G._stepCount = 0;
-  G._stepCount++;
-  if (G._stepCount % 4 === 0) playSound('step');
-
-  render();
-  updateHUD();
-  return;               // ✅ IMPORTANT: don’t fall through into world logic
-}                        // ✅ IMPORTANT: close town block
-
 
     
 
-  // ── World/Dungeon movement using shared ctx ─────────────────
-  const ctx = window.getMoveCtx();
-  if (!ctx.map) return;
-
+ 
    nx = G.x + dx;
    ny = G.y + dy;
   // ── Overworld edge transitions ──────────────────────────────
