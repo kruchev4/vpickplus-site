@@ -3160,61 +3160,7 @@ function pickWeighted(list) {
   return list[list.length - 1][0];
 }
 
-// ✅ Encapsulated picker: uses MONSTERS array (from your monsters file)
-function pickMonsterByZone(tileType, zl) {
-  const worldId = window.GameState?.currentWorldId || "overworld_C";
-  const tier = worldTier(worldId);
 
-  const habitat = habitatFromTileId(tileType);
-
-  // No random encounters in town tiles
-  if (habitat === "TOWN") return null;
-
-  // Roads are safer: treat as SAND for spawn purposes (Phase 1)
-  const effectiveHabitat = (habitat === "ROAD") ? "SAND" : habitat;
-
-  // Filter by level range + habitat match
-  const candidates = MONSTERS.filter(m => {
-    const [lo, hi] = m.lvlRange || [1, 99];
-    if (zl < lo || zl > hi) return false;
-
-    const habs = m.habitat || [];
-    // direct match
-    if (habs.includes(effectiveHabitat)) return true;
-
-    // Phase 1 bias: in corners, allow DANGER monsters to bleed into most terrain
-    if (tier >= 2 && habs.includes("DANGER")) return true;
-
-    // Optional: allow BLIGHT monsters to appear on DANGER tiles in blight world
-    if (effectiveHabitat === "DANGER" && habs.includes("BLIGHT") && worldId === "overworld_S") return true;
-
-    return false;
-  });
-
-  // Fallback: anything in level range
-  const fallback = MONSTERS.filter(m => {
-    const [lo, hi] = m.lvlRange || [1, 99];
-    return zl >= lo && zl <= hi;
-  });
-
-  const pool = candidates.length ? candidates : fallback.length ? fallback : MONSTERS;
-
-  // Weight: prefer monsters whose level range mid is near zl, and boost higher tiers
-  const weighted = pool.map(m => {
-    const [lo, hi] = m.lvlRange || [1, 99];
-    const mid = (lo + hi) / 2;
-
-    const closeness = Math.max(0.25, 1.2 - Math.abs(zl - mid) / 6);
-    const tierBoost = 1 + tier * 0.30; // edges/corners more likely to pick “stronger” in-range monsters
-
-    // Optional: roads are safer (push weight down)
-    const roadPenalty = (habitat === "ROAD") ? 0.55 : 1;
-
-    return [m, closeness * tierBoost * roadPenalty];
-  });
-
-  return pickWeighted(weighted);
-}
 
 // ── Phase 1 Loot tables (wire in once you paste your combat victory function) ──
 const LOOT_TABLES = {
