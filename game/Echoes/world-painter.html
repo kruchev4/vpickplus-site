@@ -1,0 +1,30 @@
+// Supabase UI events
+loadSupabaseInputsFromStorage();
+
+document.getElementById("refreshWorlds")?.addEventListener("click", refreshWorldList);
+
+document.getElementById("loadWorldBtn")?.addEventListener("click", async () => {
+  const id = document.getElementById("worldSelect")?.value;
+  if (!id) return alert("Choose a world id first.");
+  try {
+    await loadWorldFromSupabase(id);
+  } catch (e) {
+    console.error(e);
+    alert(`Load failed: ${e.message}`);
+  }
+});
+
+document.getElementById("saveWorldBtn")?.addEventListener("click", async () => {
+  try {
+    await saveWorldToSupabase();
+  } catch (e) {
+    console.error(e);
+    alert(`Save failed: ${e.message}`);
+  }
+});
+
+// Optional: auto-refresh once if URL/key exist
+if ((localStorage.getItem("sb_url") || "") && (localStorage.getItem("sb_anon") || "")) {
+  sb = initSupabaseFromInputs();
+  refreshWorldList();
+}
