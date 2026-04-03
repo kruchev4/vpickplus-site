@@ -4163,7 +4163,10 @@ const CRAFT_RECIPES=[
 ];
 
 // Sell value = 40% of price, rounded
-function sellValue(item){ return Math.max(1, Math.round((item.price||10)*0.4)); }
+function sellValue(item){ 
+  const basePrice = item.price || (item.effect?.atk ? item.effect.atk * 20 : 0) || (item.effect?.ac ? item.effect.ac * 15 : 0) || 10;
+  return Math.max(1, Math.round(basePrice * 0.4)); 
+}
 
 function buildVendor(){
   const box=document.getElementById('vendor-items');
