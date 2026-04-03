@@ -2151,7 +2151,8 @@ function bfsPath(sx, sy, tx, ty, maxSteps){
     const [x,y,path] = queue.shift();
     if(path.length >= maxSteps) continue;
     for(const [dx,dy] of dirs){
-      nx=x+dx, ny=y+dy;
+      const nx = x + dx;
+      const ny = y + dy;
       const key=nx+','+ny;
       if(visited.has(key)) continue;
       if(nx<0||nx>=_W||ny<0||ny>=_H) continue;
