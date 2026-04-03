@@ -2752,12 +2752,11 @@ function getZoneLevel(){
 }
 
 function pickMonster(tileType){
-  // Tile numbers match constants.js: 0=GRASS,1=FOREST,2=MOUNTAIN,3=DEEP_WATER,4=SHALLOW,5=TOWN,6=DANGER,7=SAND
-  const tMap={0:'GRASS',1:'FOREST',2:'MOUNTAIN',4:'SHALLOW',6:'DANGER',7:'SAND'};
-  const tName = tMap[tileType] || 'GRASS';
-  let eligible=MONSTERS.filter(m=>
-    m.habitat.includes(tName)&&G.level>=m.lvlRange[0]-1&&G.level<=m.lvlRange[1]+2
-  );
+  const all = Object.values(MONSTER_DEFS);
+  let eligible = all.filter(m => G.level >= 1);
+  if(!eligible.length) eligible = all;
+  return eligible[Math.floor(Math.random()*eligible.length)];
+}
   // Fallback: any monster within level range
   if(!eligible.length){
     eligible=MONSTERS.filter(m=>G.level>=m.lvlRange[0]-1&&G.level<=m.lvlRange[1]+2);
