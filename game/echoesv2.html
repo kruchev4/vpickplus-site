@@ -3181,7 +3181,27 @@ function rollLootForCurrentWorld() {
 
   return { tier, gold, item, rare };
 }
+function pickMonsterByZone(tileType, zl) {
+  const worldId = window.GameState?.currentWorldId || "overworld_C";
+  const tier = worldTier(worldId);
+  const biome = biomeFromTile(tileType);
 
+  if (biome === "town") return null;
+
+  const pool = MONSTER_POOLS[tier]?.[biome] || MONSTER_POOLS[tier]?.grass || MONSTER_POOLS[0].grass;
+  if (!pool || !pool.length) {
+    const all = Object.values(MONSTER_DEFS);
+    return all[Math.floor(Math.random() * all.length)];
+  }
+
+  const id  = pickWeighted(pool);
+  const def = MONSTER_DEFS[id];
+  if (!def) {
+    const all = Object.values(MONSTER_DEFS);
+    return all[Math.floor(Math.random() * all.length)];
+  }
+  return def;
+}
 
 function triggerCombat(tileType){
   const zl = getZoneLevel();
