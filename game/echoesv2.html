@@ -2124,6 +2124,8 @@ function bfsPath(sx, sy, tx, ty, maxSteps){
   if(sx===tx&&sy===ty) return [];
   const _map = window.GameState?.activeMap;
   const _getTile = (x,y) => _map ? _map.getTile(x,y) : null;
+  let _W = _map?.width  || window.MAP_W || 240;
+  let _H = _map?.height || window.MAP_H || 180;
   
   const _PASSABLE = new Set([
   // Overworld base
