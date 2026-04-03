@@ -3793,11 +3793,12 @@ function executePlayerAction({action,mpCost}){
         addCombatLog(`${G.name} blinks out of existence!`,'spell');
         cancelAnimationFrame(combat.animFrame);
         combat.active=false;
+       G.inCombat=false; G.encounterCooldown=30;
         _resetPlayerCast();
         setTimeout(()=>{
           document.getElementById('ov-combat').classList.remove('active');
           hideHealTargetPicker();
-          G.inCombat=false; G.encounterCooldown=30;
+          
           addLog('You blink away from combat!','sys');
           toast('Blinked away!');
           updateHUD(); render();
