@@ -6816,9 +6816,10 @@ window.saveGame = function saveGame() {
  
     try {
       localStorage.setItem('realmSave', JSON.stringify({
-        version: 3,
-        G: G,
-        savedAt: Date.now()
+  version: 3,
+  G: G,
+  currentWorldId: window.GameState?.currentWorldId,
+  savedAt: Date.now()
       }));
     } catch(e) {
       console.warn('[saveGame] localStorage failed:', e);
@@ -7303,11 +7304,15 @@ function csLoadCharacter(idx){
   console.log('[Load] Loading save:', save.name, 'version:', data?.version, 'hasG:', !!data?.G);
 
   const ok = _applyRawSave(data);
+  
   if(!ok){
     toast('Could not load — save corrupted.','err');
     console.error('[Load] _applyRawSave failed. data:', data);
     return;
   }
+  if (data.G?.x != null) window.G.x = data.G.x;
+  if (data.G?.y != null) window.G.y = data.G.y;
+  if (data.G?.currentWorldId) window.GameState.currentWorldId = data.G.currentWorldId;
 
   // Sync ALL references to the loaded character
   // G (local let), window.G, and GameState.player must all point to same object
