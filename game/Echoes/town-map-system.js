@@ -428,7 +428,7 @@
       }
 
       case 'vendor': {
-        const sellable = (G?.inventory||[]).filter(i=>i&&i.type==='misc');
+        const sellable = (G?.inventory||[]).filter(i => i && !i.equipped);
         if (!sellable.length) return `<div style="color:var(--parch-dk,#9a8a6a);font-size:.7rem;font-style:italic;">
           "You got nothin' I want. Come back when you've been somewhere interesting."</div>`;
         return `
