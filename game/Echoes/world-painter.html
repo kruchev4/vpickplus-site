@@ -1,30 +1,600 @@
-// Supabase UI events
-loadSupabaseInputsFromStorage();
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>World Painter (240×180)</title>
+  <style>
+    body { margin:0; font-family: system-ui, Segoe UI, Roboto, Arial; background:#0b0a10; color:#e6d9ff; }
+    header { padding:12px 16px; border-bottom:1px solid #2b2140; display:flex; gap:12px; align-items:center; }
+    .wrap { display:grid; grid-template-columns: 1fr 440px; gap:12px; padding:12px; }
+    .panel { background:#120f1c; border:1px solid #2b2140; border-radius:12px; padding:12px; }
+    .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    button, select, input { background:#1b1728; border:1px solid #3a2d55; color:#e6d9ff; border-radius:10px; padding:8px 10px; }
+    button:hover { border-color:#7a52ff; }
+    textarea { width:100%; min-height:320px; background:#0f0c18; color:#e6d9ff; border:1px solid #3a2d55; border-radius:10px; padding:10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; }
+    canvas { background:#000; border-radius:12px; border:1px solid #2b2140; display:block; width:100%; height:auto; }
+    .tile { width:100%; display:flex; gap:8px; align-items:center; padding:6px 8px; border-radius:10px; border:1px solid #2b2140; cursor:pointer; }
+    .tile.active { border-color:#7a52ff; box-shadow: 0 0 0 2px rgba(122,82,255,.25) inset; }
+    .swatch { width:14px; height:14px; border-radius:4px; border:1px solid rgba(255,255,255,.15); }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:8px; max-height:360px; overflow:auto; padding-right:4px; }
+    .hint { font-size:12px; opacity:.8; }
+    .sep { height:1px; background:#2b2140; margin:10px 0; }
+    .badge { font-size:12px; padding:2px 8px; border:1px solid #3a2d55; border-radius:999px; opacity:.85; }
+    .status { font-size:12px; opacity:.85; margin-left:auto; }
+    code.k { background:#1b1728; padding:2px 6px; border-radius:8px; border:1px solid #3a2d55; }
+  </style>
+</head>
+<body>
+<header>
+  <strong>World Painter</strong>
+  <span class="badge">240×180</span>
+  <span class="hint">Left-click paints. Hold to paint. Middle/Right drag pans. Wheel zooms.</span>
+  <span id="status" class="status"></span>
+</header>
 
-document.getElementById("refreshWorlds")?.addEventListener("click", refreshWorldList);
+<div class="wrap">
+  <div class="panel">
+    <canvas id="cv" width="900" height="600"></canvas>
+    <div class="row" style="margin-top:10px;">
+      <button id="toggleGrid">Toggle Grid</button>
+      <button id="zoomIn">Zoom +</button>
+      <button id="zoomOut">Zoom −</button>
+      <label class="hint">Brush:
+        <input id="brush" type="number" min="1" max="6" value="1" style="width:60px;">
+      </label>
+      <label class="hint">Tool:
+        <select id="tool">
+          <option value="paint">Paint</option>
+          <option value="erase">Erase</option>
+          <option value="town">Place Town</option>
+          <option value="portal">Place Portal</option>
+          <option value="boss">Place Boss</option>
+          <option value="entry:N">Set Entry N</option>
+          <option value="entry:S">Set Entry S</option>
+          <option value="entry:E">Set Entry E</option>
+          <option value="entry:W">Set Entry W</option>
+          <option value="entry:NE">Set Entry NE</option>
+          <option value="entry:NW">Set Entry NW</option>
+          <option value="entry:SE">Set Entry SE</option>
+          <option value="entry:SW">Set Entry SW</option>
+        </select>
+      </label>
+    </div>
+    <div class="hint" style="margin-top:8px;">
+      Tip: Use <code class="k">Town</code>/<code class="k">Portal</code>/<code class="k">Boss</code> tools to place markers (stored in JSON arrays).
+    </div>
+  </div>
 
-document.getElementById("loadWorldBtn")?.addEventListener("click", async () => {
-  const id = document.getElementById("worldSelect")?.value;
-  if (!id) return alert("Choose a world id first.");
-  try {
-    await loadWorldFromSupabase(id);
-  } catch (e) {
-    console.error(e);
-    alert(`Load failed: ${e.message}`);
+  <div class="panel">
+    <div class="row">
+      <label class="hint">World Id <input id="worldId" value="overworld_SW" style="width:160px;"></label>
+      <label class="hint">Name <input id="worldName" value="The Drowned Jungle" style="width:220px;"></label>
+    </div>
+
+    <div class="row" style="margin-top:8px;">
+      <label class="hint">Biome <input id="biome" value="drowned_jungle" style="width:160px;"></label>
+      <label class="hint">Tier <input id="tier" type="number" value="2" style="width:60px;"></label>
+      <label class="hint">Loot Tier <input id="lootTier" type="number" value="2" style="width:60px;"></label>
+      <label class="hint">Encounter Rate <input id="encRate" type="number" step="0.01" value="0.24" style="width:80px;"></label>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="row">
+      <label class="hint">Supabase URL
+        <input id="sbUrl" placeholder="https://xxxx.supabase.co" style="width:260px;">
+      </label>
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <label class="hint">Anon key
+        <input id="sbAnon" placeholder="anon public key" style="width:260px;">
+      </label>
+    </div>
+
+    <div class="row" style="margin-top:8px;">
+      <label class="hint">Load world</label>
+      <select id="worldSelect" style="width:330px;"></select>
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <button id="refreshWorlds">Refresh</button>
+      <button id="loadWorldBtn">Load</button>
+      <button id="saveWorldBtn">Save</button>
+      <span class="hint" id="sbHint"></span>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="row">
+      <button id="exportBtn">Export JSON →</button>
+      <button id="importBtn">← Import JSON</button>
+      <button id="clearBtn">Clear Tiles</button>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="grid" id="palette"></div>
+
+    <div class="sep"></div>
+
+    <textarea id="json" placeholder="Exported JSON appears here…"></textarea>
+  </div>
+</div>
+
+<!-- Supabase client (CDN) -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<script>
+  // ─────────────────────────────────────────────────────────────
+  // CONFIG
+  // ─────────────────────────────────────────────────────────────
+  const W = 240, H = 180, SIZE = W * H;
+
+  // Tile palette (must match your engine renderer)
+  const TILE_PALETTE = [
+    { id:0,  name:"Grass",         color:"#4caf50" },
+    { id:1,  name:"Forest",        color:"#2e7d32" },
+    { id:2,  name:"Mountain",      color:"#7b7b7b" },
+    { id:3,  name:"Deep Water",    color:"#0b3d91" },
+    { id:4,  name:"Shallow",       color:"#2aa7d6" },
+    { id:5,  name:"Town",          color:"#c9a227" },
+    { id:6,  name:"Sand",          color:"#d9c27e" },
+    { id:7,  name:"Danger",        color:"#b71c1c" },
+    { id:8,  name:"Blight",        color:"#2b2626" },
+    { id:9,  name:"Volcano",       color:"#5d1a1a" },
+    { id:27, name:"Road Dirt",     color:"#8b6a44" },
+    { id:28, name:"Road Stone",    color:"#7c7f86" },
+    { id:29, name:"Road Obsidian", color:"#1b1b22" },
+    { id:30, name:"Road Blight",   color:"#3a2f2f" },
+    { id:31, name:"Road Runic",    color:"#0f0f18" },
+    { id:20, name:"Town Floor",    color:"#6d4c41" },
+    { id:21, name:"Town Wall",     color:"#2a1d1a" },
+    { id:22, name:"Smithy",        color:"#aa3333" },
+    { id:23, name:"Alchemist",     color:"#33aa33" },
+    { id:24, name:"Library",       color:"#3333aa" },
+    { id:25, name:"Town Exit",     color:"#c090ff" },
+    { id:26, name:"Town Deco",     color:"#6a1b9a" },
+  ];
+  const tileColor = new Map(TILE_PALETTE.map(t => [t.id, t.color]));
+
+  const idx = (x,y) => y*W + x;
+  const clamp = (v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+  const statusEl = document.getElementById("status");
+  const sbHint = document.getElementById("sbHint");
+  function setStatus(msg) { statusEl.textContent = msg || ""; }
+
+  // ─────────────────────────────────────────────────────────────
+  // WORLD MODEL
+  // ─────────────────────────────────────────────────────────────
+  function makeWorld() {
+    return {
+      id: document.getElementById("worldId").value || "overworld_SW",
+      name: document.getElementById("worldName").value || "World",
+      type: "world",
+      meta: {
+        biome: document.getElementById("biome").value || "unknown",
+        baseTile: 0,
+        accentTile: 1,
+        tier: Number(document.getElementById("tier").value || 0),
+        spawnOffset: { x: 0, y: 0 },
+        distanceFromSpawn: 0,
+        encounterRate: Number(document.getElementById("encRate").value || 0.1),
+        monsterScaleMultiplier: 1.0,
+        lootTier: Number(document.getElementById("lootTier").value || 0),
+        description: ""
+      },
+      capitol: null,
+      towns: [],
+      portals: [],
+      bosses: [],
+      specialFeatures: [],
+      entryPoints: {
+        N:  { x:120, y:178, tile:0 },
+        S:  { x:120, y:1,   tile:0 },
+        E:  { x:1,   y:90,  tile:0 },
+        W:  { x:238, y:90,  tile:0 }
+      },
+      blimpRoutes: [],
+      width: W,
+      height: H,
+      tiles: new Array(SIZE).fill(0),
+      variants: new Array(SIZE).fill(0),
+    };
   }
-});
 
-document.getElementById("saveWorldBtn")?.addEventListener("click", async () => {
-  try {
-    await saveWorldToSupabase();
-  } catch (e) {
-    console.error(e);
-    alert(`Save failed: ${e.message}`);
+  let world = makeWorld();
+  let activeTile = 0;
+  let tool = "paint";
+  let brush = 1;
+  let showGrid = false;
+
+  // camera/pan/zoom
+  let px = 3;
+  let panX = 0, panY = 0;
+  let dragging = false;
+  let last = null;
+
+  const cv = document.getElementById("cv");
+  const ctx = cv.getContext("2d");
+
+  // ─────────────────────────────────────────────────────────────
+  // SUPABASE
+  // ─────────────────────────────────────────────────────────────
+  let sb = null;
+
+  function loadSupabaseInputsFromStorage() {
+    const url = localStorage.getItem("sb_url") || "";
+    const anon = localStorage.getItem("sb_anon") || "";
+    const urlEl = document.getElementById("sbUrl");
+    const keyEl = document.getElementById("sbAnon");
+    if (urlEl) urlEl.value = url;
+    if (keyEl) keyEl.value = anon;
   }
-});
 
-// Optional: auto-refresh once if URL/key exist
-if ((localStorage.getItem("sb_url") || "") && (localStorage.getItem("sb_anon") || "")) {
-  sb = initSupabaseFromInputs();
-  refreshWorldList();
-}
+  function initSupabaseFromInputs() {
+    const url = (document.getElementById("sbUrl")?.value || "").trim();
+    const anon = (document.getElementById("sbAnon")?.value || "").trim();
+    if (!url || !anon) {
+      alert("Paste Supabase Project URL + anon key first.");
+      return null;
+    }
+    localStorage.setItem("sb_url", url);
+    localStorage.setItem("sb_anon", anon);
+    sb = supabase.createClient(url, anon);
+    sbHint.textContent = "✅ client ready";
+    return sb;
+  }
+
+  async function refreshWorldList() {
+    if (!sb) sb = initSupabaseFromInputs();
+    if (!sb) return;
+
+    const sel = document.getElementById("worldSelect");
+    if (!sel) return;
+    sel.innerHTML = `<option value="">Loading…</option>`;
+
+    const { data, error } = await sb
+      .from("worlds")
+      .select("id,name")
+      .order("id", { ascending: true });
+
+    if (error) {
+      console.error(error);
+      alert(`Failed to list worlds: ${error.message}`);
+      sel.innerHTML = `<option value="">(error)</option>`;
+      return;
+    }
+
+    sel.innerHTML = "";
+    for (const row of (data || [])) {
+      const opt = document.createElement("option");
+      opt.value = row.id;
+      opt.textContent = row.name ? `${row.id} — ${row.name}` : row.id;
+      sel.appendChild(opt);
+    }
+    if (!data?.length) sel.innerHTML = `<option value="">(no worlds found)</option>`;
+  }
+
+  function normalizeLoadedWorld(obj) {
+    if (!obj || typeof obj !== "object") throw new Error("map_json is not an object");
+    if (!Array.isArray(obj.tiles) || obj.tiles.length !== SIZE) {
+      throw new Error(`Invalid tiles array: expected length ${SIZE}`);
+    }
+    if (!Array.isArray(obj.variants) || obj.variants.length !== SIZE) {
+      obj.variants = new Array(SIZE).fill(0);
+    }
+    obj.width = W;
+    obj.height = H;
+    obj.meta = obj.meta || {};
+    obj.towns = Array.isArray(obj.towns) ? obj.towns : [];
+    obj.portals = Array.isArray(obj.portals) ? obj.portals : [];
+    obj.bosses = Array.isArray(obj.bosses) ? obj.bosses : [];
+    obj.specialFeatures = Array.isArray(obj.specialFeatures) ? obj.specialFeatures : [];
+    obj.blimpRoutes = Array.isArray(obj.blimpRoutes) ? obj.blimpRoutes : [];
+    obj.entryPoints = obj.entryPoints || {};
+    return obj;
+  }
+
+  function syncHeaderFromWorld() {
+    document.getElementById("worldId").value = world.id || "";
+    document.getElementById("worldName").value = world.name || "";
+    document.getElementById("biome").value = world.meta?.biome || "";
+    document.getElementById("tier").value = world.meta?.tier ?? 0;
+    document.getElementById("lootTier").value = world.meta?.lootTier ?? 0;
+    document.getElementById("encRate").value = world.meta?.encounterRate ?? 0.1;
+  }
+
+  function syncWorldFromHeader() {
+    world.id = (document.getElementById("worldId").value || world.id || "").trim();
+    world.name = (document.getElementById("worldName").value || world.name || "").trim();
+    world.meta = world.meta || {};
+    world.meta.biome = (document.getElementById("biome").value || world.meta.biome || "").trim();
+    world.meta.tier = Number(document.getElementById("tier").value || world.meta.tier || 0);
+    world.meta.lootTier = Number(document.getElementById("lootTier").value || world.meta.lootTier || 0);
+    world.meta.encounterRate = Number(document.getElementById("encRate").value || world.meta.encounterRate || 0.1);
+  }
+
+  async function loadWorldFromSupabase(worldId) {
+    if (!sb) sb = initSupabaseFromInputs();
+    if (!sb) return;
+
+    setStatus(`Loading ${worldId}…`);
+    const { data, error } = await sb
+      .from("worlds")
+      .select("map_json")
+      .eq("id", worldId)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data?.map_json) throw new Error(`No map_json for world id "${worldId}"`);
+
+    const obj = (typeof data.map_json === "string") ? JSON.parse(data.map_json) : data.map_json;
+    world = normalizeLoadedWorld(obj);
+    syncHeaderFromWorld();
+    draw();
+    setStatus(`Loaded ${world.id}`);
+  }
+
+  async function saveWorldToSupabase() {
+    if (!sb) sb = initSupabaseFromInputs();
+    if (!sb) return;
+
+    syncWorldFromHeader();
+    if (!Array.isArray(world.tiles) || world.tiles.length !== SIZE) throw new Error("tiles invalid");
+    if (!Array.isArray(world.variants) || world.variants.length !== SIZE) world.variants = new Array(SIZE).fill(0);
+
+    world.width = W;
+    world.height = H;
+
+    setStatus(`Saving ${world.id}…`);
+    const payload = { id: world.id, name: world.name, map_json: world };
+
+    const { error } = await sb
+      .from("worlds")
+      .upsert(payload, { onConflict: "id" });
+
+    if (error) throw error;
+
+    setStatus(`Saved ${world.id} ✅`);
+    alert(`Saved world "${world.id}" ✅`);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // DRAW
+  // ─────────────────────────────────────────────────────────────
+  function draw() {
+    ctx.clearRect(0,0,cv.width,cv.height);
+
+    const startX = clamp(Math.floor((-panX)/px), 0, W-1);
+    const startY = clamp(Math.floor((-panY)/px), 0, H-1);
+    const endX = clamp(Math.ceil((cv.width - panX)/px), 0, W);
+    const endY = clamp(Math.ceil((cv.height - panY)/px), 0, H);
+
+    for (let y=startY; y<endY; y++){
+      for (let x=startX; x<endX; x++){
+        const t = world.tiles[idx(x,y)] ?? 0;
+        ctx.fillStyle = tileColor.get(t) || "#222";
+        ctx.fillRect(panX + x*px, panY + y*px, px, px);
+      }
+    }
+
+    // markers
+    function marker(x,y,color,label){
+      ctx.save();
+      ctx.fillStyle=color;
+      ctx.beginPath();
+      ctx.arc(panX + x*px + px/2, panY + y*px + px/2, Math.max(3, px*0.35), 0, Math.PI*2);
+      ctx.fill();
+      if (px >= 8){
+        ctx.fillStyle="rgba(255,255,255,.9)";
+        ctx.font="10px monospace";
+        ctx.fillText(label, panX + x*px + 2, panY + y*px + 10);
+      }
+      ctx.restore();
+    }
+    (world.towns||[]).forEach(t=>marker(t.x,t.y,"#f59e0b","T"));
+    (world.portals||[]).forEach(p=>marker(p.x,p.y,"#a78bfa","P"));
+    (world.bosses||[]).forEach(b=>marker(b.x,b.y,"#ef4444","B"));
+    if (world.entryPoints){
+      Object.entries(world.entryPoints).forEach(([k,v])=> v && marker(v.x,v.y,"#22c55e",k));
+    }
+
+    if (showGrid && px >= 6) {
+      ctx.strokeStyle="rgba(0,0,0,0.15)";
+      ctx.lineWidth=1;
+      for (let x=startX; x<=endX; x++){
+        ctx.beginPath();
+        ctx.moveTo(panX + x*px, panY + startY*px);
+        ctx.lineTo(panX + x*px, panY + endY*px);
+        ctx.stroke();
+      }
+      for (let y=startY; y<=endY; y++){
+        ctx.beginPath();
+        ctx.moveTo(panX + startX*px, panY + y*px);
+        ctx.lineTo(panX + endX*px, panY + y*px);
+        ctx.stroke();
+      }
+    }
+  }
+
+  function screenToTile(clientX, clientY) {
+    const r = cv.getBoundingClientRect();
+    const sx = clientX - r.left;
+    const sy = clientY - r.top;
+    const x = Math.floor((sx - panX)/px);
+    const y = Math.floor((sy - panY)/px);
+    return {x,y};
+  }
+
+  function paintAt(x,y,tileId){
+    const r = brush;
+    for (let yy=y-r+1; yy<=y+r-1; yy++){
+      for (let xx=x-r+1; xx<=x+r-1; xx++){
+        if (xx<0||yy<0||xx>=W||yy>=H) continue;
+        world.tiles[idx(xx,yy)] = tileId;
+      }
+    }
+    draw();
+  }
+
+  function placeTown(x,y){
+    world.towns.push({
+      x,y,
+      name:`Town ${world.towns.length+1}`,
+      id:`town_${world.towns.length+1}`,
+      tier: world.meta?.tier ?? 0,
+      services:["Inn","Shop"]
+    });
+    world.tiles[idx(x,y)] = 5;
+    draw();
+  }
+
+  function placePortal(x,y){
+    world.portals.push({ x,y, campaignId:`campaign_${world.portals.length+1}`, name:`Portal ${world.portals.length+1}`, minLevel:1, maxLevel:5 });
+    draw();
+  }
+
+  function placeBoss(x,y){
+    world.bosses.push({ id:`boss_${world.bosses.length+1}`, name:`Boss ${world.bosses.length+1}`, icon:"👑", x,y, hp:5000, hp_max:5000, alive:true, homeX:x, homeY:y });
+    draw();
+  }
+
+  function setEntry(dir,x,y){
+    world.entryPoints = world.entryPoints || {};
+    world.entryPoints[dir] = { x,y, tile: world.tiles[idx(x,y)] ?? 0 };
+    draw();
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // UI WIRING
+  // ─────────────────────────────────────────────────────────────
+  // palette
+  const paletteEl = document.getElementById("palette");
+  TILE_PALETTE.forEach(t=>{
+    const row = document.createElement("div");
+    row.className = "tile";
+    row.innerHTML = `<span class="swatch" style="background:${t.color}"></span><span style="font-size:12px;">${t.id}: ${t.name}</span>`;
+    row.onclick = ()=> {
+      activeTile = t.id;
+      document.querySelectorAll(".tile").forEach(el=>el.classList.remove("active"));
+      row.classList.add("active");
+    };
+    paletteEl.appendChild(row);
+  });
+  paletteEl.firstChild.classList.add("active");
+
+  // tool/brush/grid/zoom
+  document.getElementById("tool").addEventListener("change", e => tool = e.target.value);
+  document.getElementById("brush").addEventListener("change", e => brush = clamp(Number(e.target.value||1), 1, 6));
+  document.getElementById("toggleGrid").onclick = ()=>{ showGrid=!showGrid; draw(); };
+  document.getElementById("zoomIn").onclick = ()=>{ px = clamp(px+1, 2, 12); draw(); };
+  document.getElementById("zoomOut").onclick = ()=>{ px = clamp(px-1, 2, 12); draw(); };
+
+  // export/import/clear
+  document.getElementById("exportBtn").onclick = ()=> {
+    syncWorldFromHeader();
+    const out = JSON.parse(JSON.stringify(world));
+    out.width = W; out.height = H;
+    if (!Array.isArray(out.variants) || out.variants.length !== SIZE) out.variants = new Array(SIZE).fill(0);
+    document.getElementById("json").value = JSON.stringify(out, null, 2);
+    setStatus("Exported JSON");
+  };
+
+  document.getElementById("importBtn").onclick = ()=> {
+    try {
+      const obj = JSON.parse(document.getElementById("json").value);
+      world = normalizeLoadedWorld(obj);
+      syncHeaderFromWorld();
+      draw();
+      setStatus(`Imported ${world.id || ""}`);
+    } catch(e) {
+      alert("Import failed: invalid JSON");
+    }
+  };
+
+  document.getElementById("clearBtn").onclick = ()=> {
+    if (!confirm("Clear all tiles to 0?")) return;
+    world.tiles = new Array(SIZE).fill(0);
+    world.variants = new Array(SIZE).fill(0);
+    world.towns = [];
+    world.portals = [];
+    world.bosses = [];
+    world.entryPoints = {};
+    draw();
+    setStatus("Cleared");
+  };
+
+  // canvas mouse (paint + pan + zoom)
+  cv.addEventListener("mousedown", (e)=>{
+    if (e.button === 1 || e.button === 2) {
+      dragging = true;
+      last = { x:e.clientX, y:e.clientY };
+      return;
+    }
+    const {x,y} = screenToTile(e.clientX, e.clientY);
+    if (x<0||y<0||x>=W||y>=H) return;
+
+    if (tool === "paint") paintAt(x,y,activeTile);
+    else if (tool === "erase") paintAt(x,y,0);
+    else if (tool === "town") placeTown(x,y);
+    else if (tool === "portal") placePortal(x,y);
+    else if (tool === "boss") placeBoss(x,y);
+    else if (tool.startsWith("entry:")) setEntry(tool.split(":")[1], x, y);
+  });
+
+  cv.addEventListener("mousemove", (e)=>{
+    if (dragging && last){
+      const dx = e.clientX - last.x;
+      const dy = e.clientY - last.y;
+      panX += dx; panY += dy;
+      last = { x:e.clientX, y:e.clientY };
+      draw();
+      return;
+    }
+    if ((tool === "paint" || tool === "erase") && (e.buttons & 1)) {
+      const {x,y} = screenToTile(e.clientX, e.clientY);
+      if (x<0||y<0||x>=W||y>=H) return;
+      paintAt(x,y, tool === "erase" ? 0 : activeTile);
+    }
+  });
+
+  window.addEventListener("mouseup", ()=>{ dragging=false; last=null; });
+
+  cv.addEventListener("wheel", (e)=>{
+    e.preventDefault();
+    const delta = Math.sign(e.deltaY);
+    px = clamp(px - delta, 2, 12);
+    draw();
+  }, { passive:false });
+
+  // supabase buttons
+  loadSupabaseInputsFromStorage();
+
+  document.getElementById("refreshWorlds").addEventListener("click", () => {
+    sb = null;
+    refreshWorldList();
+  });
+
+  document.getElementById("loadWorldBtn").addEventListener("click", async () => {
+    const id = document.getElementById("worldSelect").value;
+    if (!id) return alert("Choose a world id first.");
+    try { await loadWorldFromSupabase(id); } catch(e) { console.error(e); alert(`Load failed: ${e.message}`); }
+  });
+
+  document.getElementById("saveWorldBtn").addEventListener("click", async () => {
+    try { await saveWorldToSupabase(); } catch(e) { console.error(e); alert(`Save failed: ${e.message}`); }
+  });
+
+  // auto-refresh list if creds exist
+  if ((localStorage.getItem("sb_url") || "") && (localStorage.getItem("sb_anon") || "")) {
+    sb = initSupabaseFromInputs();
+    refreshWorldList();
+  } else {
+    sbHint.textContent = "Paste Supabase URL + anon key";
+  }
+
+  // initial draw
+  draw();
+</script>
+</body>
+</html>
