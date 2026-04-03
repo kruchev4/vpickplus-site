@@ -2488,6 +2488,10 @@ if (window.GameState?.mode === 'town' && window.GameState?.activeMap?.isTown) {
 
   const TP = new Set([20,22,23,24,25,26,27,28]);
   const nx = G.x + dx, ny = G.y + dy;
+  if(nx<0||nx>=_tm.width||ny<0||ny>=_tm.height) {
+    showExitPrompt();  // ← add this
+    return;            // ← already there, but now shows prompt
+  }
 
   
   // ── Overworld edge transitions ──────────────────────────────
