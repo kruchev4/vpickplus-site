@@ -1843,7 +1843,7 @@ function buildInventoryUI(){
 function addToInventory(itemDef){
   const existing=G.inventory.find(i=>i&&i.name===itemDef.name&&itemDef.type==='potion');
   if(existing){existing.qty=(existing.qty||1)+1;}
-  else if(G.inventory.filter(Boolean).length<20){{G.inventory.push({...itemDef,qty:1});}
+  else if(G.inventory.filter(Boolean).length<20){G.inventory.push({...itemDef,qty:1});}
   else{toast('Inventory full!','err');return false;}
   buildInventoryUI();return true;
 }
