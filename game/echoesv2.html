@@ -2757,13 +2757,7 @@ function pickMonster(tileType){
   if(!eligible.length) eligible = all;
   return eligible[Math.floor(Math.random()*eligible.length)];
 }
-  // Fallback: any monster within level range
-  if(!eligible.length){
-    eligible=MONSTERS.filter(m=>G.level>=m.lvlRange[0]-1&&G.level<=m.lvlRange[1]+2);
-  }
-  if(!eligible.length) eligible=MONSTERS;
-  return eligible[Math.floor(Math.random()*eligible.length)];
-}
+ 
 
 function makeEnemy(mon, zoneLevel, startDelayMs){
   const lvlBonus = Math.floor(zoneLevel/3);
