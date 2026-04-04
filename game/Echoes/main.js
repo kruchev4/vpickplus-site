@@ -35,8 +35,8 @@ import {
   menuShowSyncInfo, menuPauseCampaign, menuExitCampaign,
   menuReturnToWorld, menuNewChar
 } from "./ui/gameMenu.js";
-import "../tools/world/overworldGenerator.js";
-import "../tools/campaign/persistence/saveWorld.js";
+//import "../tools/world/overworldGenerator.js";
+//import "../tools/campaign/persistence/saveWorld.js";
 
 /* ===============================
   GLOBAL BRIDGES
