@@ -7305,7 +7305,7 @@ function renderCharSlots(saves){
   });
 }
 
-function csLoadCharacter(idx){
+async function csLoadCharacter(idx){
   const save = window._csSaves?.[idx];
   if(!save){ toast('Save not found','err'); console.error('No save at idx',idx,'_csSaves:',window._csSaves); return; }
   const data = save.cloudData || save.data;
@@ -7334,10 +7334,62 @@ function csLoadCharacter(idx){
   document.getElementById('screen-game').classList.add('active');
 
   // Mirror new-character startup path exactly
+ // Mirror new-character startup path exactly
   window.engineReady = true;
   registerInput();  // attach keyboard + click listeners
+
+  // ── Ensure we have a worldId + activeMap (THIS FIXES THE HANG) ──
+  const GS2 = window.GameState;
+
+  // Prefer save-provided worldId; else default
+  const wid =
+    data?.G?.currentWorldId ||
+    GS2?.currentWorldId ||
+    "overworld_C";
+
+  GS2.currentWorldId = wid;
+
+  // Ensure not stuck in town/combat state
+  GS2.inTown = false;
+  GS2.mode = "world";
+  window.G.inCombat = false;
+
+  // Load the map if missing
+  if (!GS2.activeMap) {
+    try {
+      if (typeof window.loadWorld === "function") {
+        GS2.activeMap = await window.loadWorld(wid);
+      } else if (typeof window.loadMap === "function") {
+        // Fallback: old world map id
+        GS2.activeMap = await window.loadMap("overworld_generated");
+      } else {
+        console.error("[Load] No loadWorld/loadMap available. Cannot set activeMap.");
+      }
+
+      if (GS2.activeMap) {
+        window.MAP_W = GS2.activeMap.width;
+        window.MAP_H = GS2.activeMap.height;
+
+        if (window.worldMap) {
+          window.worldMap.width = GS2.activeMap.width;
+          window.worldMap.height = GS2.activeMap.height;
+        }
+      }
+    } catch (e) {
+      console.error("[Load] activeMap load failed:", e);
+      toast?.(`World load failed: ${e.message}`, "err");
+      return;
+    }
+  }
+
   initGame();       // HUD, inventory, bosses, logs
-  (window.startApp || window.startGame || window.startEngine)?.();
+
+  // Prefer gameplay start for a loaded save
+  (window.startGame || window.startApp || window.startEngine)?.();
+
+  // Force a first render/HUD refresh
+  window.render?.();
+  window.updateHUD?.();
 
   toast(`Playing as ${G.name}`);
 }
