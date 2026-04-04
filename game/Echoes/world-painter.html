@@ -212,6 +212,7 @@
   let px = 3;
   let panX = 0, panY = 0;
   let dragging = false;
+  let spaceDown = false;
   let last = null;
 
   const cv = document.getElementById("cv");
@@ -358,7 +359,31 @@
     setStatus(`Saved ${world.id} ✅`);
     alert(`Saved world "${world.id}" ✅`);
   }
+  function clampPan() {
+  const mapW = W * px;
+  const mapH = H * px;
 
+  // Keep at least 40px of map visible
+  const margin = 40;
+
+  // panX is screen offset of tile(0,0)
+  const minX = cv.width - mapW - margin;
+  const maxX = margin;
+  const minY = cv.height - mapH - margin;
+  const maxY = margin;
+
+  // If map is smaller than canvas, center it
+  if (mapW + margin*2 < cv.width) {
+    panX = (cv.width - mapW) / 2;
+  } else {
+    panX = clamp(panX, minX, maxX);
+  }
+  if (mapH + margin*2 < cv.height) {
+    panY = (cv.height - mapH) / 2;
+  } else {
+    panY = clamp(panY, minY, maxY);
+  }
+}
   // ─────────────────────────────────────────────────────────────
   // DRAW
   // ─────────────────────────────────────────────────────────────
@@ -487,8 +512,26 @@
   document.getElementById("tool").addEventListener("change", e => tool = e.target.value);
   document.getElementById("brush").addEventListener("change", e => brush = clamp(Number(e.target.value||1), 1, 6));
   document.getElementById("toggleGrid").onclick = ()=>{ showGrid=!showGrid; draw(); };
-  document.getElementById("zoomIn").onclick = ()=>{ px = clamp(px+1, 2, 12); draw(); };
-  document.getElementById("zoomOut").onclick = ()=>{ px = clamp(px-1, 2, 12); draw(); };
+  function zoomAtCanvasPoint(targetPx, cx, cy) {
+  const worldX = (cx - panX) / px;
+  const worldY = (cy - panY) / px;
+  px = targetPx;
+  panX = cx - worldX * px;
+  panY = cy - worldY * px;
+  draw();
+}
+
+document.getElementById("zoomIn").onclick = ()=>{
+  const target = clamp(px + 1, 2, 12);
+  const cx = cv.width / 2, cy = cv.height / 2;
+  zoomAtCanvasPoint(target, cx, cy);
+};
+
+document.getElementById("zoomOut").onclick = ()=>{
+  const target = clamp(px - 1, 2, 12);
+  const cx = cv.width / 2, cy = cv.height / 2;
+  zoomAtCanvasPoint(target, cx, cy);
+};
 
   // export/import/clear
   document.getElementById("exportBtn").onclick = ()=> {
@@ -526,11 +569,12 @@
 
   // canvas mouse (paint + pan + zoom)
   cv.addEventListener("mousedown", (e)=>{
-    if (e.button === 1 || e.button === 2) {
-      dragging = true;
-      last = { x:e.clientX, y:e.clientY };
-      return;
-    }
+    if (e.button === 1 || e.button === 2 || (spaceDown && e.button === 0)) {
+  dragging = true;
+  last = { x:e.clientX, y:e.clientY };
+  cv.style.cursor = "grabbing";
+  return;
+}
     const {x,y} = screenToTile(e.clientX, e.clientY);
     if (x<0||y<0||x>=W||y>=H) return;
 
@@ -549,6 +593,7 @@
       panX += dx; panY += dy;
       last = { x:e.clientX, y:e.clientY };
       draw();
+      clampPan();
       return;
     }
     if ((tool === "paint" || tool === "erase") && (e.buttons & 1)) {
@@ -560,12 +605,38 @@
 
   window.addEventListener("mouseup", ()=>{ dragging=false; last=null; });
 
+  window.addEventListener("mouseup", ()=>{
+  dragging=false; 
+  last=null; 
+  cv.style.cursor = spaceDown ? "grab" : "";
+});
   cv.addEventListener("wheel", (e)=>{
-    e.preventDefault();
-    const delta = Math.sign(e.deltaY);
-    px = clamp(px - delta, 2, 12);
-    draw();
-  }, { passive:false });
+  e.preventDefault();
+
+  const rect = cv.getBoundingClientRect();
+  const mx = e.clientX - rect.left; // mouse x in canvas pixels
+  const my = e.clientY - rect.top;  // mouse y in canvas pixels
+
+  // tile coordinates under mouse BEFORE zoom
+  const worldX = (mx - panX) / px;
+  const worldY = (my - panY) / px;
+
+  // zoom step
+  const delta = Math.sign(e.deltaY);
+  const newPx = clamp(px - delta, 2, 12);
+  if (newPx === px) return;
+
+  // update zoom
+  px = newPx;
+
+  // adjust pan so the same world point stays under the mouse AFTER zoom
+  panX = mx - worldX * px;
+  panY = my - worldY * px;
+    clampPan();
+
+  draw();
+}, { passive:false });
+
 
   // supabase buttons
   loadSupabaseInputsFromStorage();
@@ -574,6 +645,21 @@
     sb = null;
     refreshWorldList();
   });
+  window.addEventListener("keydown", (e) => {
+  if (e.code === "Space") {
+    spaceDown = true;
+    cv.style.cursor = "grab";
+    e.preventDefault();
+  }
+}, { passive: false });
+
+window.addEventListener("keyup", (e) => {
+  if (e.code === "Space") {
+    spaceDown = false;
+    cv.style.cursor = "";
+  }
+});
+
 
   document.getElementById("loadWorldBtn").addEventListener("click", async () => {
     const id = document.getElementById("worldSelect").value;
