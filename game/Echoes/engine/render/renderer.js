@@ -237,6 +237,90 @@ function drawBlight(ctx, px, py, x, y) {
   ctx.fillStyle = 'rgba(120,160,100,0.06)';
   ctx.fillRect(px + 1, py + 1, TS - 2, TS - 2);
 }
+function drawBlightGround(ctx, px, py, tx, ty) {
+  // Base: dead soil
+  ctx.fillStyle = "#2a2626";
+  ctx.fillRect(px, py, tx, ty);
+
+  // Faint mossy rot patches
+  ctx.fillStyle = "rgba(80,140,90,0.18)";
+  ctx.fillRect(px + tx*0.10, py + ty*0.20, tx*0.22, ty*0.18);
+  ctx.fillRect(px + tx*0.62, py + ty*0.58, tx*0.20, ty*0.16);
+
+  // Sporadic ash specks
+  ctx.fillStyle = "rgba(255,255,255,0.05)";
+  ctx.fillRect(px + tx*0.18, py + ty*0.70, tx*0.06, ty*0.06);
+  ctx.fillRect(px + tx*0.74, py + ty*0.30, tx*0.05, ty*0.05);
+}
+
+function drawBlightThicket(ctx, px, py, tx, ty) {
+  // Base: darker rot
+  ctx.fillStyle = "#1f1c1c";
+  ctx.fillRect(px, py, tx, ty);
+
+  // Tangled growth strokes
+  ctx.strokeStyle = "rgba(120,220,120,0.25)";
+  ctx.lineWidth = Math.max(1, tx * 0.05);
+  ctx.beginPath();
+  ctx.moveTo(px + tx*0.15, py + ty*0.85);
+  ctx.lineTo(px + tx*0.40, py + ty*0.20);
+  ctx.lineTo(px + tx*0.70, py + ty*0.75);
+  ctx.stroke();
+
+  // Darker knots
+  ctx.fillStyle = "rgba(0,0,0,0.25)";
+  ctx.beginPath();
+  ctx.arc(px + tx*0.35, py + ty*0.55, Math.max(2, tx*0.12), 0, Math.PI*2);
+  ctx.fill();
+}
+
+function drawBlightMountain(ctx, px, py, tx, ty) {
+  // Base rock
+  ctx.fillStyle = "#3a3434";
+  ctx.fillRect(px, py, tx, ty);
+
+  // Cracks
+  ctx.strokeStyle = "rgba(0,0,0,0.35)";
+  ctx.lineWidth = Math.max(1, tx * 0.05);
+  ctx.beginPath();
+  ctx.moveTo(px + tx*0.10, py + ty*0.30);
+  ctx.lineTo(px + tx*0.55, py + ty*0.45);
+  ctx.lineTo(px + tx*0.85, py + ty*0.20);
+  ctx.stroke();
+
+  // Sickly highlight vein
+  ctx.strokeStyle = "rgba(120,220,120,0.18)";
+  ctx.lineWidth = Math.max(1, tx * 0.03);
+  ctx.beginPath();
+  ctx.moveTo(px + tx*0.15, py + ty*0.80);
+  ctx.lineTo(px + tx*0.70, py + ty*0.55);
+  ctx.stroke();
+}
+
+function drawBlightShallow(ctx, px, py, tx, ty) {
+  // Murky teal
+  ctx.fillStyle = "#16312d";
+  ctx.fillRect(px, py, tx, ty);
+
+  // Surface ripple strip
+  ctx.fillStyle = "rgba(180,255,210,0.08)";
+  ctx.fillRect(px + tx*0.10, py + ty*0.48, tx*0.80, ty*0.08);
+
+  // Sludge edges
+  ctx.fillStyle = "rgba(0,0,0,0.18)";
+  ctx.fillRect(px, py + ty*0.85, tx, ty*0.15);
+}
+
+function drawBlightDeep(ctx, px, py, tx, ty) {
+  // Black fen
+  ctx.fillStyle = "#050707";
+  ctx.fillRect(px, py, tx, ty);
+
+  // Subtle “movement” glints
+  ctx.fillStyle = "rgba(120,220,120,0.10)";
+  ctx.fillRect(px + tx*0.20, py + ty*0.25, tx*0.08, ty*0.04);
+  ctx.fillRect(px + tx*0.68, py + ty*0.62, tx*0.10, ty*0.05);
+}
 
 
 function drawVolcano(ctx, px, py, x, y) {
@@ -1037,6 +1121,11 @@ switch (tile) {
         case 6:  drawSand(ctx, px, py, tx, ty);      break;
         case 7:  drawDanger(ctx, px, py, tx, ty);    break;
         case 8:  drawBlight(ctx, px, py, tx, ty);    break;
+        case 32: drawBlightGround(ctx, px, py, tx, ty);   break;
+        case 33: drawBlightThicket(ctx, px, py, tx, ty);  break;
+        case 34: drawBlightMountain(ctx, px, py, tx, ty); break;
+        case 35: drawBlightShallow(ctx, px, py, tx, ty);  break;
+        case 36: drawBlightDeep(ctx, px, py, tx, ty);     break;
         case 9:  drawVolcano(ctx, px, py, tx, ty);   break;
 
         // ── Dungeon/Interior tiles ──────────────────
@@ -1066,6 +1155,8 @@ switch (tile) {
         case 29: drawRoadStone(ctx, px, py, tx, ty);  break;
         case 30: drawRoadBridge(ctx, px, py, tx, ty); break;
         case 31: drawRoadPath(ctx, px, py, tx, ty);   break;
+    // ── Blight biome tiles (32–36) ─────────────
+        
         default: drawFloor(ctx, px, py, tx, ty);     break;
       }
 
