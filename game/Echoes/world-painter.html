@@ -446,13 +446,20 @@
   }
 
   function screenToTile(clientX, clientY) {
-    const r = cv.getBoundingClientRect();
-    const sx = clientX - r.left;
-    const sy = clientY - r.top;
-    const x = Math.floor((sx - panX)/px);
-    const y = Math.floor((sy - panY)/px);
-    return {x,y};
-  }
+  const r = cv.getBoundingClientRect();
+
+  // Convert from CSS pixels -> canvas pixels (handles DPR / CSS scaling)
+  const scaleX = cv.width / r.width;
+  const scaleY = cv.height / r.height;
+
+  const sx = (clientX - r.left) * scaleX;
+  const sy = (clientY - r.top) * scaleY;
+
+  const x = Math.floor((sx - panX) / px);
+  const y = Math.floor((sy - panY) / px);
+
+  return { x, y };
+}
 
   function paintAt(x,y,tileId){
     const r = brush;
