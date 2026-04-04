@@ -284,6 +284,9 @@
     if (!Array.isArray(obj.variants) || obj.variants.length !== SIZE) {
       obj.variants = new Array(SIZE).fill(0);
     }
+    // 🔧 Make loaded worlds editable: force plain mutable arrays
+    obj.tiles = Array.from(obj.tiles);
+    obj.variants = Array.from(obj.variants);
     obj.width = W;
     obj.height = H;
     obj.meta = obj.meta || {};
