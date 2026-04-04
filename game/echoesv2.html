@@ -2178,6 +2178,9 @@ function startApp() {
 }
 
 window.startApp = startApp;
+  // Legacy compat: older flows call startEngine()
+window.startEngine = window.startEngine || window.startApp || window.startGame;
+
 
 function hasSavedCharacter() {
   return !!localStorage.getItem("character");
@@ -7334,7 +7337,7 @@ function csLoadCharacter(idx){
   window.engineReady = true;
   registerInput();  // attach keyboard + click listeners
   initGame();       // HUD, inventory, bosses, logs
-  window.startEngine(); // starts loop if not running, always re-syncs player
+  (window.startApp || window.startGame || window.startEngine)?.();
 
   toast(`Playing as ${G.name}`);
 }
