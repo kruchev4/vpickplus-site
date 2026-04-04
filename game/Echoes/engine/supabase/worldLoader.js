@@ -16,7 +16,7 @@ export async function loadWorld(worldId) {
     throw error;
   }
 
-  if (!data || !data.map_json) {
+  if (!data || !data.json) {
     const msg = `[worldLoader] No world found with id="${worldId}". Check the worlds table in Supabase.`;
     console.error(msg);
     if (typeof toast === 'function') toast(`World not found: ${worldId}`, 'err');
