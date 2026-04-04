@@ -102,8 +102,8 @@ overworld_SW: {
   ]
 }
 
-  overworld_E: { base: TILE.VOLCANO, alts: [[TILE.DANGER, 0.18], [TILE.SAND, 0.05]] },
-  overworld_W: { base: TILE.FOREST, alts: [[TILE.GRASS, 0.12], [TILE.DANGER, 0.10]] },
+  //overworld_E: { base: TILE.VOLCANO, alts: [[TILE.DANGER, 0.18], [TILE.SAND, 0.05]] },
+  //overworld_W: { base: TILE.FOREST, alts: [[TILE.GRASS, 0.12], [TILE.DANGER, 0.10]] },
 
   // Corners: distinct mixes without new tile IDs
   overworld_NE:{ base: TILE.DANGER, alts: [[TILE.MOUNTAIN, 0.14], [TILE.VOLCANO, 0.07]] },
