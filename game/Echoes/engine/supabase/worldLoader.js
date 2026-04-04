@@ -6,7 +6,7 @@ export async function loadWorld(worldId) {
 
   const { data, error } = await supabase
     .from("worlds")
-    .select("map_json")
+    .select("json")
     .eq("id", worldId)
     .maybeSingle();
 
