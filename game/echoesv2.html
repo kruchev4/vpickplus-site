@@ -6958,9 +6958,7 @@ async function loadGameAsync(){
 
 function _applyRawSave(save) {
   try {
-    console.log("[Load] Applying raw save:", JSON.parse(JSON.stringify(save)));
-
-    if (!save) return false;
+       if (!save) return false;
 
     // Handle multiple save formats:
     // {version:3, G:{...}} — standard local save
@@ -7020,45 +7018,47 @@ if (!window.G.race && window.G.race?.name) {
 
 // class stored as string
 if (typeof window.G.cls === "string") {
+  const classes = Array.isArray(window.CLASSES) ? window.CLASSES : [];
+  const s = window.G.cls.toLowerCase();
   window.G.cls =
-    window.CLASSES.find(c =>
-      c.id === window.G.cls ||
-      c.name?.toLowerCase() === window.G.cls.toLowerCase()
-    ) || null;
+    classes.find(c => c?.id === window.G.cls || c?.name?.toLowerCase() === s) || null;
 }
 
-// class stored under classId
+const classes = Array.isArray(window.CLASSES) ? window.CLASSES : [];
+
 if (!window.G.cls && window.G.classId) {
-  window.G.cls = window.CLASSES.find(c => c.id === window.G.classId);
+  window.G.cls = classes.find(c => c?.id === window.G.classId) || null;
 }
 
-// class stored as partial object
 if (!window.G.cls && window.G.cls?.name) {
-  window.G.cls = window.CLASSES.find(
-    c => c.name === window.G.cls.name
-  );
+  window.G.cls = classes.find(c => c?.name === window.G.cls.name) || null;
+
 }
 
-    // Final re-link (in case of partial objects)
-    window.G.race =
-      window.RACES.find(r => r.id === window.G.race?.id) || window.G.race;
+   const races = Array.isArray(window.RACES) ? window.RACES : [];
+const classes2 = Array.isArray(window.CLASSES) ? window.CLASSES : [];
 
-    window.G.cls =
-      window.CLASSES.find(c => c.id === window.G.cls?.id) || window.G.cls;
+window.G.race =
+  races.find(r => r?.id === window.G.race?.id) || window.G.race;
 
-    // Last-ditch: cls/race stored as full objects with .id — try matching by name too
-    if (!window.G.cls && gData.cls) {
-      const saved = gData.cls;
-      window.G.cls = window.CLASSES.find(c =>
-        c.id === saved.id || c.id === saved || c.name === saved.name
-      ) || null;
-    }
-    if (!window.G.race && gData.race) {
-      const saved = gData.race;
-      window.G.race = window.RACES.find(r =>
-        r.id === saved.id || r.id === saved || r.name === saved.name
-      ) || null;
-    }
+window.G.cls =
+  classes2.find(c => c?.id === window.G.cls?.id) || window.G.cls;
+
+  if (!window.G.cls && gData.cls) {
+  const saved = gData.cls;
+  const classes3 = Array.isArray(window.CLASSES) ? window.CLASSES : [];
+  window.G.cls = classes3.find(c =>
+    c?.id === saved?.id || c?.id === saved || c?.name === saved?.name
+  ) || null;
+}
+
+if (!window.G.race && gData.race) {
+  const saved = gData.race;
+  const races2 = Array.isArray(window.RACES) ? window.RACES : [];
+  window.G.race = races2.find(r =>
+    r?.id === saved?.id || r?.id === saved || r?.name === saved?.name
+  ) || null;
+}
 
     // If still not found, use the saved object directly — it may be complete enough
     if (!window.G.cls  && gData.cls?.pri)  window.G.cls  = gData.cls;
