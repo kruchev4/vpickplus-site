@@ -12,7 +12,7 @@ function hash(x, y) {
 function hash2(x, y) { return hash(x ^ 0xDEAD, y ^ 0xBEEF); }
 
 // ── Tile drawers ──────────────────────────────────────────────────────────────
-function drawRoadDirt(ctx, px, py, tx, ty) {
+/*function drawRoadDirt(ctx, px, py, tx, ty) {
   ctx.fillStyle = "#8b6a44";
   ctx.fillRect(px, py, tx, ty);
   ctx.fillStyle = "rgba(0,0,0,0.14)";
@@ -27,14 +27,14 @@ function drawRoadStone(ctx, px, py, tx, ty) {
   ctx.strokeRect(px + tx*0.10, py + ty*0.20, tx*0.35, ty*0.28);
   ctx.strokeRect(px + tx*0.55, py + ty*0.20, tx*0.35, ty*0.28);
   ctx.strokeRect(px + tx*0.20, py + ty*0.55, tx*0.35, ty*0.28);
-}
+}*/
 
 function drawRoadObsidian(ctx, px, py, tx, ty) {
   ctx.fillStyle = "#1b1b22";
   ctx.fillRect(px, py, tx, ty);
   ctx.fillStyle = "rgba(255,120,40,0.16)";
   ctx.fillRect(px + tx*0.12, py + ty*0.48, tx*0.76, ty*0.06);
-}
+}/*
 
 function drawRoadBlight(ctx, px, py, tx, ty) {
   ctx.fillStyle = "#2b2626";
@@ -49,7 +49,7 @@ function drawRoadRunic(ctx, px, py, tx, ty) {
   ctx.fillStyle = "rgba(60,220,255,0.22)";
   ctx.fillRect(px + tx*0.48, py + ty*0.12, tx*0.04, ty*0.76);
   ctx.fillRect(px + tx*0.12, py + ty*0.48, tx*0.76, ty*0.04);
-}
+}*/
 
 function drawGrass(ctx, px, py, x, y) {
   const h = hash(x, y);
