@@ -85,7 +85,23 @@ function inb(x,y,W,H){ return x>=0 && y>=0 && x<W && y<H; }
 const BIOME = {
   overworld_C: { base: TILE.GRASS,  alts: [[TILE.FOREST, 0.28], [TILE.SAND, 0.06], [TILE.DANGER, 0.04]] },
   overworld_N: { base: TILE.MOUNTAIN, alts: [[TILE.FOREST, 0.10], [TILE.DANGER, 0.06]] },
-  overworld_S: { base: TILE.BLIGHT, alts: [[TILE.DANGER, 0.22], [TILE.FOREST, 0.06]] },
+  overworld_S: {
+  base: TILE.BLIGHT_GROUND,
+  alts: [
+    [TILE.BLIGHT_THICKET, 0.18],
+    [TILE.BLIGHT_SHALLOW, 0.06],
+    [TILE.DANGER, 0.05]
+  ]
+},
+overworld_SW: {
+  base: TILE.BLIGHT_GROUND,
+  alts: [
+    [TILE.BLIGHT_THICKET, 0.22],
+    [TILE.BLIGHT_SHALLOW, 0.08],
+    [TILE.DANGER, 0.06]
+  ]
+}
+
   overworld_E: { base: TILE.VOLCANO, alts: [[TILE.DANGER, 0.18], [TILE.SAND, 0.05]] },
   overworld_W: { base: TILE.FOREST, alts: [[TILE.GRASS, 0.12], [TILE.DANGER, 0.10]] },
 
