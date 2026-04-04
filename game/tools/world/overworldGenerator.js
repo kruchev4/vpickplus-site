@@ -32,7 +32,12 @@ export const TILE = {
   ROAD_STONE: 28,
   ROAD_OBSIDIAN: 29,
   ROAD_BLIGHT: 30,
-  ROAD_RUNIC: 31
+  ROAD_RUNIC: 31,
+  BLIGHT_GROUND: 32,
+BLIGHT_THICKET: 33,
+BLIGHT_MOUNTAIN: 34,
+BLIGHT_SHALLOW: 35,
+BLIGHT_DEEP: 36
 };
 
 // 3×3 world offsets for edge-consistent features
