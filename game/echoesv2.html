@@ -7305,75 +7305,98 @@ function renderCharSlots(saves){
   });
 }
 
-async function csLoadCharacter(idx){
+async function csLoadCharacter(idx) {
   const save = window._csSaves?.[idx];
-  if(!save){ toast('Save not found','err'); console.error('No save at idx',idx,'_csSaves:',window._csSaves); return; }
-  const data = save.cloudData || save.data;
-  console.log('[Load] Loading save:', save.name, 'version:', data?.version, 'hasG:', !!data?.G);
-
-  const ok = _applyRawSave(data);
-  
-  if(!ok){
-    toast('Could not load — save corrupted.','err');
-    console.error('[Load] _applyRawSave failed. data:', data);
+  if (!save) {
+    toast?.("Save not found", "err");
+    console.error("No save at idx", idx, "_csSaves:", window._csSaves);
     return;
   }
-  if (data.G?.x != null) window.G.x = data.G.x;
-  if (data.G?.y != null) window.G.y = data.G.y;
-  if (data.G?.currentWorldId) window.GameState.currentWorldId = data.G.currentWorldId;
+
+  const data = save.cloudData || save.data;
+  console.log("[Load] Loading save:", save.name, "version:", data?.version, "hasG:", !!data?.G);
+
+  // Apply save -> should populate window.G and other state
+  const ok = _applyRawSave(data);
+  if (!ok) {
+    toast?.("Could not load — save corrupted.", "err");
+    console.error("[Load] _applyRawSave failed. data:", data);
+    return;
+  }
+
+  // Ensure we have GameState + G after apply
+  const GS = window.GameState;
+  if (!GS || !window.G) {
+    console.error("[Load] Missing GameState or G after _applyRawSave", { GS, G: window.G });
+    toast?.("Load failed — missing GameState/G.", "err");
+    return;
+  }
+
+  // Restore position/worldId if present in save
+  if (data?.G?.x != null) window.G.x = data.G.x;
+  if (data?.G?.y != null) window.G.y = data.G.y;
+  if (data?.G?.currentWorldId) GS.currentWorldId = data.G.currentWorldId;
 
   // Sync ALL references to the loaded character
-  // G (local let), window.G, and GameState.player must all point to same object
-  Object.assign(G, window.G); // update local G in-place
-  GameState.player = G;       // renderer uses GameState.player
-  window.G = G;               // keep window.G in sync
-  if(window.multi) window.multi.G = G;
+  // local G (engine uses this), window.G, and GameState.player must match
+  try {
+    Object.assign(G, window.G);  // update local G in-place (assumes local G exists)
+    GS.player = G;
+    window.G = G;
+    if (window.multi) window.multi.G = G;
+  } catch (e) {
+    // If local G isn't available in this scope for some reason, fall back safely
+    GS.player = window.G;
+  }
 
-  try{ localStorage.setItem('realmSave', JSON.stringify(data)); }catch(e){}
-  document.getElementById('screen-charselect').classList.remove('active');
-  document.getElementById('screen-game').classList.add('active');
+  // Persist last-loaded save for convenience
+  try { localStorage.setItem("realmSave", JSON.stringify(data)); } catch (e) {}
 
-  // Mirror new-character startup path exactly
- // Mirror new-character startup path exactly
+  // Switch UI screens
+  document.getElementById("screen-charselect")?.classList.remove("active");
+  document.getElementById("screen-game")?.classList.add("active");
+
+  // Engine readiness + input
   window.engineReady = true;
-  registerInput();  // attach keyboard + click listeners
+  registerInput?.();
 
-  // ── Ensure we have a worldId + activeMap (THIS FIXES THE HANG) ──
-  const GS2 = window.GameState;
-
-  // Prefer save-provided worldId; else default
-  const wid =
-    data?.G?.currentWorldId ||
-    GS2?.currentWorldId ||
-    "overworld_C";
-
-  GS2.currentWorldId = wid;
+  // ── Ensure we have a worldId + activeMap ────────────────────
+  const wid = GS.currentWorldId || "overworld_C";
+  GS.currentWorldId = wid;
 
   // Ensure not stuck in town/combat state
-  GS2.inTown = false;
-  GS2.mode = "world";
+  GS.inTown = false;
+  GS.mode = "world";
   window.G.inCombat = false;
 
-  // Load the map if missing
-  if (!GS2.activeMap) {
+  // Load map if missing
+  if (!GS.activeMap) {
     try {
       if (typeof window.loadWorld === "function") {
-        GS2.activeMap = await window.loadWorld(wid);
+        GS.activeMap = await window.loadWorld(wid);
       } else if (typeof window.loadMap === "function") {
-        // Fallback: old world map id
-        GS2.activeMap = await window.loadMap("overworld_generated");
+        // Fallback legacy map id
+        GS.activeMap = await window.loadMap("overworld_generated");
+        // If using legacy map fallback, still set a sane worldId
+        GS.currentWorldId = GS.currentWorldId || "overworld_C";
       } else {
         console.error("[Load] No loadWorld/loadMap available. Cannot set activeMap.");
+        toast?.("Load failed — no world loader available.", "err");
+        return;
       }
 
-      if (GS2.activeMap) {
-        window.MAP_W = GS2.activeMap.width;
-        window.MAP_H = GS2.activeMap.height;
+      if (!GS.activeMap) {
+        console.error("[Load] activeMap is still undefined after load attempt");
+        toast?.("Load failed — world map not found.", "err");
+        return;
+      }
 
-        if (window.worldMap) {
-          window.worldMap.width = GS2.activeMap.width;
-          window.worldMap.height = GS2.activeMap.height;
-        }
+      // Sync map dims
+      window.MAP_W = GS.activeMap.width;
+      window.MAP_H = GS.activeMap.height;
+      if (window.worldMap) {
+        window.worldMap.width = GS.activeMap.width;
+        window.worldMap.height = GS.activeMap.height;
       }
     } catch (e) {
       console.error("[Load] activeMap load failed:", e);
@@ -7382,16 +7405,19 @@ async function csLoadCharacter(idx){
     }
   }
 
-  initGame();       // HUD, inventory, bosses, logs
+  // Init systems (HUD/inventory/logs/bosses/etc.)
+  initGame?.();
 
-  // Prefer gameplay start for a loaded save
-  (window.startGame || window.startApp || window.startEngine)?.();
+  // IMPORTANT: Do NOT call startGame() here.
+  // startGame() is character-creation flow and expects CC.* fields.
+  (window.startEngine || window.startApp)?.();
 
-  // Force a first render/HUD refresh
+  // Force first frame/UI refresh
   window.render?.();
   window.updateHUD?.();
+  window.updateMinimapMode?.();
 
-  toast(`Playing as ${G.name}`);
+  toast?.(`Playing as ${window.G?.name || "Adventurer"}`);
 }
 
 function csNewCharacter(){
