@@ -794,7 +794,214 @@ function drawTownDeco(ctx, px, py, x, y) {
   ctx.fillStyle = `rgba(150,210,255,${0.5 + Math.sin(t*Math.PI*4)*0.2})`;
   ctx.fillRect(px + TS/2 - 1, py + TS*0.1, 2, TS*0.15);
 }
+// ── Road tile helpers ──────────────────────────────────────────────────────
 
+function drawRoadCobble(ctx, px, py, x, y) {
+  const h = hash(x, y);
+  // Worn stone base
+  ctx.fillStyle = h > 0.5 ? '#7a7060' : '#6a6050';
+  ctx.fillRect(px, py, TS, TS);
+
+  // Cobblestone pattern — offset rows like real cobbling
+  const stoneW = Math.floor(TS / 3);
+  const stoneH = Math.floor(TS / 2.5);
+  const rowOffset = (Math.floor(y) % 2 === 0) ? 0 : Math.floor(stoneW / 2);
+
+  for (let row = 0; row * stoneH < TS + stoneH; row++) {
+    for (let col = -1; col * stoneW < TS + stoneW; col++) {
+      const sx = col * stoneW + (row % 2 === 0 ? rowOffset : 0);
+      const sy = row * stoneH;
+      if (sx >= TS || sy >= TS) continue;
+
+      // Stone face — slight variation per stone
+      const sv = hash(x * 31 + col, y * 17 + row);
+      ctx.fillStyle = sv > 0.6 ? '#857868' : sv > 0.3 ? '#756858' : '#6a6050';
+      ctx.fillRect(px + sx + 1, py + sy + 1, stoneW - 2, stoneH - 2);
+
+      // Mortar lines (dark gaps between stones)
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.fillRect(px + sx, py + sy, stoneW, 1);      // top edge
+      ctx.fillRect(px + sx, py + sy, 1, stoneH);      // left edge
+
+      // Worn highlight on some stones
+      if (sv > 0.75) {
+        ctx.fillStyle = 'rgba(255,240,200,0.12)';
+        ctx.fillRect(px + sx + 1, py + sy + 1, stoneW - 3, 2);
+      }
+    }
+  }
+
+  // Subtle centre-of-road darkening (edges of road are lighter, centre worn)
+  ctx.fillStyle = 'rgba(0,0,0,0.06)';
+  ctx.fillRect(px + 2, py + 2, TS - 4, TS - 4);
+
+  // Occasional moss in cracks
+  if (h > 0.82) {
+    ctx.fillStyle = 'rgba(60,100,30,0.25)';
+    ctx.fillRect(
+      px + Math.floor(h * (TS - 4)) + 1,
+      py + Math.floor(hash2(x,y) * (TS - 4)) + 1,
+      3, 1
+    );
+  }
+}
+
+function drawRoadDirt(ctx, px, py, x, y) {
+  const h = hash(x, y);
+  // Packed earth base
+  ctx.fillStyle = h > 0.5 ? '#8a6a40' : '#7a5a30';
+  ctx.fillRect(px, py, TS, TS);
+
+  // Tyre/cart rut lines running north-south
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.fillRect(px + Math.floor(TS * 0.25), py, 2, TS);
+  ctx.fillRect(px + Math.floor(TS * 0.68), py, 2, TS);
+
+  // Lighter centre strip (most-walked path)
+  ctx.fillStyle = 'rgba(255,220,160,0.08)';
+  ctx.fillRect(px + Math.floor(TS * 0.3), py, Math.floor(TS * 0.4), TS);
+
+  // Pebble scatter
+  const pebbleCount = 2 + Math.floor(h * 3);
+  for (let i = 0; i < pebbleCount; i++) {
+    const ph = hash(x + i * 13, y + i * 7);
+    const ph2 = hash2(x + i * 5, y + i * 11);
+    ctx.fillStyle = ph > 0.5 ? '#9a8060' : '#7a6040';
+    ctx.beginPath();
+    ctx.ellipse(
+      px + 2 + Math.floor(ph * (TS - 4)),
+      py + 2 + Math.floor(ph2 * (TS - 4)),
+      1.5, 1, ph * Math.PI, 0, Math.PI * 2
+    );
+    ctx.fill();
+  }
+
+  // Edge grass bleed
+  ctx.fillStyle = 'rgba(50,100,30,0.15)';
+  ctx.fillRect(px, py, 2, TS);
+  ctx.fillRect(px + TS - 2, py, 2, TS);
+
+  // Dust/dry texture
+  if (h > 0.7) {
+    ctx.fillStyle = 'rgba(200,160,80,0.08)';
+    ctx.fillRect(px + 3, py + Math.floor(hash2(x,y) * (TS - 6)) + 2, TS - 6, 2);
+  }
+}
+
+function drawRoadStone(ctx, px, py, x, y) {
+  const h = hash(x, y);
+  // Flat cut-stone base — more formal than cobble, like a city road
+  ctx.fillStyle = h > 0.5 ? '#656060' : '#555050';
+  ctx.fillRect(px, py, TS, TS);
+
+  // Large flat stone slabs — 2 per tile
+  const slabH = Math.floor(TS / 2);
+  for (let row = 0; row < 2; row++) {
+    const sv = hash(x * 7, y * 13 + row);
+    ctx.fillStyle = sv > 0.5 ? '#6a6560' : '#5a5550';
+    ctx.fillRect(px + 1, py + row * slabH + 1, TS - 2, slabH - 2);
+
+    // Slab edge shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.fillRect(px + 1, py + row * slabH, TS - 2, 1);
+    ctx.fillRect(px + 1, py + row * slabH + slabH - 1, TS - 2, 1);
+
+    // Subtle chisel marks
+    if (sv > 0.65) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(px + 4, py + row * slabH + Math.floor(slabH * 0.4));
+      ctx.lineTo(px + TS - 4, py + row * slabH + Math.floor(slabH * 0.4));
+      ctx.stroke();
+    }
+  }
+
+  // Centre seam
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.fillRect(px, py + slabH, TS, 1);
+
+  // Worn highlight
+  if (h > 0.6) {
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    ctx.fillRect(px + 2, py + 2, TS - 4, 3);
+  }
+}
+
+function drawRoadBridge(ctx, px, py, x, y) {
+  const h = hash(x, y);
+  // Wooden plank bridge
+  ctx.fillStyle = '#5a3a18';
+  ctx.fillRect(px, py, TS, TS);
+
+  // Planks running east-west
+  const plankH = Math.floor(TS / 5);
+  for (let i = 0; i < 5; i++) {
+    const pv = hash(x * 3, y * 7 + i);
+    ctx.fillStyle = pv > 0.5 ? '#7a5028' : '#6a4020';
+    ctx.fillRect(px + 1, py + i * plankH + 1, TS - 2, plankH - 1);
+
+    // Wood grain lines
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(px + 2, py + i * plankH + Math.floor(plankH * 0.4));
+    ctx.lineTo(px + TS - 2, py + i * plankH + Math.floor(plankH * 0.4));
+    ctx.stroke();
+
+    // Nail dots
+    ctx.fillStyle = '#3a2010';
+    ctx.fillRect(px + 3,      py + i * plankH + Math.floor(plankH * 0.5), 2, 2);
+    ctx.fillRect(px + TS - 5, py + i * plankH + Math.floor(plankH * 0.5), 2, 2);
+  }
+
+  // Side railings
+  ctx.fillStyle = '#4a2810';
+  ctx.fillRect(px, py, 2, TS);
+  ctx.fillRect(px + TS - 2, py, 2, TS);
+
+  // Water shimmer beneath (visible through gaps)
+  const t = (Date.now() / 2000 + h * 5) % 1;
+  ctx.fillStyle = `rgba(20,60,120,${0.3 + Math.sin(t * Math.PI * 2) * 0.1})`;
+  ctx.fillRect(px + 2, py + plankH - 1, TS - 4, 1);
+  ctx.fillRect(px + 2, py + plankH * 3 - 1, TS - 4, 1);
+}
+
+function drawRoadPath(ctx, px, py, x, y) {
+  const h = hash(x, y);
+  // Narrow dirt footpath — more organic than road
+  ctx.fillStyle = h > 0.5 ? '#7a6848' : '#6a5838';
+  ctx.fillRect(px, py, TS, TS);
+
+  // Irregular worn centre
+  ctx.fillStyle = 'rgba(200,170,110,0.12)';
+  for (let seg = 0; seg < 3; seg++) {
+    const sv = hash(x + seg * 11, y + seg * 7);
+    const sw = 4 + Math.floor(sv * 8);
+    const sx = Math.floor(TS / 2) - Math.floor(sw / 2) + Math.floor((sv - 0.5) * 6);
+    ctx.fillRect(px + sx, py + seg * Math.floor(TS / 3), sw, Math.floor(TS / 3) + 1);
+  }
+
+  // Grass tufts at edges
+  const tuftH = hash2(x, y);
+  if (tuftH > 0.5) {
+    ctx.fillStyle = 'rgba(50,120,30,0.3)';
+    ctx.fillRect(px + Math.floor(tuftH * 4), py + Math.floor(h * (TS - 4)) + 1, 2, 3);
+    ctx.fillRect(px + TS - Math.floor(tuftH * 4) - 2, py + Math.floor(hash2(x+1,y) * (TS - 4)) + 1, 2, 3);
+  }
+
+  // Small stones scattered on path
+  if (h > 0.6) {
+    ctx.fillStyle = '#8a7858';
+    ctx.beginPath();
+    ctx.ellipse(
+      px + 4 + Math.floor(h * (TS - 8)),
+      py + 4 + Math.floor(hash2(x,y) * (TS - 8)),
+      2, 1.5, h * Math.PI, 0, Math.PI * 2
+    );
+    ctx.fill();
+  }
+}
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
@@ -854,7 +1061,11 @@ switch (tile) {
         case 29: drawRoadObsidian(ctx, px, py, tx, ty); break; // volcanic/obsidian brick
         case 30: drawRoadBlight(ctx, px, py, tx, ty);   break; // ashen/cursed road
         case 31: drawRoadRunic(ctx, px, py, tx, ty);    break; // eldritch rune road
-
+        case 27: drawRoadCobble(ctx, px, py, tx, ty); break;
+        case 28: drawRoadDirt(ctx, px, py, tx, ty);   break;
+        case 29: drawRoadStone(ctx, px, py, tx, ty);  break;
+        case 30: drawRoadBridge(ctx, px, py, tx, ty); break;
+        case 31: drawRoadPath(ctx, px, py, tx, ty);   break;
         default: drawFloor(ctx, px, py, tx, ty);     break;
       }
 
