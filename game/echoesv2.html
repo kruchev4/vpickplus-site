@@ -2466,6 +2466,7 @@ function tryMove(dx, dy) {
   if (G.inCombat) return;
   const _map = window.GameState?.activeMap;
   const _mapReady = !!_map;
+  const _tm = _map?.towns || window.TOWNS || [];
   
 const _T = { 
   GRASS:0, FOREST:1, MOUNTAIN:2, 
