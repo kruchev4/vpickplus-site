@@ -187,6 +187,12 @@ export function generateOverworldWorld({ worldId, seed }) {
 // 3) Decoration passes (Phase 1): ridges, lakes, rivers, towns, roads, POI
 // ───────────────────────────────────────────────────────────────────────────
 function decorateWorldPhase1({ worldId, seed, tiles, variants, W, H }) {
+  const isBlight = (worldId === "overworld_S" || worldId === "overworld_SW");
+
+  const MOUNTAIN_TILE = isBlight ? TILE.BLIGHT_MOUNTAIN : TILE.MOUNTAIN;
+  const DEEP_TILE     = isBlight ? TILE.BLIGHT_DEEP     : TILE.DEEP_WATER;
+  const SHALLOW_TILE  = isBlight ? TILE.BLIGHT_SHALLOW  : TILE.SHALLOW;
+
   const size = W * H;
 
   const [wx, wy] = WORLD_OFFSETS[worldId] || [0,0];
