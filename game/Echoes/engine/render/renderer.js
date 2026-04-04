@@ -34,14 +34,14 @@ function drawRoadObsidian(ctx, px, py, tx, ty) {
   ctx.fillRect(px, py, tx, ty);
   ctx.fillStyle = "rgba(255,120,40,0.16)";
   ctx.fillRect(px + tx*0.12, py + ty*0.48, tx*0.76, ty*0.06);
-}/*
+}
 
 function drawRoadBlight(ctx, px, py, tx, ty) {
   ctx.fillStyle = "#2b2626";
   ctx.fillRect(px, py, tx, ty);
   ctx.fillStyle = "rgba(120,220,120,0.14)";
   ctx.fillRect(px + tx*0.22, py + ty*0.38, tx*0.56, ty*0.24);
-}
+}/*
 
 function drawRoadRunic(ctx, px, py, tx, ty) {
   ctx.fillStyle = "#0f0f18";
