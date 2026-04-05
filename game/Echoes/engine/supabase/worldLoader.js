@@ -23,7 +23,7 @@ export async function loadWorld(worldId) {
     throw new Error(msg);
   }
 
-  const json = typeof data.map_json === 'string'
+  const json = typeof data.json === 'string'
     ? JSON.parse(data.map_json)
     : data.map_json;
 
