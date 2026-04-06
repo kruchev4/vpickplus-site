@@ -282,7 +282,7 @@
   }
 
   function normalizeLoadedWorld(obj) {
-    if (!obj || typeof obj !== "object") throw new Error("map_json is not an object");
+    if (!obj || typeof obj !== "object") throw new Error("json is not an object");
     if (!Array.isArray(obj.tiles) || obj.tiles.length !== SIZE) {
       throw new Error(`Invalid tiles array: expected length ${SIZE}`);
     }
@@ -330,14 +330,14 @@
     setStatus(`Loading ${worldId}…`);
     const { data, error } = await sb
       .from("worlds")
-      .select("map_json")
+      .select("json")
       .eq("id", worldId)
       .maybeSingle();
 
     if (error) throw error;
-    if (!data?.map_json) throw new Error(`No map_json for world id "${worldId}"`);
+    if (!data?.json) throw new Error(`No json for world id "${worldId}"`);
 
-    const obj = (typeof data.map_json === "string") ? JSON.parse(data.map_json) : data.map_json;
+    const obj = (typeof data.json === "string") ? JSON.parse(data.json) : data.json;
     world = normalizeLoadedWorld(obj);
     syncHeaderFromWorld();
     draw();
@@ -356,7 +356,7 @@
     world.height = H;
 
     setStatus(`Saving ${world.id}…`);
-    const payload = { id: world.id, name: world.name, map_json: world };
+    const payload = { id: world.id, name: world.name, json: world };
 
     const { error } = await sb
       .from("worlds")
