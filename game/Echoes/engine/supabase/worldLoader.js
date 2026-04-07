@@ -24,8 +24,8 @@ export async function loadWorld(worldId) {
   }
 
   const json = typeof data.json === 'string'
-    ? JSON.parse(data.map_json)
-    : data.map_json;
+    ? JSON.parse(data.json)
+    : data.json;
 
   console.log(
     `[worldLoader] Loaded "${worldId}" — ${json.width}×${json.height}, ${json.tiles?.length} tiles`
