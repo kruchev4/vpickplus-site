@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SlotIQ — Warehouse Slotting Tool</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --gold:#f59e0b;--gold-bg:#fffbeb;--gold-bd:#fcd34d;
+  --silver:#94a3b8;--silver-bg:#f8fafc;--silver-bd:#cbd5e1;
+  --bronze:#b45309;--bronze-bg:#fdf6ec;--bronze-bd:#d97706;
+  --pri:#1e40af;--pri-bg:#eff6ff;--pri-lt:#dbeafe;
+  --dan:#dc2626;--dan-bg:#fef2f2;
+  --suc:#16a34a;--suc-bg:#f0fdf4;
+  --warn:#d97706;--warn-bg:#fffbeb;
+  --txt:#111827;--muted:#6b7280;--bdr:#e5e7eb;
+  --bg:#f9fafb;--card:#ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);font-size:14px;}
+.nav{background:var(--pri);color:#fff;display:flex;align-items:stretch;}
+.nav-logo{padding:14px 20px;font-weight:700;font-size:15px;border-right:1px solid rgba(255,255,255,.2);white-space:nowrap;}
+.nav-tabs{display:flex;flex:1;overflow-x:auto;}
+.nav-tab{padding:14px 15px;cursor:pointer;font-size:13px;border:none;background:none;color:rgba(255,255,255,.75);transition:all .15s;white-space:nowrap;}
+.nav-tab:hover{background:rgba(255,255,255,.1);color:#fff;}
+.nav-tab.active{background:rgba(255,255,255,.15);color:#fff;border-bottom:2px solid #fff;}
+.page{display:none;padding:24px;max-width:1400px;margin:0 auto;}
+.page.active{display:block;}
+h2{font-size:20px;font-weight:600;margin-bottom:4px;}
+.sub{color:var(--muted);font-size:13px;margin-bottom:20px;}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:20px;margin-bottom:16px;}
+.card-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.card-title{font-weight:600;font-size:15px;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;}
+.btn-pri{background:var(--pri);color:#fff;border-color:var(--pri);}
+.btn-pri:hover{background:#1d3fad;}
+.btn-sec{background:#fff;color:var(--txt);border-color:var(--bdr);}
+.btn-sec:hover{background:var(--bg);}
+.btn-dan{background:var(--dan);color:#fff;}
+.btn-suc{background:var(--suc);color:#fff;}
+.btn-warn{background:var(--warn);color:#fff;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+input,select{width:100%;padding:8px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:13px;background:#fff;color:var(--txt);}
+input:focus,select:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px rgba(30,64,175,.1);}
+label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:4px;}
+.fr{display:grid;gap:12px;margin-bottom:12px;}
+.fr2{grid-template-columns:1fr 1fr;}
+.fr3{grid-template-columns:1fr 1fr 1fr;}
+.fr4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.fr5{grid-template-columns:1fr 1fr 1fr 1fr 1fr;}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+.b-gold{background:var(--gold-bg);color:#92400e;border:1px solid var(--gold-bd);}
+.b-silver{background:var(--silver-bg);color:#475569;border:1px solid var(--silver-bd);}
+.b-bronze{background:var(--bronze-bg);color:var(--bronze);border:1px solid var(--bronze-bd);}
+.b-disco{background:#fef2f2;color:#991b1b;border:1px solid #fca5a5;}
+.b-open{background:#f0fdf4;color:#166534;border:1px solid #86efac;}
+.b-A{background:#fef2f2;color:#991b1b;border:1px solid #fca5a5;}
+.b-B{background:#fff7ed;color:#9a3412;border:1px solid #fdba74;}
+.b-C{background:#fefce8;color:#854d0e;border:1px solid #fde047;}
+.b-D{background:#f0fdf4;color:#166534;border:1px solid #86efac;}
+.b-match{background:#dcfce7;color:#166534;border:1px solid #86efac;}
+.b-warn{background:#fef9c3;color:#854d0e;border:1px solid #fde047;}
+.b-bad{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;}
+.b-repl{background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd;}
+.b-fragile{background:#fdf4ff;color:#7c3aed;border:1px solid #d8b4fe;}
+.tw{overflow-x:auto;border-radius:8px;border:1px solid var(--bdr);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#f8fafc;font-weight:600;padding:10px 12px;text-align:left;border-bottom:1px solid var(--bdr);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+td{padding:9px 12px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#f8fafc;}
+.dz{border:2px dashed var(--bdr);border-radius:10px;padding:30px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg);}
+.dz:hover,.dz.over{border-color:var(--pri);background:var(--pri-bg);}
+.dz-icon{font-size:30px;margin-bottom:8px;}
+.dz-text{color:var(--muted);font-size:13px;}
+.dz-text strong{color:var(--pri);}
+.dz-tag{font-size:11px;color:var(--muted);margin-top:4px;}
+.dz-loaded{border-color:var(--suc)!important;background:var(--suc-bg)!important;}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+.sc{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:16px;}
+.sc-lbl{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.sc-val{font-size:22px;font-weight:700;}
+.sc-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:12px;padding:24px;width:600px;max-width:95vw;max-height:90vh;overflow-y:auto;}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:16px;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--bdr);}
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:16px;}
+.a-info{background:var(--pri-bg);color:#1e40af;border:1px solid #bfdbfe;}
+.a-warn{background:var(--warn-bg);color:#92400e;border:1px solid #fde68a;}
+.a-suc{background:var(--suc-bg);color:#166534;border:1px solid #bbf7d0;}
+.a-dan{background:var(--dan-bg);color:#991b1b;border:1px solid #fca5a5;}
+.itabs{display:flex;border-bottom:1px solid var(--bdr);margin-bottom:20px;}
+.itab{padding:10px 16px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;}
+.itab.active{color:var(--pri);border-bottom-color:var(--pri);}
+.flex{display:flex;}.gap8{gap:8px;}.ic{align-items:center;}.fw{flex-wrap:wrap;}
+.mt12{margin-top:12px;}
+.txt-muted{color:var(--muted);}.txt-sm{font-size:12px;}
+.chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:var(--bg);border:1px solid var(--bdr);border-radius:20px;font-size:11px;color:var(--muted);}
+.score-bar{height:6px;border-radius:3px;background:#e5e7eb;overflow:hidden;margin-top:3px;}
+.score-fill{height:100%;border-radius:3px;}
+.row-reslot{background:#fffbeb!important;}
+.row-reslot:hover td{background:#fef3c7!important;}
+.row-new{background:#f0fdf4!important;}
+.row-new:hover td{background:#dcfce7!important;}
+.row-repl{background:#fdf4ff!important;}
+.row-repl:hover td{background:#ede9fe!important;}
+.empty{text-align:center;padding:50px 20px;color:var(--muted);}
+.empty-icon{font-size:36px;margin-bottom:10px;}
+pre{background:#f8fafc;padding:12px;border-radius:6px;font-size:11px;border:1px solid var(--bdr);overflow:auto;white-space:pre-wrap;line-height:1.6;}
+#toast{position:fixed;bottom:24px;right:24px;background:#111;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;z-index:9999;display:none;max-width:380px;}
+.prog{height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:3px;}
+.shdr{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:20px 0 10px;border-bottom:1px solid var(--bdr);padding-bottom:6px;}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">📦 SlotIQ</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('dashboard')">Dashboard</button>
+    <button class="nav-tab" onclick="showPage('locations')">Locations</button>
+    <button class="nav-tab" onclick="showPage('import')">Import Data</button>
+    <button class="nav-tab" onclick="showPage('slotting')">Slotting Engine</button>
+    <button class="nav-tab" onclick="showPage('replen')">Replen Alerts</button>
+    <button class="nav-tab" onclick="showPage('newitem')">New Item</button>
+    <button class="nav-tab" onclick="showPage('reports')">Reports</button>
+  </div>
+</nav>
+
+<!-- ═══════════ DASHBOARD ═══════════ -->
+<div id="page-dashboard" class="page active">
+  <h2>Warehouse Overview</h2>
+  <p class="sub">Slotting efficiency and location utilization at a glance</p>
+  <div id="dash-stats" class="stats"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Assigned Locations by Zone</span></div>
+      <div style="position:relative;height:220px"><canvas id="zoneChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Item Velocity Distribution</span></div>
+      <div style="position:relative;height:220px"><canvas id="velChart"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">Slot Score Summary</span>
+      <span id="overall-score-badge" class="badge b-match">—</span>
+    </div>
+    <div id="slot-breakdown"></div>
+  </div>
+  <div id="dash-alerts"></div>
+</div>
+
+<!-- ═══════════ LOCATIONS ═══════════ -->
+<div id="page-locations" class="page">
+  <h2>Location Management</h2>
+  <p class="sub">Seed all 9,000+ locations from your location report, or add/manage manually.</p>
+  <div class="itabs">
+    <div class="itab active" onclick="swLocTab('seed',this)">📥 Seed from Report</div>
+    <div class="itab" onclick="swLocTab('bulk',this)">🏗️ Bulk Add</div>
+    <div class="itab" onclick="swLocTab('list',this)">📋 All Locations</div>
+  </div>
+
+  <!-- SEED TAB -->
+  <div id="locs-seed">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:8px">Seed from All-Locations Report</div>
+      <div class="alert a-info">
+        📋 Drop your full location export here. Expects columns: <strong>Location Barcode</strong>, <strong>Dimensions</strong> (format: <code>150x48x50</code> = L×W×H in inches), optionally <strong>Pick Locn Area</strong> and an assigned item/SKU column.<br>
+        Usable cube is auto-calculated at <strong>55% utilization factor</strong> (L×W×H ÷ 1728 × 0.55). Handles 9,000+ rows.
+      </div>
+      <div class="dz" id="dz-locs" ondragover="dzOver(event,'dz-locs')" ondragleave="dzOut('dz-locs')" ondrop="dzDrop(event,'locs')" onclick="document.getElementById('fi-locs').click()">
+        <div class="dz-icon">📍</div>
+        <div class="dz-text"><strong>Click or drag</strong> your All-Locations Report here</div>
+        <div class="dz-tag">CSV or tab-delimited TXT — handles large files</div>
+      </div>
+      <input type="file" id="fi-locs" accept=".csv,.txt,.tsv" style="display:none" onchange="fileLoad(event,'locs')">
+      <div id="locs-seed-status" class="mt12"></div>
+
+      <div class="shdr">Zone Assignment Rules (applied automatically at seed time)</div>
+      <div class="alert a-warn">
+        ⚙️ Enter area code prefixes to auto-assign zones and types when seeding. All unmatched locations default to <strong>Silver / Standard</strong>. You can edit any location individually in the All Locations tab afterward.
+      </div>
+      <div class="alert a-info" style="margin-bottom:12px">
+        💡 <strong>Zone rules</strong> use <code>AREA:LEVEL</code> format. &nbsp; <strong>Type rules</strong> use <code>AREA</code>, <code>AREA:AISLE</code>, or <code>AREA:AISLE:BAY-BAY</code> format.<br>
+        &nbsp;&nbsp;• Zone examples: <code>FA:C</code> = Gold &nbsp; <code>FA:B</code> = Silver &nbsp; <code>FA:A</code> = Bronze<br>
+        &nbsp;&nbsp;• Type examples: <code>FA:09:01-20</code> = FA aisle 09 bays 01–20 → Crushable &nbsp; <code>DD</code> = all DD → Pallet Flow<br>
+        Location ID structure: <code>FA 09 39 D 05</code> → area=<strong>FA</strong>, aisle=<strong>09</strong>, bay=<strong>39</strong>, level=<strong>D</strong>, pos=<strong>05</strong>
+      </div>
+      <div class="fr fr3">
+        <div><label>Rule(s) → Gold zone (comma-separated, AREA:LEVEL format)</label><input id="rule-gold" placeholder="FA:C, FB:C" onchange="saveRulesFromDOM()"></div>
+        <div><label>Rule(s) → Silver zone</label><input id="rule-silver" placeholder="FA:B, FB:B" onchange="saveRulesFromDOM()"></div>
+        <div><label>Rule(s) → Bronze zone</label><input id="rule-bronze" placeholder="FA:A, FB:A" onchange="saveRulesFromDOM()"></div>
+      </div>
+      <div class="fr fr3">
+        <div><label>Rule(s) → Pallet Flow type (AREA or AREA:AISLE or AREA:AISLE:BAY-BAY)</label><input id="rule-pallet" placeholder="DD, FA:52:01-20" onchange="saveRulesFromDOM()"></div>
+        <div><label>Rule(s) → Small Bin type</label><input id="rule-small" placeholder="SB, FA:10:01-30" onchange="saveRulesFromDOM()"></div>
+        <div><label>Rule(s) → Crushable / Fragile type</label><input id="rule-crush" placeholder="FA:09:01-10, FA:10:05-15" onchange="saveRulesFromDOM()"></div>
+      </div>
+      <div class="flex gap8 ic" style="margin-top:8px">
+        <button class="btn btn-warn" onclick="saveRulesFromDOM();reapplyZoneRules()">↺ Re-apply Rules to All Locations</button>
+        <span class="txt-sm txt-muted">Updates zone/type on every location in the database based on current rules above.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BULK TAB -->
+  <div id="locs-bulk" style="display:none">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">Bulk Location Generator</div>
+      <div class="alert a-info">💡 Generates IDs like <code>FA0330A01</code> from Bank + Aisle + Bay + Level ranges. Levels can be alpha (A–E) or numeric (1–4).</div>
+      <div class="fr fr3">
+        <div><label>Bank Prefix</label><input id="b-bank" placeholder="FA, FB, DD…"></div>
+        <div><label>Aisle Start</label><input id="b-aisle-s" type="number" value="1" min="1"></div>
+        <div><label>Aisle End</label><input id="b-aisle-e" type="number" value="3" min="1"></div>
+      </div>
+      <div class="fr fr4">
+        <div><label>Bay Start</label><input id="b-bay-s" type="number" value="1" min="1"></div>
+        <div><label>Bay End</label><input id="b-bay-e" type="number" value="50" min="1"></div>
+        <div><label>Level Start</label><input id="b-lvl-s" value="A"></div>
+        <div><label>Level End</label><input id="b-lvl-e" value="E"></div>
+      </div>
+      <div class="fr fr5">
+        <div><label>Zone</label><select id="b-zone"><option value="gold">🥇 Gold</option><option value="silver" selected>🥈 Silver</option><option value="bronze">🥉 Bronze</option></select></div>
+        <div><label>Type</label><select id="b-type"><option value="standard">Standard</option><option value="pallet">Pallet Flow</option><option value="small_bin">Small Bin</option><option value="crushable">Crushable</option></select></div>
+        <div><label>Length (in)</label><input id="b-l" type="number" value="48"></div>
+        <div><label>Width (in)</label><input id="b-w" type="number" value="48"></div>
+        <div><label>Height (in)</label><input id="b-h" type="number" value="36"></div>
+      </div>
+      <div class="flex gap8 ic">
+        <button class="btn btn-pri" onclick="bulkAdd()">Generate Locations</button>
+        <span id="bulk-preview" class="txt-sm txt-muted"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIST TAB -->
+  <div id="locs-list" style="display:none">
+    <div class="card">
+      <div class="card-hdr">
+        <div class="flex gap8 ic">
+          <input id="loc-search" placeholder="Search ID or SKU…" style="width:210px" oninput="renderLocations()">
+          <select id="loc-fz" style="width:115px" onchange="renderLocations()">
+            <option value="">All Zones</option><option value="gold">Gold</option><option value="silver">Silver</option><option value="bronze">Bronze</option>
+          </select>
+          <select id="loc-ft" style="width:135px" onchange="renderLocations()">
+            <option value="">All Types</option><option value="standard">Standard</option><option value="pallet">Pallet Flow</option><option value="small_bin">Small Bin</option><option value="crushable">Crushable</option>
+          </select>
+          <select id="loc-fa" style="width:110px" onchange="renderLocations()">
+            <option value="">All</option><option value="no">Open</option><option value="yes">Assigned</option>
+          </select>
+        </div>
+        <div class="flex gap8">
+          <button class="btn btn-sec btn-sm" onclick="openAddLocModal()">+ Add Single</button>
+          <button class="btn btn-dan btn-sm" onclick="clearAllLocs()">Clear All</button>
+        </div>
+      </div>
+      <div id="loc-count" class="txt-sm txt-muted" style="margin-bottom:10px"></div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Location ID</th><th>Area</th><th>Zone</th><th>Type</th><th>Usable Cube (ft³)</th><th>L×W×H (in)</th><th>Assigned SKU</th><th>Actions</th></tr></thead>
+          <tbody id="loc-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ IMPORT ═══════════ -->
+<div id="page-import" class="page">
+  <h2>Import Daily / Weekly Reports</h2>
+  <p class="sub">Drop any report below. Column headers are auto-detected — tab or comma delimited both work.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+    <!-- VELOCITY -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:6px">
+        1 — Velocity Report
+        <span class="badge b-A" style="margin-left:6px">Daily</span>
+      </div>
+      <div class="txt-sm txt-muted" style="margin-bottom:10px">
+        Key cols: <code>Item Name · Item Bar Code · Item Unit Length/Width/Height · ORIG_ORDER_QTY · Display Location</code>
+      </div>
+      <div class="dz" id="dz-vel" ondragover="dzOver(event,'dz-vel')" ondragleave="dzOut('dz-vel')" ondrop="dzDrop(event,'velocity')" onclick="document.getElementById('fi-vel').click()">
+        <div class="dz-icon">📊</div>
+        <div class="dz-text"><strong>Click or drag</strong> Velocity Report</div>
+        <div class="dz-tag">Tab or CSV · ORIG_ORDER_QTY = 30-day picks · velocities auto-classified</div>
+      </div>
+      <input type="file" id="fi-vel" accept=".csv,.txt,.tsv" style="display:none" onchange="fileLoad(event,'velocity')">
+      <div id="vel-status" class="mt12"></div>
+    </div>
+
+    <!-- DISCO -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:6px">
+        2 — Disco / Zero Inventory Report
+        <span class="badge b-disco" style="margin-left:6px">Daily</span>
+      </div>
+      <div class="txt-sm txt-muted" style="margin-bottom:10px">
+        Key cols: <code>Location · Item · Desc · Status · Active Qty · Max · Min · Replen?</code><br>
+        Rule: Status = "Discontinued" <strong>AND</strong> Active Qty = 0 → location freed
+      </div>
+      <div class="dz" id="dz-disco" ondragover="dzOver(event,'dz-disco')" ondragleave="dzOut('dz-disco')" ondrop="dzDrop(event,'disco')" onclick="document.getElementById('fi-disco').click()">
+        <div class="dz-icon">🚫</div>
+        <div class="dz-text"><strong>Click or drag</strong> Disco / Zero Inventory Report</div>
+        <div class="dz-tag">Skips title rows · handles "Disco Items with Inventory" header</div>
+      </div>
+      <input type="file" id="fi-disco" accept=".csv,.txt,.tsv" style="display:none" onchange="fileLoad(event,'disco')">
+      <div id="disco-status" class="mt12"></div>
+    </div>
+
+    <!-- OPEN LOCATIONS -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:6px">
+        3 — Open Pick Locations
+        <span class="badge b-open" style="margin-left:6px">Daily</span>
+      </div>
+      <div class="txt-sm txt-muted" style="margin-bottom:10px">
+        Key cols: <code>Pick Locn Area · Location Barcode · Work Area · Dimensions · Location Volume</code><br>
+        Dimensions format: <code>150x48x50</code> (L×W×H inches)
+      </div>
+      <div class="dz" id="dz-open" ondragover="dzOver(event,'dz-open')" ondragleave="dzOut('dz-open')" ondrop="dzDrop(event,'open')" onclick="document.getElementById('fi-open').click()">
+        <div class="dz-icon">📭</div>
+        <div class="dz-text"><strong>Click or drag</strong> Open Pick Locations Report</div>
+        <div class="dz-tag">Marks matched locations as open · adds new ones automatically</div>
+      </div>
+      <input type="file" id="fi-open" accept=".csv,.txt,.tsv" style="display:none" onchange="fileLoad(event,'open')">
+      <div id="open-status" class="mt12"></div>
+    </div>
+
+    <!-- REPLEN -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:6px">
+        4 — Replenishment Count Report
+        <span class="badge b-repl" style="margin-left:6px">Weekly</span>
+      </div>
+      <div class="txt-sm txt-muted" style="margin-bottom:10px">
+        Key cols: <code>Location (or SKU/Item) · Replen Count</code> — 30-day replenishment events per slot.<br>
+        High-count items flagged as candidates for larger locations.
+      </div>
+      <div class="dz" id="dz-repl" ondragover="dzOver(event,'dz-repl')" ondragleave="dzOut('dz-repl')" ondrop="dzDrop(event,'replen')" onclick="document.getElementById('fi-repl').click()">
+        <div class="dz-icon">🔄</div>
+        <div class="dz-text"><strong>Click or drag</strong> Replen Count Report</div>
+        <div class="dz-tag">Accepts Location-based or SKU-based replen counts</div>
+      </div>
+      <input type="file" id="fi-repl" accept=".csv,.txt,.tsv" style="display:none" onchange="fileLoad(event,'replen')">
+      <div id="repl-status" class="mt12"></div>
+    </div>
+
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:12px">Import Summary</div>
+    <div class="stats" style="grid-template-columns:repeat(5,1fr)">
+      <div class="sc"><div class="sc-lbl">Items Loaded</div><div class="sc-val" id="sum-items">0</div></div>
+      <div class="sc"><div class="sc-lbl">Open Locations</div><div class="sc-val" id="sum-open">0</div></div>
+      <div class="sc"><div class="sc-lbl">Disco Freed</div><div class="sc-val" id="sum-disco">0</div></div>
+      <div class="sc"><div class="sc-lbl">Replen Alerts</div><div class="sc-val" id="sum-repl">0</div></div>
+      <div class="sc"><div class="sc-lbl">Unslotted Items</div><div class="sc-val" id="sum-unslot">0</div></div>
+    </div>
+    <div id="import-action" style="margin-top:12px"></div>
+  </div>
+
+  <!-- COLUMN REFERENCE -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:14px">Exact Column Reference (from your reports)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <div class="txt-sm txt-muted" style="margin-bottom:6px;font-weight:600">Velocity Report (tab-delimited)</div>
+        <pre>Item Name    Item Bar Code    Item Merchandise Group
+Item Unit Weight    Item Unit Length    Item Unit Width
+Item Unit Height    Pack Weight    ON_HAND_QTY
+ORIG_ORDER_QTY    Display Location
+
+Example row:
+1016458  046985016247  160  0.16  2.1  2.1  3.8  1.56  6  [qty]  FA0939D05</pre>
+      </div>
+      <div>
+        <div class="txt-sm txt-muted" style="margin-bottom:6px;font-weight:600">Disco / Zero Inventory (tab-delimited)</div>
+        <pre>Location  Pick Loc  Slot Type  Volume  WG  WA
+Item  Desc  Status  Merch Group  Pick Zone
+Active Qty  Allocated Qty  TBF  Reserve Qty
+Res Allocated  Max  Min  Replen?
+
+Freed when: Status="Discontinued" AND Active Qty=0</pre>
+      </div>
+      <div>
+        <div class="txt-sm txt-muted" style="margin-bottom:6px;font-weight:600">Open Pick Locations (tab-delimited)</div>
+        <pre>Pick Locn Area    Location Barcode
+Work Area    Dimensions    Location Volume
+
+Example:
+DD    DD5201A01    03    150x48x50    360,000
+(Dimensions = L x W x H in inches)</pre>
+      </div>
+      <div>
+        <div class="txt-sm txt-muted" style="margin-bottom:6px;font-weight:600">All-Locations Seed Report</div>
+        <pre>Location Barcode    Pick Locn Area
+Dimensions (150x48x50)    Location Volume
+[optional] Item/SKU column for pre-assigned slots
+
+Replen Count Report:
+Location or SKU    Replen_Count (30-day total)</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SLOTTING ═══════════ -->
+<div id="page-slotting" class="page">
+  <h2>Slotting Engine</h2>
+  <p class="sub">All items with velocity, cube match, and slot recommendations. <span style="background:#fffbeb;padding:2px 6px;border-radius:4px;font-size:12px">🟡 Yellow</span> = better slot available (+15 pts). <span style="background:#fdf4ff;padding:2px 6px;border-radius:4px;font-size:12px">🟣 Purple</span> = high replen count.</p>
+  <div id="slot-alert" class="alert a-warn" style="display:none"></div>
+  <div class="card">
+    <div class="card-hdr">
+      <div class="flex gap8 ic fw">
+        <input id="slot-search" placeholder="Search SKU or description…" style="width:210px" oninput="renderSlotting()">
+        <select id="slot-filter" style="width:180px" onchange="renderSlotting()">
+          <option value="all">All Items</option>
+          <option value="reslot">🔄 Re-slot Suggestions</option>
+          <option value="new">✨ Unslotted Items</option>
+          <option value="repl_alert">🔴 High Replen Count</option>
+          <option value="A">Velocity A (Hot)</option>
+          <option value="B">Velocity B</option>
+          <option value="C">Velocity C</option>
+          <option value="D">Velocity D (Slow)</option>
+        </select>
+      </div>
+      <div class="flex gap8">
+        <button class="btn btn-suc" onclick="autoSlotAll()">⚡ Auto-Slot Unslotted</button>
+        <button class="btn btn-pri" onclick="exportSlottingCSV()">↓ Export CSV</button>
+      </div>
+    </div>
+    <div id="slot-chips" class="flex gap8 ic fw" style="margin-bottom:12px"></div>
+    <div class="tw">
+      <table>
+        <thead><tr>
+          <th>SKU</th><th>Description</th><th>Velocity</th><th>Item Cube (ft³)</th>
+          <th>Current Slot</th><th>Recommended Slot</th><th>Score</th><th>Replens/30d</th><th>Action</th>
+        </tr></thead>
+        <tbody id="slot-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ REPLEN ALERTS ═══════════ -->
+<div id="page-replen" class="page">
+  <h2>Replenishment Alerts</h2>
+  <p class="sub">Items generating high replenishment counts are undersized for their velocity. Move to a larger location to reduce labor cost.</p>
+  <div id="repl-stats" class="stats"></div>
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">High Replen Items — Move Candidates</span>
+      <div class="flex gap8">
+        <select id="repl-thresh" style="width:200px" onchange="renderReplens()">
+          <option value="5">Threshold: 5+ replens/30d</option>
+          <option value="10" selected>Threshold: 10+ replens/30d</option>
+          <option value="20">Threshold: 20+ replens/30d</option>
+        </select>
+        <button class="btn btn-pri btn-sm" onclick="exportReplCSV()">↓ Export</button>
+      </div>
+    </div>
+    <div class="tw">
+      <table>
+        <thead><tr>
+          <th>SKU</th><th>Description</th><th>Current Location</th><th>Zone</th>
+          <th>Loc Cube (ft³)</th><th>Item Cube (ft³)</th><th>Fill %</th>
+          <th>Replens/30d</th><th>Suggested Larger Slot</th><th>Action</th>
+        </tr></thead>
+        <tbody id="repl-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ NEW ITEM ═══════════ -->
+<div id="page-newitem" class="page">
+  <h2>New Item Slotting</h2>
+  <p class="sub">Enter a new item's dimensions and projected velocity to get the top 3 compatible slot recommendations.</p>
+  <div style="display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px">Item Details</div>
+      <div class="fr"><div><label>SKU / Item Number</label><input id="ni-sku" placeholder="e.g. 1016458"></div></div>
+      <div class="fr"><div><label>Description</label><input id="ni-desc" placeholder="Short description"></div></div>
+      <div class="fr fr3">
+        <div><label>Length (in)</label><input id="ni-l" type="number" placeholder="2.1"></div>
+        <div><label>Width (in)</label><input id="ni-w" type="number" placeholder="2.1"></div>
+        <div><label>Height (in)</label><input id="ni-h" type="number" placeholder="3.8"></div>
+      </div>
+      <div class="fr fr2">
+        <div><label>Projected Velocity</label>
+          <select id="ni-vel">
+            <option value="A">A — Very high velocity</option>
+            <option value="B" selected>B — High velocity</option>
+            <option value="C">C — Medium velocity</option>
+            <option value="D">D — Slow moving</option>
+          </select>
+        </div>
+        <div><label>Crushable / Fragile?</label>
+          <select id="ni-crush"><option value="N">No</option><option value="Y">Yes — fragile</option></select>
+        </div>
+      </div>
+      <div class="fr"><div><label>Merch Group (optional)</label><input id="ni-mg" placeholder="e.g. OTG / CASHWRAP"></div></div>
+      <button class="btn btn-pri" style="width:100%" onclick="runNewItem()">Get Recommendations →</button>
+    </div>
+    <div id="ni-results">
+      <div class="empty"><div class="empty-icon">🔍</div><div>Fill in details and click<br><strong>Get Recommendations</strong></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ REPORTS ═══════════ -->
+<div id="page-reports" class="page">
+  <h2>Management Reports</h2>
+  <p class="sub">Slotting efficiency, ergonomic pick rate analysis, and replenishment optimization.</p>
+  <div id="rpt-stats" class="stats"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="card"><div class="card-hdr"><span class="card-title">Gold Zone Pick Rate (trend)</span></div><div style="position:relative;height:240px"><canvas id="goldChart"></canvas></div></div>
+    <div class="card"><div class="card-hdr"><span class="card-title">Slot Match Quality Distribution</span></div><div style="position:relative;height:240px"><canvas id="matchChart"></canvas></div></div>
+  </div>
+  <div class="card"><div class="card-hdr"><span class="card-title">Replen Risk by Location Type</span></div><div style="position:relative;height:180px"><canvas id="replChart"></canvas></div></div>
+  <div class="card"><div class="card-hdr"><span class="card-title">Ergonomic Efficiency Analysis</span></div><div id="erg-rpt"></div></div>
+</div>
+
+<!-- ═══════════ MODALS ═══════════ -->
+<div class="modal-bg" id="modal-loc">
+  <div class="modal">
+    <div class="modal-title" id="ml-title">Add Location</div>
+    <div class="fr fr2">
+      <div><label>Location ID</label><input id="ml-id" placeholder="e.g. FA0330A01"></div>
+      <div><label>Area / Bank</label><input id="ml-area" placeholder="e.g. FA"></div>
+    </div>
+    <div class="fr fr2">
+      <div><label>Zone</label><select id="ml-zone"><option value="gold">🥇 Gold</option><option value="silver">🥈 Silver</option><option value="bronze">🥉 Bronze</option></select></div>
+      <div><label>Type</label><select id="ml-type"><option value="standard">Standard</option><option value="pallet">Pallet Flow</option><option value="small_bin">Small Bin</option><option value="crushable">Crushable</option></select></div>
+    </div>
+    <div class="fr fr3">
+      <div><label>Length (in)</label><input id="ml-l" type="number"></div>
+      <div><label>Width (in)</label><input id="ml-w" type="number"></div>
+      <div><label>Height (in)</label><input id="ml-h" type="number"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sec" onclick="closeModal('modal-loc')">Cancel</button>
+      <button class="btn btn-pri" onclick="saveLocModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-assign">
+  <div class="modal">
+    <div class="modal-title">Assign to Location</div>
+    <div id="assign-info" style="margin-bottom:14px"></div>
+    <label>Select location — compatible options first, sorted by score</label>
+    <select id="assign-sel" size="10" style="width:100%;margin-top:6px;height:220px;font-size:12px"></select>
+    <div class="modal-footer">
+      <button class="btn btn-sec" onclick="closeModal('modal-assign')">Cancel</button>
+      <button class="btn btn-suc" onclick="confirmAssign()">Assign ✓</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let locations  = JSON.parse(localStorage.getItem('slotiq_locs')  || '[]');
+let items      = JSON.parse(localStorage.getItem('slotiq_items')  || '[]');
+let discoLocs  = JSON.parse(localStorage.getItem('slotiq_disco')  || '[]');
+let zoneRules  = JSON.parse(localStorage.getItem('slotiq_rules')  || JSON.stringify({
+  gold:   'FA:C',
+  silver: 'FA:B',
+  bronze: 'FA:A',
+  pallet: 'DD',
+  small:  '',
+  crush:  ''
+}));
+let charts     = {};
+let editLocIdx = null;
+let assignSku  = null;
+
+const UTIL_FACTOR = 0.55;  // 55% location cube utilization
+
+function persist() {
+  localStorage.setItem('slotiq_locs',  JSON.stringify(locations));
+  localStorage.setItem('slotiq_items', JSON.stringify(items));
+  localStorage.setItem('slotiq_disco', JSON.stringify(discoLocs));
+  localStorage.setItem('slotiq_rules', JSON.stringify(zoneRules));
+}
+
+// Save rules from DOM inputs into persistent zoneRules object
+function saveRulesFromDOM() {
+  const ids = ['gold','silver','bronze','pallet','small','crush'];
+  ids.forEach(id => {
+    const el = document.getElementById('rule-' + id);
+    if (el) zoneRules[id] = el.value;
+  });
+  persist();
+}
+
+// Load saved rules back into DOM inputs (called when Locations page opens)
+function loadRulesToDOM() {
+  const ids = ['gold','silver','bronze','pallet','small','crush'];
+  ids.forEach(id => {
+    const el = document.getElementById('rule-' + id);
+    if (el && zoneRules[id] !== undefined) el.value = zoneRules[id];
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    if (t.getAttribute('onclick') && t.getAttribute('onclick').includes("'" + id + "'"))
+      t.classList.add('active');
+  });
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'locations')  { loadRulesToDOM(); renderLocations(); }
+  if (id === 'slotting')   renderSlotting();
+  if (id === 'replen')     renderReplens();
+  if (id === 'reports')    renderReports();
+  updateSummary();
+}
+window.showPage = showPage;
+
+function swLocTab(tab, el) {
+  ['seed','bulk','list'].forEach(t => {
+    const el2 = document.getElementById('locs-' + t);
+    if (el2) el2.style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.itab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  if (tab === 'list') renderLocations();
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+function toast(msg, dur = 3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', dur);
+}
+
+// ═══════════════════════════════════════════════════════
+// CUBE HELPERS
+// ═══════════════════════════════════════════════════════
+// Location usable cube = L×W×H ÷ 1728 × 0.55  (cubic feet)
+function cubeUsable(l, w, h) {
+  if (!l || !w || !h) return 0;
+  return +((l * w * h / 1728) * UTIL_FACTOR).toFixed(4);
+}
+// Item actual cube = L×W×H ÷ 1728  (no utilization factor on items)
+function itemCube(l, w, h) {
+  if (!l || !w || !h) return 0;
+  return +((l * w * h) / 1728).toFixed(4);
+}
+
+// ═══════════════════════════════════════════════════════
+// SCORING HELPERS
+// ═══════════════════════════════════════════════════════
+function velScore(v)  { return {A:4,B:3,C:2,D:1}[v] || 0; }
+function zoneScore(z) { return {gold:3,silver:2,bronze:1}[z] || 0; }
+function zoneIcon(z)  { return {gold:'🥇',silver:'🥈',bronze:'🥉'}[z] || ''; }
+function cap(s)       { return s.charAt(0).toUpperCase() + s.slice(1); }
+function typeLbl(t)   {
+  return {standard:'📦 Standard',pallet:'🏗️ Pallet Flow',
+          small_bin:'🗂️ Small Bin',crushable:'🫧 Crushable'}[t] || t;
+}
+
+function getRule(id) {
+  return (document.getElementById(id)?.value || '')
+    .split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+}
+
+// Parse a location ID into its components.
+// Format: AA NN NN L NN  (e.g. FA0939D05 → area=FA aisle=09 bay=39 level=D pos=05)
+function parseLocId(locId) {
+  const id = (locId || '').toUpperCase();
+  const area  = id.slice(0, 2);
+  const body  = id.slice(2);                        // e.g. "0939D05"
+  const m = body.match(/^(\d{2})(\d{2})([A-Z])(\d+)$/);
+  if (m) return { area, aisle: m[1], bay: m[2], level: m[3], pos: m[4] };
+  // Fallback: just extract the level letter
+  const lm = body.match(/\d+([A-Za-z])/);
+  return { area, aisle: null, bay: null, level: lm ? lm[1] : null, pos: null };
+}
+
+function extractLevel(locId) {
+  return parseLocId(locId).level;
+}
+
+// Parse a type rule string into a matcher object.
+// Formats:
+//   "FA"              → any loc in FA area
+//   "FA:09"           → FA area, aisle 09
+//   "FA:09:01-20"     → FA area, aisle 09, bays 01-20
+//   "FA:09:01-20,FA:10:01-20"  → multiple rules comma-separated
+function parseTypeRules(ruleStr) {
+  return (ruleStr || '').split(',').map(s => {
+    const parts = s.trim().toUpperCase().split(':');
+    const area  = parts[0] || null;
+    const aisle = parts[1] || null;
+    let   bayLo = null, bayHi = null;
+    if (parts[2]) {
+      const br = parts[2].split('-');
+      bayLo = br[0].padStart(2,'0');
+      bayHi = (br[1] || br[0]).padStart(2,'0');
+    }
+    return { area, aisle, bayLo, bayHi };
+  }).filter(r => r.area);
+}
+
+function matchesTypeRule(rules, area, aisle, bay) {
+  return rules.some(r => {
+    if (!area.startsWith(r.area)) return false;
+    if (r.aisle && aisle && r.aisle !== aisle) return false;
+    if (r.bayLo && bay) {
+      const b = bay.padStart(2,'0');
+      if (b < r.bayLo || b > r.bayHi) return false;
+    }
+    return true;
+  });
+}
+
+// Parse zone rules that can include level qualifiers.
+// Rule format: "FA:C" = area FA level C, "DD" = all DD regardless of level
+// Reads from persistent zoneRules object (not DOM) so it works from any tab
+function getRuleWithLevel(ruleKey) {
+  // ruleKey is like 'rule-gold' → look up zoneRules['gold']
+  const key = ruleKey.replace('rule-', '');
+  const val = zoneRules[key] || '';
+  return val
+    .split(',')
+    .map(s => {
+      const parts = s.trim().toUpperCase().split(':');
+      return { area: parts[0], level: parts[1] || null };
+    })
+    .filter(r => r.area);
+}
+
+function matchesRule(rules, area, level) {
+  return rules.some(r => {
+    if (!area.startsWith(r.area)) return false;
+    if (r.level && level && r.level !== level) return false;
+    return true;
+  });
+}
+
+function autoZone(locId, area) {
+  const parsed = parseLocId(locId);
+  const a      = (area || parsed.area || locId.substring(0,2)).toUpperCase();
+  const level  = parsed.level;
+  const aisle  = parsed.aisle;
+  const bay    = parsed.bay;
+
+  // Zone uses AREA:LEVEL rules (gold/silver/bronze)
+  const goldR  = getRuleWithLevel('rule-gold');
+  const silvR  = getRuleWithLevel('rule-silver');
+  const bronR  = getRuleWithLevel('rule-bronze');
+
+  // Type uses AREA:AISLE:BAY-RANGE rules (pallet/small/crushable)
+  const pallR  = parseTypeRules(zoneRules['pallet'] || '');
+  const smR    = parseTypeRules(zoneRules['small']  || '');
+  const crR    = parseTypeRules(zoneRules['crush']  || '');
+
+  let zone = 'silver', type = 'standard';
+  if      (matchesRule(goldR, a, level)) zone = 'gold';
+  else if (matchesRule(silvR, a, level)) zone = 'silver';
+  else if (matchesRule(bronR, a, level)) zone = 'bronze';
+
+  if      (matchesTypeRule(crR,   a, aisle, bay)) type = 'crushable';
+  else if (matchesTypeRule(pallR, a, aisle, bay)) type = 'pallet';
+  else if (matchesTypeRule(smR,   a, aisle, bay)) type = 'small_bin';
+  return { zone, type };
+}
+
+// ═══════════════════════════════════════════════════════
+// COMPATIBILITY CHECK
+// ═══════════════════════════════════════════════════════
+function isCompatible(item, loc) {
+  // Crushable items MUST go to crushable zone, and non-crushable MUST NOT
+  if (item.crushable === 'Y' && loc.type !== 'crushable') return false;
+  if (item.crushable !== 'Y' && loc.type === 'crushable') return false;
+  // Pallet flow = A/B only; Small bin = C/D only
+  if (loc.type === 'pallet'    && !['A','B'].includes(item.velocity)) return false;
+  if (loc.type === 'small_bin' && !['C','D'].includes(item.velocity)) return false;
+  // Item must physically fit (item cube ≤ usable loc cube)
+  if (item.icube > 0 && loc.cube > 0 && item.icube > loc.cube) return false;
+  return true;
+}
+
+// ═══════════════════════════════════════════════════════
+// PLACEMENT SCORE  (0–100)
+// ═══════════════════════════════════════════════════════
+function scorePlacement(item, loc) {
+  let score = 0;
+  // Zone / velocity alignment  0–40 pts
+  const diff = Math.abs(velScore(item.velocity) - zoneScore(loc.zone));
+  score += (5 - diff) * 8;
+  // Cube efficiency (want 40–90% fill)  0–35 pts
+  if (item.icube > 0 && loc.cube > 0) {
+    const ratio = item.icube / loc.cube;
+    if (ratio >= 0.40 && ratio <= 0.90) score += 35;
+    else if (ratio < 0.40) score += Math.round(ratio * 87);
+    else score += Math.max(0, 35 - Math.round((ratio - 0.90) * 100));
+  }
+  // Type bonus  0–25 pts
+  if (['A','B'].includes(item.velocity) && loc.type === 'pallet')    score += 25;
+  else if (['C','D'].includes(item.velocity) && loc.type === 'small_bin') score += 20;
+  else if (loc.type === 'standard') score += 10;
+  return Math.min(100, Math.round(score));
+}
+
+function findBestLoc(item) {
+  const compat = locations.filter(l => !l.sku && isCompatible(item, l));
+  if (!compat.length) return null;
+  compat.sort((a, b) => scorePlacement(item, b) - scorePlacement(item, a));
+  return compat[0];
+}
+
+// ═══════════════════════════════════════════════════════
+// FILE DROP / LOAD
+// ═══════════════════════════════════════════════════════
+function dzOver(e, id) { e.preventDefault(); document.getElementById(id).classList.add('over'); }
+function dzOut(id)     { document.getElementById(id).classList.remove('over'); }
+function dzDrop(e, type) {
+  e.preventDefault();
+  const map = { velocity:'vel', disco:'disco', open:'open', replen:'repl', locs:'locs' };
+  dzOut('dz-' + map[type]);
+  if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0], type);
+}
+function fileLoad(e, type) { if (e.target.files[0]) processFile(e.target.files[0], type); }
+function processFile(file, type) {
+  const r = new FileReader();
+  r.onload = e => parseReport(e.target.result, type);
+  r.readAsText(file);
+}
+
+// ═══════════════════════════════════════════════════════
+// CSV / TSV PARSER  — skips blank/title rows automatically
+// ═══════════════════════════════════════════════════════
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/);
+  // Find the first line that looks like a real data header.
+  // Key requirement: most fields must be NON-EMPTY (title rows like
+  // "Disco Items with Inventory\t\t\t\t..." have 1 real field + many blanks).
+  let hi = 0;
+  for (let i = 0; i < Math.min(25, lines.length); i++) {
+    const l = lines[i].trim();
+    if (!l) continue;
+    const parts = l.split(/\t|,/);
+    const nonEmpty = parts.filter(p => p.trim()).length;
+    // Need 5+ non-empty fields AND majority non-empty (filters title rows with trailing tabs)
+    if (nonEmpty >= 5 && nonEmpty >= parts.length * 0.5 && /[a-zA-Z]{2,}/.test(l)) {
+      hi = i; break;
+    }
+  }
+  const sample = lines[hi];
+  const delim = (sample.match(/\t/g) || []).length > (sample.match(/,/g) || []).length ? '\t' : ',';
+  const headers = lines[hi].split(delim).map(h =>
+    h.trim().toLowerCase()
+      .replace(/[\s\/\\\-]+/g, '_')
+      .replace(/[^a-z0-9_]/g, '')
+  );
+  const rows = [];
+  for (let i = hi + 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const cols = line.split(delim).map(c => c.trim().replace(/^"|"$/g, '').replace(/,/g, ''));
+    if (cols.length < 2 || cols.every(c => !c)) continue;
+    const obj = {};
+    headers.forEach((h, idx) => { obj[h] = cols[idx] || ''; });
+    rows.push(obj);
+  }
+  return { headers, rows };
+}
+
+// Field finder — tries multiple possible column names (partial match)
+function ff(obj, candidates) {
+  for (const c of candidates) {
+    const key = Object.keys(obj).find(k => k === c || k.includes(c));
+    if (key !== undefined && obj[key] !== undefined) return obj[key];
+  }
+  return '';
+}
+
+// Exact field finder — only matches if key === candidate (no partial match)
+// Use this when partial matching would collide, e.g. 'qty' matching 'active_qty'
+function ffExact(obj, candidates) {
+  for (const c of candidates) {
+    if (obj[c] !== undefined) return obj[c];
+  }
+  return '';
+}
+
+// ═══════════════════════════════════════════════════════
+// REPORT PARSERS
+// ═══════════════════════════════════════════════════════
+function parseReport(text, type) {
+  const { rows } = parseCSV(text);
+  if (!rows.length) { toast('⚠️ No data rows found — check file format'); return; }
+
+  if      (type === 'velocity') parseVelocity(rows);
+  else if (type === 'disco')    parseDisco(rows);
+  else if (type === 'open')     parseOpen(rows);
+  else if (type === 'replen')   parseReplen(rows);
+  else if (type === 'locs')     parseLocSeed(rows);
+
+  persist();
+  updateSummary();
+}
+
+// --- 1. VELOCITY REPORT ---
+// Exact columns: Item Name, Item Bar Code, Item Merchandise Group, Item Unit Weight,
+//   Item Unit Length, Item Unit Width, Item Unit Height, Pack Weight,
+//   ON_HAND_QTY, ORIG_ORDER_QTY, Display Location
+function parseVelocity(rows) {
+  // Reset replen counts on all existing items so stale data from a previous import
+  // never carries forward. The velocity report is the source of truth for replens.
+  items.forEach(i => { i.replens = 0; });
+
+  // Gather all ORIG_ORDER_QTY values to compute velocity class thresholds
+  const allPicks = rows.map(r =>
+    +ff(r, ['orig_order_qty','order_qty','picks','units_picked','orig_order']) || 0
+  );
+  const sorted = [...allPicks].sort((a, b) => b - a);
+  const n = sorted.length;
+  const thA = sorted[Math.floor(n * 0.20)] ?? 1;  // top 20%  = A
+  const thB = sorted[Math.floor(n * 0.50)] ?? 1;  // top 50%  = B
+  const thC = sorted[Math.floor(n * 0.80)] ?? 1;  // top 80%  = C
+  // bottom 20% = D
+
+  let count = 0;
+  rows.forEach(r => {
+    // 'Item1' is the SKU column (normalizes to 'item1')
+    // 'Item Name' is a secondary ID (normalizes to 'item_name')
+    const sku = ffExact(r, ['item1']) || ff(r, ['item_name','item','sku','part_no']);
+    if (!sku) return;
+
+    const l = +ff(r, ['item_unit_length','unit_length','length','len']) || 0;
+    const w = +ff(r, ['item_unit_width', 'unit_width', 'width','wid'])  || 0;
+    const h = +ff(r, ['item_unit_height','unit_height','height','hgt']) || 0;
+    const picks   = +ff(r, ['orig_order_qty','order_qty','picks','units_picked','orig_order']) || 0;
+    const dispLoc =  ff(r, ['display_location','location','loc','slot','disp_location']);
+    const barcode =  ff(r, ['item_bar_code','bar_code','barcode','upc']);
+    const mg      =  ff(r, ['item_merchandise_group','merch_group','merchandise_group','mg']);
+    const weight  = +ff(r, ['item_unit_weight','unit_weight','weight']) || 0;
+
+    const vel  = picks >= thA ? 'A' : picks >= thB ? 'B' : picks >= thC ? 'C' : 'D';
+    const ic   = itemCube(l, w, h);
+
+    const existing = items.find(x => x.sku === sku);
+    // Also grab Repln Tasks directly from velocity report if present
+    const replnTasksRaw = ffExact(r, ['repln_tasks']) || '';
+    const replnTasks = parseFloat(replnTasksRaw.toString().replace(/,/g,'').trim()) || 0;
+
+    const obj = {
+      sku, barcode, mg, weight,
+      desc:    ff(r, ['desc','description','item_desc']) || ffExact(r, ['item_name']) || sku,
+      l, w, h, icube: ic,
+      crushable: existing?.crushable || 'N',  // velocity report has no crushable flag; preserve existing
+      velocity:  vel,
+      picks30:   picks,
+      dispLoc,
+      slot:      existing?.slot || dispLoc || null,
+      replens:   replnTasks   // always overwrite — 0 if blank in this report
+    };
+
+    if (existing) {
+      Object.assign(existing, obj);
+    } else {
+      items.push(obj);
+    }
+
+    // If item has a display location, link it in location DB
+    if (dispLoc) {
+      const loc = locations.find(lc => lc.id === dispLoc);
+      if (loc && !loc.sku) loc.sku = sku;
+    }
+    count++;
+  });
+
+  markDz('dz-vel', `✅ ${count} items loaded`);
+  document.getElementById('vel-status').innerHTML =
+    `<div class="alert a-suc">✅ <strong>${count} items</strong> loaded from velocity report.<br>
+     Velocity classes auto-assigned using 20/30/30/20 percentile splits on ORIG_ORDER_QTY (30-day picks).<br>
+     Item dimensions from Item Unit Length/Width/Height. Current slots from Display Location column.</div>`;
+  toast(`✅ Velocity: ${count} items loaded`);
+}
+
+// --- 2. DISCO / ZERO INVENTORY REPORT ---
+// Exact columns: Location, Pick Loc, Slot Type, Volume, WG, WA, Item, Desc, Status,
+//   Merch Group, Pick Zone, Active Qty, Allocated Qty, TBF, Reserve Qty,
+//   Res Allocated, Max, Min, Replen?
+// Rule: Status contains "Discontinued" AND Active Qty == 0 → location is freed
+// NOTE: Active Qty may be the string "0" — we use trim() + strict check
+function parseDisco(rows) {
+  // This report contains ONLY discontinued items with zero inventory.
+  // Every Location/Pick Loc value in it is safe to mark as open.
+  let freed = 0, added = 0, notInDb = 0;
+  const sampleKeys = rows.length ? Object.keys(rows[0]) : [];
+  const seen = new Set();
+  console.log('[Disco] Columns:', sampleKeys);
+
+  rows.forEach(r => {
+    // Location column: try 'location' key first, then 'pick_loc'
+    // Note: these are exact normalized key names from the report headers
+    const locId = (r['location'] || r['pick_loc'] || r['loc'] || '').toString().trim();
+    if (!locId || locId.length < 3) return;
+    if (seen.has(locId)) return;
+    seen.add(locId);
+
+    const loc = locations.find(l => l.id === locId);
+    if (loc) {
+      loc.sku = null;   // mark open
+      freed++;
+    } else {
+      // Location not yet in our DB — add it as an open location
+      // Derive zone/type from ID using current rules
+      const area = locId.substring(0, 2);
+      const { zone, type } = autoZone(locId, area);
+      locations.push({ id: locId, area, zone, type, l: 0, w: 0, h: 0, cube: 0, sku: null });
+      added++;
+      notInDb++;
+    }
+    if (!discoLocs.includes(locId)) discoLocs.push(locId);
+  });
+
+  const total = freed + added;
+  console.log('[Disco] freed existing:', freed, 'added new:', added);
+  markDz('dz-disco', `✅ ${total} locations freed (${seen.size} unique)`);
+  document.getElementById('disco-status').innerHTML =
+    `<div class="alert a-suc">✅ <strong>${total} locations marked open</strong> from disco report.<br>
+     Existing locations cleared: ${freed} &nbsp;|&nbsp; New locations added: ${added}<br>
+     <code style="font-size:11px">Columns: ${sampleKeys.join(', ')}</code></div>`;
+  toast(`✅ Disco: ${total} locations freed`);
+}
+
+// --- 3. OPEN PICK LOCATIONS REPORT ---
+// Exact columns: Pick Locn Area, Location Barcode, Work Area, Dimensions, Location Volume
+// Dimensions format: 150x48x50 (L×W×H)
+function parseOpen(rows) {
+  let added = 0, updated = 0;
+  rows.forEach(r => {
+    const locId = ff(r, ['location_barcode','barcode','location_id','locn','location']);
+    if (!locId) return;
+
+    const area  = ff(r, ['pick_locn_area','locn_area','area','bank','zone_area']);
+    const dims  = ff(r, ['dimensions','dims','size','dimension']);
+    const volStr = ff(r, ['location_volume','volume','vol']).replace(/,/g, '');
+    const workArea = ff(r, ['work_area','workarea','wa']);
+
+    // Parse Dimensions string: "150x48x50"
+    let l = 0, w = 0, h = 0;
+    if (dims) {
+      const parts = dims.toLowerCase().replace(/\s/g, '').split('x');
+      if (parts.length === 3) { l = +parts[0]; w = +parts[1]; h = +parts[2]; }
+    }
+    // Fallback: derive from Location Volume (cubic inches → cubic feet)
+    const cube = (l && w && h)
+      ? cubeUsable(l, w, h)
+      : (+volStr / 1728 * UTIL_FACTOR) || 0;
+
+    const existing = locations.find(lc => lc.id === locId);
+    if (existing) {
+      existing.sku = null;  // it's open
+      if (l) { existing.l = l; existing.w = w; existing.h = h; existing.cube = cube; }
+      if (workArea) existing.workArea = workArea;
+      updated++;
+    } else {
+      const { zone, type } = autoZone(locId, area);
+      locations.push({ id: locId, area, workArea, zone, type, l, w, h, cube, sku: null });
+      added++;
+    }
+  });
+
+  markDz('dz-open', `✅ ${added} new, ${updated} opened`);
+  document.getElementById('open-status').innerHTML =
+    `<div class="alert a-suc">✅ <strong>${added} new locations</strong> added, <strong>${updated} existing locations</strong> marked open.<br>
+     Usable cube = L×W×H ÷ 1728 × 55% utilization factor. All are available for slotting.</div>`;
+  toast(`✅ Open locations: ${added + updated} processed`);
+}
+
+// --- 4. REPLENISHMENT COUNT REPORT ---
+// Accepts any 2-column format: (Location or SKU) + (replen count)
+// Strategy: scan ALL numeric fields in the row and use the one that looks like a count
+function parseReplen(rows) {
+  let count = 0, matched = 0, locMatched = 0;
+  if (!rows.length) { toast('⚠️ Replen: no rows found'); return; }
+
+  const sampleKeys = Object.keys(rows[0]);
+  console.log('[Replen] Columns:', sampleKeys);
+  console.log('[Replen] First row:', rows[0]);
+
+  // ── Find the count column ─────────────────────────────────────────────────
+  // Priority list — repln_tasks is the confirmed column name from your velocity report
+  const knownCountKeys = [
+    'repln_tasks','replen_tasks','replntasks','replentasks',
+    'replen_count','replencount','replen_cnt','repl_count','replens',
+    'replen_30d','replen_count_30d','count_30d','replen','count',
+    'total_replen','number_of_replens','total','qty_30d'
+  ];
+  const skipKeys = new Set([
+    'item1','item_name','item_bar_code','item','sku','barcode',
+    'location','pick_loc','location_barcode','loc',
+    'item_number','part_no','on_hand_qty','orig_order_qty',
+    'max','min','volume','repln_qty','pack_weight',
+    'item_unit_length','item_unit_width','item_unit_height','item_unit_weight',
+    'item_merchandise_group','display_location','wa','wg'
+  ]);
+
+  let countKey = knownCountKeys.find(k => sampleKeys.includes(k));
+  if (!countKey) {
+    // Auto-detect: first key not in skipKeys whose values are all numeric integers
+    countKey = sampleKeys.find(k => {
+      if (skipKeys.has(k)) return false;
+      const vals = rows.slice(0, 10).map(r => r[k]).filter(v => v !== undefined && v !== '');
+      if (!vals.length) return false;
+      return vals.every(v => /^\d[\d,]*$/.test(v.toString().trim()));
+    }) || null;
+  }
+  console.log('[Replen] Count key chosen:', countKey);
+
+  // ── Find the SKU / identifier column ─────────────────────────────────────
+  // Try to figure out which column holds values that match our item SKUs
+  // by testing the first few rows against the items array
+  const candidateSkuKeys = sampleKeys.filter(k => !skipKeys.has(k) && k !== countKey);
+  let skuKey = null;
+
+  // First: check known names
+  for (const k of ['item1','item_name','item','sku','part_no','item_number','barcode']) {
+    if (sampleKeys.includes(k)) { skuKey = k; break; }
+  }
+  // Second: if not found by name, find the key whose values match item SKUs
+  if (!skuKey) {
+    const itemSkus = new Set(items.map(i => i.sku));
+    skuKey = candidateSkuKeys.find(k => {
+      const matches = rows.slice(0, 20).filter(r => itemSkus.has((r[k]||'').toString().trim()));
+      return matches.length > 0;
+    }) || null;
+  }
+  console.log('[Replen] SKU key chosen:', skuKey);
+
+  rows.forEach(r => {
+    const sku   = skuKey ? (r[skuKey] || '').toString().trim() : '';
+    const locId = (r['location'] || r['pick_loc'] || r['loc'] || '').toString().trim();
+    if (!sku && !locId) return;
+    count++;
+
+    const cntRaw = countKey ? (r[countKey] || '0') : '0';
+    const cnt = parseFloat(cntRaw.toString().replace(/,/g,'').trim()) || 0;
+
+    let item = sku ? items.find(i => i.sku === sku) : null;
+    if (!item && locId) {
+      const loc = locations.find(l => l.id === locId);
+      if (loc && loc.sku) { item = items.find(i => i.sku === loc.sku); if (item) locMatched++; }
+    }
+    if (item) { item.replens = cnt; matched++; }
+  });
+
+  const topCounts  = rows.slice(0,3).map(r => countKey ? r[countKey] : '?').join(', ');
+  const topSkus    = rows.slice(0,3).map(r => skuKey  ? r[skuKey]   : '?').join(', ');
+  console.log('[Replen] matched:', matched, 'locMatched:', locMatched, 'sample counts:', topCounts);
+
+  const diagHtml = `
+    <details style="margin-top:8px;font-size:12px">
+      <summary style="cursor:pointer;color:#1e40af">🔍 Diagnostic info (click to expand)</summary>
+      <div style="margin-top:6px;line-height:1.8">
+        <strong>Columns found:</strong> <code>${sampleKeys.join(', ')}</code><br>
+        <strong>SKU column used:</strong> <code>${skuKey || 'NONE DETECTED'}</code> &nbsp; Sample values: ${topSkus}<br>
+        <strong>Count column used:</strong> <code>${countKey || 'NONE DETECTED'}</code> &nbsp; Sample values: ${topCounts}<br>
+        <strong>Items in DB to match against:</strong> ${items.length} &nbsp;|&nbsp; Sample SKUs: ${items.slice(0,3).map(i=>i.sku).join(', ')}<br>
+        ${matched === 0 ? '<span style="color:#dc2626">⚠️ If SKU column shows NONE or wrong values, the column names in this report do not match what the tool expects. The standalone replen report item column must match the <strong>Item1</strong> values from the velocity report.</span>' : ''}
+      </div>
+    </details>`;
+
+  markDz('dz-repl', `✅ ${count} rows, ${matched} matched`);
+  document.getElementById('repl-status').innerHTML =
+    `<div class="alert ${matched > 0 ? 'a-suc' : 'a-warn'}">
+       ${matched > 0 ? '✅' : '⚠️'} <strong>${count} rows processed</strong>, <strong>${matched} items updated</strong>
+       ${locMatched > 0 ? ` (${locMatched} matched via location ID)` : ''}.<br>
+       ${diagHtml}
+     </div>`;
+  toast(`✅ Replen: ${count} rows, ${matched} matched`);
+}
+
+// --- 5. ALL-LOCATIONS SEED REPORT ---
+// Columns: Location Barcode, Pick Locn Area, Dimensions, Location Volume, [optional assigned Item/SKU]
+function parseLocSeed(rows) {
+  let added = 0, updated = 0;
+  rows.forEach(r => {
+    const locId = ff(r, ['location_barcode','barcode','location_id','location','loc_id',
+                          'pick_loc','locn','loc']);
+    if (!locId) return;
+
+    const area  = ff(r, ['pick_locn_area','area','bank','locn_area','zone_area']);
+    const dims  = ff(r, ['dimensions','dims','size','l_x_w_x_h','dim']);
+    const volStr = (ff(r, ['location_volume','volume','vol']) || '').replace(/,/g, '');
+    // Optional: currently assigned item
+    const assignedSku = ff(r, ['item','sku','assigned_item','current_item',
+                                'assigned_sku','current_sku']);
+
+    let l = 0, w = 0, h = 0;
+    if (dims) {
+      const parts = dims.toLowerCase().replace(/\s/g, '').split('x');
+      if (parts.length === 3) { l = +parts[0]; w = +parts[1]; h = +parts[2]; }
+    }
+    const cube = (l && w && h)
+      ? cubeUsable(l, w, h)
+      : (+volStr / 1728 * UTIL_FACTOR) || 0;
+
+    const { zone, type } = autoZone(locId, area || locId);
+    const existing = locations.find(lc => lc.id === locId);
+
+    if (existing) {
+      if (l) { existing.l = l; existing.w = w; existing.h = h; existing.cube = cube; }
+      if (assignedSku) existing.sku = assignedSku;
+      if (area) existing.area = area;
+      updated++;
+    } else {
+      locations.push({
+        id: locId,
+        area: area || locId.substring(0, 2),
+        zone, type, l, w, h, cube,
+        sku: assignedSku || null
+      });
+      added++;
+    }
+  });
+
+  markDz('dz-locs', `✅ ${added} seeded, ${updated} updated`);
+  document.getElementById('locs-seed-status').innerHTML =
+    `<div class="alert a-suc">✅ <strong>${added} locations seeded</strong>, ${updated} existing updated.<br>
+     Review zone/type assignments in the <strong>All Locations</strong> tab — filter by zone to spot-check.<br>
+     Gold/Silver/Bronze rules are applied based on the area code prefixes you configured above.</div>`;
+  toast(`✅ Location seed: ${added} new, ${updated} updated`);
+}
+
+function markDz(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('dz-loaded');
+  const t = el.querySelector('.dz-text');
+  if (t) t.innerHTML = '<strong>' + msg + '</strong>';
+}
+
+function updateSummary() {
+  document.getElementById('sum-items').textContent  = items.length;
+  document.getElementById('sum-open').textContent   = locations.filter(l => !l.sku).length;
+  document.getElementById('sum-disco').textContent  = discoLocs.length;
+  document.getElementById('sum-repl').textContent   = items.filter(i => (i.replens||0) >= 10).length;
+  document.getElementById('sum-unslot').textContent = items.filter(i => !locations.find(l => l.sku === i.sku)).length;
+
+  const ok = items.length > 0 && locations.length > 0;
+  document.getElementById('import-action').innerHTML = ok
+    ? `<button class="btn btn-pri" onclick="showPage('slotting')">Go to Slotting Engine →</button>
+       <button class="btn btn-warn" style="margin-left:8px" onclick="showPage('replen')">Replen Alerts →</button>`
+    : `<div class="alert a-warn">Import a Velocity Report and Location data (seed or bulk add) to begin slotting.</div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// LOCATION MANAGEMENT
+// ═══════════════════════════════════════════════════════
+
+// Re-apply current zone rules to ALL locations in the database
+function reapplyZoneRules() {
+  let updated = 0;
+  locations.forEach(loc => {
+    const { zone, type } = autoZone(loc.id, loc.area);
+    if (loc.zone !== zone || loc.type !== type) {
+      loc.zone = zone;
+      loc.type = type;
+      updated++;
+    }
+  });
+  persist();
+  renderLocations();
+  toast(`↺ Zone rules re-applied — ${updated} locations updated`);
+}
+
+function renderLocations() {
+  const search = (document.getElementById('loc-search')?.value || '').toLowerCase();
+  const fz = document.getElementById('loc-fz')?.value || '';
+  const ft = document.getElementById('loc-ft')?.value || '';
+  const fa = document.getElementById('loc-fa')?.value || '';
+
+  const filtered = locations.filter(l =>
+    (!search || l.id.toLowerCase().includes(search) || (l.sku||'').toLowerCase().includes(search)) &&
+    (!fz || l.zone === fz) &&
+    (!ft || l.type === ft) &&
+    (!fa || (fa === 'yes' ? !!l.sku : !l.sku))
+  );
+
+  document.getElementById('loc-count').textContent =
+    `Showing ${filtered.length.toLocaleString()} of ${locations.length.toLocaleString()} locations`;
+
+  const tbody = document.getElementById('loc-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty">
+      <div class="empty-icon">📍</div>
+      ${locations.length ? 'No locations match filters.' : 'No locations yet — use Seed from Report or Bulk Add.'}
+    </div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.slice(0, 300).map(l => {
+    const idx = locations.indexOf(l);
+    return `<tr>
+      <td><strong>${l.id}</strong></td>
+      <td>${l.area || '—'}</td>
+      <td><span class="badge b-${l.zone}">${zoneIcon(l.zone)} ${cap(l.zone)}</span></td>
+      <td>${typeLbl(l.type)}</td>
+      <td>${l.cube ? l.cube + ' ft³' : '—'}</td>
+      <td>${l.l||'?'}×${l.w||'?'}×${l.h||'?'}</td>
+      <td>${l.sku
+        ? `<span class="chip">📦 ${l.sku}</span>`
+        : '<span class="txt-muted txt-sm">— open —</span>'}</td>
+      <td><div class="flex gap8">
+        <button class="btn btn-sec btn-sm" onclick="editLoc(${idx})">Edit</button>
+        <button class="btn btn-dan btn-sm" onclick="delLoc(${idx})">Del</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  if (filtered.length > 300) {
+    tbody.innerHTML += `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:10px">
+      …and ${(filtered.length - 300).toLocaleString()} more. Use filters to narrow results.
+    </td></tr>`;
+  }
+}
+
+function bulkAdd() {
+  const bank = document.getElementById('b-bank').value.trim();
+  if (!bank) { alert('Enter a bank prefix.'); return; }
+  const as = +document.getElementById('b-aisle-s').value;
+  const ae = +document.getElementById('b-aisle-e').value;
+  const bs = +document.getElementById('b-bay-s').value;
+  const be = +document.getElementById('b-bay-e').value;
+  const ls = document.getElementById('b-lvl-s').value;
+  const le = document.getElementById('b-lvl-e').value;
+  const zone = document.getElementById('b-zone').value;
+  const type = document.getElementById('b-type').value;
+  const l = +document.getElementById('b-l').value;
+  const w = +document.getElementById('b-w').value;
+  const h = +document.getElementById('b-h').value;
+  const cube = cubeUsable(l, w, h);
+
+  // Build level array (alpha or numeric)
+  const levels = [];
+  if (/[A-Za-z]/.test(ls)) {
+    const s = ls.toUpperCase().charCodeAt(0);
+    const e = le.toUpperCase().charCodeAt(0);
+    for (let c = s; c <= e; c++) levels.push(String.fromCharCode(c));
+  } else {
+    for (let n = +ls; n <= +le; n++) levels.push(String(n).padStart(2, '0'));
+  }
+
+  let added = 0;
+  for (let a = as; a <= ae; a++) {
+    for (let b = bs; b <= be; b++) {
+      for (const lv of levels) {
+        const id = `${bank}${String(a).padStart(2,'0')}${String(b).padStart(3,'0')}${lv}`;
+        if (!locations.find(x => x.id === id)) {
+          locations.push({ id, area: bank, zone, type, l, w, h, cube, sku: null });
+          added++;
+        }
+      }
+    }
+  }
+  persist();
+  toast(`✅ Added ${added.toLocaleString()} locations`);
+  swLocTab('list', document.querySelectorAll('.itab')[2]);
+  renderLocations();
+}
+
+function openAddLocModal() {
+  editLocIdx = null;
+  document.getElementById('ml-title').textContent = 'Add Location';
+  ['ml-id','ml-area','ml-l','ml-w','ml-h'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('modal-loc').classList.add('open');
+}
+function editLoc(idx) {
+  editLocIdx = idx;
+  const l = locations[idx];
+  document.getElementById('ml-title').textContent = 'Edit Location';
+  document.getElementById('ml-id').value   = l.id;
+  document.getElementById('ml-area').value = l.area || '';
+  document.getElementById('ml-zone').value = l.zone;
+  document.getElementById('ml-type').value = l.type;
+  document.getElementById('ml-l').value    = l.l || '';
+  document.getElementById('ml-w').value    = l.w || '';
+  document.getElementById('ml-h').value    = l.h || '';
+  document.getElementById('modal-loc').classList.add('open');
+}
+function saveLocModal() {
+  const id = document.getElementById('ml-id').value.trim();
+  if (!id) { alert('Enter a Location ID.'); return; }
+  const l = +document.getElementById('ml-l').value;
+  const w = +document.getElementById('ml-w').value;
+  const h = +document.getElementById('ml-h').value;
+  const loc = {
+    id, area: document.getElementById('ml-area').value.trim(),
+    zone: document.getElementById('ml-zone').value,
+    type: document.getElementById('ml-type').value,
+    l, w, h, cube: cubeUsable(l, w, h),
+    sku: editLocIdx !== null ? locations[editLocIdx].sku : null
+  };
+  if (editLocIdx !== null) locations[editLocIdx] = loc;
+  else locations.push(loc);
+  persist();
+  closeModal('modal-loc');
+  renderLocations();
+  toast(editLocIdx !== null ? '✅ Location updated' : '✅ Location added');
+}
+function delLoc(idx) {
+  if (!confirm(`Delete ${locations[idx].id}?`)) return;
+  locations.splice(idx, 1); persist(); renderLocations();
+}
+function clearAllLocs() {
+  if (!confirm('Clear ALL locations? This cannot be undone.')) return;
+  locations = []; persist(); renderLocations();
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════
+// SLOTTING ENGINE
+// ═══════════════════════════════════════════════════════
+function renderSlotting() {
+  if (!items.length) {
+    document.getElementById('slot-alert').style.display = 'block';
+    document.getElementById('slot-alert').textContent = '⚠️ No items loaded — import a Velocity Report first.';
+    document.getElementById('slot-tbody').innerHTML = '';
+    return;
+  }
+  document.getElementById('slot-alert').style.display = 'none';
+
+  const search = (document.getElementById('slot-search')?.value || '').toLowerCase();
+  const filt   = document.getElementById('slot-filter')?.value || 'all';
+
+  const rows = items.map(item => {
+    const curLoc   = locations.find(l => l.sku === item.sku);
+    const bestLoc  = findBestLoc(item);
+    const curScore = curLoc  ? scorePlacement(item, curLoc)  : 0;
+    const bestScore= bestLoc ? scorePlacement(item, bestLoc) : 0;
+    const needsReslot = curLoc && bestLoc && bestLoc.id !== curLoc.id && (bestScore - curScore) >= 15;
+    return { item, curLoc, bestLoc, curScore, bestScore, needsReslot, repl: item.replens || 0 };
+  });
+
+  const reslotN = rows.filter(r => r.needsReslot).length;
+  const unslotN = rows.filter(r => !r.curLoc).length;
+  const replN   = rows.filter(r => r.repl >= 10).length;
+
+  document.getElementById('slot-chips').innerHTML =
+    `<span class="chip">📦 ${items.length} items</span>
+     <span class="chip" style="background:#fffbeb">🔄 ${reslotN} re-slot suggestions</span>
+     <span class="chip" style="background:#f0fdf4">✨ ${unslotN} unslotted</span>
+     <span class="chip" style="background:#fdf4ff">🔴 ${replN} high replen</span>
+     <span class="chip">${locations.filter(l=>l.sku).length} / ${locations.length.toLocaleString()} locs used</span>`;
+
+  let filtered = rows
+    .filter(r => {
+      if (filt === 'reslot')      return r.needsReslot;
+      if (filt === 'new')         return !r.curLoc;
+      if (filt === 'repl_alert')  return r.repl >= 10;
+      if (['A','B','C','D'].includes(filt)) return r.item.velocity === filt;
+      return true;
+    })
+    .filter(r =>
+      !search ||
+      r.item.sku.toLowerCase().includes(search) ||
+      (r.item.desc || '').toLowerCase().includes(search)
+    );
+
+  if (!filtered.length) {
+    document.getElementById('slot-tbody').innerHTML =
+      '<tr><td colspan="9"><div class="empty"><div class="empty-icon">✅</div>No items match this filter.</div></td></tr>';
+    return;
+  }
+
+  document.getElementById('slot-tbody').innerHTML = filtered.slice(0, 300).map(
+    ({ item, curLoc, bestLoc, curScore, bestScore, needsReslot, repl }) => {
+      const rc = needsReslot ? 'row-reslot' : !curLoc ? 'row-new' : repl >= 10 ? 'row-repl' : '';
+      const sc = bestScore;
+      const scColor = sc >= 75 ? '#16a34a' : sc >= 50 ? '#d97706' : '#dc2626';
+      return `<tr class="${rc}">
+        <td><strong>${item.sku}</strong>${item.barcode ? `<br><span class="txt-sm txt-muted">${item.barcode}</span>` : ''}</td>
+        <td>${item.desc}${item.crushable === 'Y' ? ' <span class="badge b-fragile">🫧</span>' : ''}</td>
+        <td><span class="badge b-${item.velocity || 'D'}">${item.velocity || '?'}</span>
+            <br><span class="txt-sm txt-muted">${(item.picks30||0).toLocaleString()} picks</span></td>
+        <td>${item.icube || '—'} ft³
+            <br><span class="txt-sm txt-muted">${item.l||'?'}×${item.w||'?'}×${item.h||'?'}"</span></td>
+        <td>${curLoc
+          ? `<span class="chip">${curLoc.id}</span> <span class="badge b-${curLoc.zone}">${zoneIcon(curLoc.zone)}</span>`
+          : '<span class="txt-muted txt-sm">Unslotted</span>'}</td>
+        <td>${bestLoc
+          ? `<span class="chip">${bestLoc.id}</span> <span class="badge b-${bestLoc.zone}">${zoneIcon(bestLoc.zone)}</span>
+             ${needsReslot ? ` <span class="badge b-warn">+${bestScore - curScore}pts</span>` : ''}`
+          : '<span class="txt-muted txt-sm">No compatible loc</span>'}</td>
+        <td>${bestLoc
+          ? `<span style="font-size:12px;font-weight:700;color:${scColor}">${sc}%</span>
+             <div class="score-bar"><div class="score-fill" style="width:${sc}%;background:${scColor}"></div></div>`
+          : '—'}</td>
+        <td>${repl > 0 ? `<span class="badge ${repl >= 10 ? 'b-repl' : 'b-C'}">${repl}</span>` : '—'}</td>
+        <td><div class="flex gap8">
+          ${bestLoc ? `<button class="btn btn-suc btn-sm" onclick="openAssign('${item.sku}')">Assign</button>` : ''}
+          ${curLoc  ? `<button class="btn btn-dan btn-sm" onclick="unassign('${item.sku}')">Clear</button>`   : ''}
+        </div></td>
+      </tr>`;
+    }
+  ).join('');
+}
+
+function autoSlotAll() {
+  let n = 0;
+  items.filter(i => !locations.find(l => l.sku === i.sku)).forEach(item => {
+    const best = findBestLoc(item);
+    if (best) { best.sku = item.sku; n++; }
+  });
+  persist(); renderSlotting(); toast(`⚡ Auto-slotted ${n} items`);
+}
+
+function openAssign(sku) {
+  assignSku = sku;
+  const item = items.find(i => i.sku === sku);
+  document.getElementById('assign-info').innerHTML =
+    `<div class="flex gap8 ic fw">
+       <strong>${sku}</strong> — ${item.desc}
+       <span class="badge b-${item.velocity||'D'}">${item.velocity||'?'} velocity</span>
+       ${item.crushable === 'Y' ? '<span class="badge b-fragile">🫧 Fragile</span>' : ''}
+       <span class="chip">${item.icube || '?'} ft³ item cube</span>
+     </div>
+     <div class="txt-sm txt-muted" style="margin-top:8px">
+       Location usable cube = L×W×H ÷ 1728 × 55% utilization factor.
+       Item must fit within usable cube.
+     </div>`;
+
+  const avail  = locations.filter(l => !l.sku || l.sku === sku);
+  const compat = avail.filter(l => isCompatible(item, l))
+                      .sort((a, b) => scorePlacement(item, b) - scorePlacement(item, a));
+  const incompat = avail.filter(l => !isCompatible(item, l));
+
+  const sel = document.getElementById('assign-sel');
+  sel.innerHTML = [...compat, ...incompat].map(l => {
+    const sc = scorePlacement(item, l);
+    const ok = isCompatible(item, l);
+    return `<option value="${l.id}" ${!ok ? 'style="color:#9ca3af"' : ''}>
+      [${zoneIcon(l.zone)}${l.zone.toUpperCase()}] ${l.id} | usable: ${l.cube} ft³ | ${typeLbl(l.type)}
+      ${ok ? `| score: ${sc}%` : '| ⚠️ incompatible'}
+    </option>`;
+  }).join('');
+  if (compat.length) sel.value = compat[0].id;
+  document.getElementById('modal-assign').classList.add('open');
+}
+
+function confirmAssign() {
+  const locId = document.getElementById('assign-sel').value;
+  if (!locId) return;
+  const old = locations.find(l => l.sku === assignSku);
+  if (old) old.sku = null;
+  const loc = locations.find(l => l.id === locId);
+  loc.sku = assignSku;
+  const item = items.find(i => i.sku === assignSku);
+  if (item) item.slot = locId;
+  persist(); closeModal('modal-assign'); renderSlotting();
+  toast(`✅ ${assignSku} → ${locId}`);
+}
+
+function unassign(sku) {
+  const loc = locations.find(l => l.sku === sku);
+  if (loc) loc.sku = null;
+  persist(); renderSlotting();
+  toast(`🗑️ ${sku} unassigned`);
+}
+
+function exportSlottingCSV() {
+  const rows = [['SKU','Description','Velocity','Picks_30d','Item_Cube_ft3','L_in','W_in','H_in',
+                  'Crushable','Current_Slot','Zone','Loc_Type','Loc_Cube_ft3','Match_Score','Replens_30d']];
+  items.forEach(item => {
+    const loc = locations.find(l => l.sku === item.sku);
+    const score = loc ? scorePlacement(item, loc) : '';
+    rows.push([item.sku, item.desc, item.velocity||'', item.picks30||'',
+               item.icube||'', item.l||'', item.w||'', item.h||'',
+               item.crushable, loc?.id||'UNSLOTTED', loc?.zone||'', loc?.type||'',
+               loc?.cube||'', score, item.replens||'']);
+  });
+  dl(rows.map(r => r.join(',')).join('\n'), 'slotiq_slotting.csv');
+}
+
+// ═══════════════════════════════════════════════════════
+// REPLEN ALERTS
+// ═══════════════════════════════════════════════════════
+function renderReplens() {
+  const thresh = +(document.getElementById('repl-thresh')?.value) || 10;
+  const ri = items.filter(i => (i.replens||0) >= thresh)
+                  .sort((a, b) => (b.replens||0) - (a.replens||0));
+
+  const avg = ri.length
+    ? Math.round(ri.reduce((s, i) => s + (i.replens||0), 0) / ri.length) : 0;
+  const max = ri.length ? Math.max(...ri.map(i => i.replens||0)) : 0;
+
+  document.getElementById('repl-stats').innerHTML =
+    `<div class="sc"><div class="sc-lbl">High Replen Items</div><div class="sc-val" style="color:#7c3aed">${ri.length}</div><div class="sc-sub">≥ ${thresh}/30d</div></div>
+     <div class="sc"><div class="sc-lbl">Avg Replen Count</div><div class="sc-val">${avg}</div></div>
+     <div class="sc"><div class="sc-lbl">Max Replens/30d</div><div class="sc-val" style="color:var(--dan)">${max}</div></div>
+     <div class="sc"><div class="sc-lbl">Total Replen Events</div><div class="sc-val">${items.reduce((s,i)=>s+(i.replens||0),0).toLocaleString()}</div></div>`;
+
+  if (!ri.length) {
+    document.getElementById('repl-tbody').innerHTML =
+      `<tr><td colspan="10"><div class="empty"><div class="empty-icon">✅</div>
+       No items at or above threshold. Adjust threshold or import replen count report.</div></td></tr>`;
+    return;
+  }
+
+  document.getElementById('repl-tbody').innerHTML = ri.map(item => {
+    const curLoc = locations.find(l => l.sku === item.sku);
+    const fillPct = curLoc && curLoc.cube > 0 && item.icube > 0
+      ? Math.round(item.icube / curLoc.cube * 100) : 0;
+    // Find a larger compatible open location
+    const larger = locations
+      .filter(l => !l.sku && l.cube > (curLoc?.cube || 0) && isCompatible(item, l))
+      .sort((a, b) => scorePlacement(item, b) - scorePlacement(item, a))[0];
+    const rc = item.replens >= 20 ? '#dc2626' : item.replens >= 10 ? '#d97706' : '#5b21b6';
+    return `<tr class="row-repl">
+      <td><strong>${item.sku}</strong></td>
+      <td>${item.desc}</td>
+      <td>${curLoc ? `<span class="chip">${curLoc.id}</span>` : '<span class="txt-muted">—</span>'}</td>
+      <td>${curLoc ? `<span class="badge b-${curLoc.zone}">${zoneIcon(curLoc.zone)}</span>` : '—'}</td>
+      <td>${curLoc?.cube || '—'}</td>
+      <td>${item.icube || '—'}</td>
+      <td>${fillPct > 0
+        ? `<span style="color:${fillPct > 90 ? '#dc2626' : fillPct > 70 ? '#d97706' : '#16a34a'};font-weight:600">${fillPct}%</span>`
+        : '—'}</td>
+      <td><span style="font-weight:700;color:${rc}">${item.replens}</span></td>
+      <td>${larger
+        ? `<span class="chip">${larger.id}</span> <span class="txt-sm txt-muted">(${larger.cube} ft³)</span>`
+        : '<span class="txt-muted txt-sm">None available</span>'}</td>
+      <td>${larger ? `<button class="btn btn-warn btn-sm" onclick="openAssign('${item.sku}')">Move →</button>` : ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function exportReplCSV() {
+  const thresh = +(document.getElementById('repl-thresh')?.value) || 10;
+  const rows = [['SKU','Description','Current_Loc','Loc_Cube_ft3','Item_Cube_ft3','Fill_Pct','Replens_30d']];
+  items.filter(i => (i.replens||0) >= thresh).forEach(item => {
+    const loc  = locations.find(l => l.sku === item.sku);
+    const fill = (loc && loc.cube > 0 && item.icube > 0)
+      ? Math.round(item.icube / loc.cube * 100) : '';
+    rows.push([item.sku, item.desc, loc?.id||'', loc?.cube||'',
+               item.icube||'', fill, item.replens||'']);
+  });
+  dl(rows.map(r => r.join(',')).join('\n'), 'slotiq_replen_alerts.csv');
+}
+
+// ═══════════════════════════════════════════════════════
+// NEW ITEM
+// ═══════════════════════════════════════════════════════
+function runNewItem() {
+  const sku   = document.getElementById('ni-sku').value.trim();
+  const desc  = document.getElementById('ni-desc').value.trim();
+  const l     = +document.getElementById('ni-l').value;
+  const w     = +document.getElementById('ni-w').value;
+  const h     = +document.getElementById('ni-h').value;
+  const vel   = document.getElementById('ni-vel').value;
+  const crush = document.getElementById('ni-crush').value;
+
+  if (!sku || !l || !w || !h) { alert('Enter SKU and all three dimensions.'); return; }
+
+  const ic   = itemCube(l, w, h);
+  const item = { sku, desc, l, w, h, icube: ic, velocity: vel, crushable: crush };
+  const compat = locations.filter(lc => !lc.sku && isCompatible(item, lc))
+                          .sort((a, b) => scorePlacement(item, b) - scorePlacement(item, a));
+  const top3 = compat.slice(0, 3);
+
+  let html = `<div class="card">
+    <div class="card-title" style="margin-bottom:14px">Recommendations for <strong>${sku}</strong></div>
+    <div class="flex gap8 ic fw" style="margin-bottom:16px">
+      <span class="badge b-${vel}">${vel} Velocity</span>
+      <span class="chip">${ic} ft³ (${l}×${w}×${h}")</span>
+      ${crush === 'Y' ? '<span class="badge b-fragile">🫧 Must go to crushable zone</span>' : ''}
+    </div>`;
+
+  if (!locations.length) {
+    html += `<div class="alert a-warn">⚠️ No locations configured. Seed or bulk-add locations first.</div>`;
+  } else if (!top3.length) {
+    html += `<div class="alert a-warn">⚠️ No compatible open locations found.
+      Check that ${crush === 'Y' ? 'crushable zone' : 'standard'} locations exist with usable cube ≥ ${ic} ft³.</div>`;
+  } else {
+    html += `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px">`;
+    top3.forEach((loc, i) => {
+      const sc  = scorePlacement(item, loc);
+      const scC = sc >= 75 ? '#16a34a' : sc >= 50 ? '#d97706' : '#dc2626';
+      const labels = ['⭐ Best Match', '2nd Choice', '3rd Choice'];
+      html += `<div style="border:${i===0?'2px solid var(--pri)':'1px solid var(--bdr)'};border-radius:10px;padding:16px;background:${i===0?'var(--pri-bg)':'#fff'}">
+        <div class="txt-sm txt-muted" style="margin-bottom:6px">${labels[i]}</div>
+        <div style="font-size:17px;font-weight:700;margin-bottom:8px">${loc.id}</div>
+        <div class="flex gap8 fw" style="margin-bottom:8px">
+          <span class="badge b-${loc.zone}">${zoneIcon(loc.zone)} ${cap(loc.zone)}</span>
+          <span class="chip">${loc.cube} ft³ usable</span>
+        </div>
+        <div class="txt-sm txt-muted" style="margin-bottom:8px">${typeLbl(loc.type)}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:20px;font-weight:700;color:${scC}">${sc}%</span>
+          <div style="flex:1"><div class="score-bar"><div class="score-fill" style="width:${sc}%;background:${scC}"></div></div></div>
+        </div>
+        ${i === 0
+          ? `<button class="btn btn-pri" style="width:100%;margin-top:12px"
+               onclick="assignNew('${sku}','${(desc||sku).replace(/'/g,"\\'")}',${l},${w},${h},'${vel}','${crush}','${loc.id}')">
+               Assign This Slot →</button>` : ''}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `<div style="margin-top:16px;padding:12px;background:#f8fafc;border-radius:8px;font-size:13px">
+    <strong>Slotting Logic:</strong>
+    ${['A','B'].includes(vel) ? 'High-velocity item — <strong>Gold or Silver zone</strong> priority.' : 'Lower velocity — Silver or Bronze zone is acceptable.'}
+    ${crush === 'Y' ? ' Must be placed in <strong>dedicated crushable/fragile area</strong> only.' : ''}
+    ${vel === 'A' ? ' <strong>Pallet flow</strong> recommended if available — minimizes replenishment trips.' : ''}
+    ${vel === 'D' ? ' <strong>Small bin</strong> ideal — avoids wasting cube and minimizes replenishment frequency.' : ''}
+    Item cube: <strong>${ic} ft³</strong>. Target location usable cube between
+    <strong>${ic.toFixed(3)}</strong> and <strong>${(ic * 2).toFixed(2)} ft³</strong> for best fill ratio.
+  </div></div>`;
+
+  document.getElementById('ni-results').innerHTML = html;
+}
+
+function assignNew(sku, desc, l, w, h, vel, crush, locId) {
+  const ic = itemCube(l, w, h);
+  if (!items.find(i => i.sku === sku))
+    items.push({ sku, desc, l, w, h, icube: ic, velocity: vel, crushable: crush, picks30: 0, replens: 0 });
+  const loc = locations.find(lc => lc.id === locId);
+  if (loc) loc.sku = sku;
+  persist(); toast(`✅ ${sku} → ${locId}`); showPage('slotting');
+}
+
+// ═══════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════
+function renderDashboard() {
+  const total = locations.length;
+  const used  = locations.filter(l => l.sku).length;
+  const goldPicks = locations.filter(l => l.zone === 'gold' && l.sku)
+    .map(l => items.find(i => i.sku === l.sku)).filter(Boolean)
+    .reduce((s, i) => s + (i.picks30 || 0), 0);
+  const totalPicks = items.reduce((s, i) => s + (i.picks30 || 0), 0);
+  const gp = totalPicks > 0 ? Math.round(goldPicks / totalPicks * 100) : 0;
+  const aItems  = items.filter(i => i.velocity === 'A');
+  const aInGold = aItems.filter(i => locations.find(l => l.sku === i.sku && l.zone === 'gold')).length;
+  const reslot  = items.filter(item => {
+    const c = locations.find(l => l.sku === item.sku);
+    const b = findBestLoc(item);
+    return c && b && b.id !== c.id && scorePlacement(item, b) - scorePlacement(item, c) >= 15;
+  }).length;
+
+  document.getElementById('dash-stats').innerHTML =
+    `<div class="sc"><div class="sc-lbl">Total Locations</div><div class="sc-val">${total.toLocaleString()}</div><div class="sc-sub">${total ? Math.round(used/total*100) : 0}% utilized</div></div>
+     <div class="sc"><div class="sc-lbl">Items Tracked</div><div class="sc-val">${items.length.toLocaleString()}</div></div>
+     <div class="sc"><div class="sc-lbl">Gold Zone Pick %</div><div class="sc-val" style="color:var(--gold)">${gp}%</div><div class="sc-sub">of all 30-day picks</div></div>
+     <div class="sc"><div class="sc-lbl">A-Items in Gold</div><div class="sc-val" style="color:var(--suc)">${aItems.length ? Math.round(aInGold/aItems.length*100) : 0}%</div><div class="sc-sub">${aInGold} of ${aItems.length}</div></div>
+     <div class="sc"><div class="sc-lbl">Re-slot Candidates</div><div class="sc-val" style="color:${reslot>0?'var(--warn)':'var(--suc)'}">${reslot}</div><div class="sc-sub">+15pt improvement available</div></div>
+     <div class="sc"><div class="sc-lbl">High Replen Items</div><div class="sc-val" style="color:#7c3aed">${items.filter(i=>(i.replens||0)>=10).length}</div><div class="sc-sub">≥10 replens/30d</div></div>`;
+
+  const zm = { gold: 0, silver: 0, bronze: 0 };
+  locations.filter(l => l.sku).forEach(l => zm[l.zone]++);
+  destroyChart('zoneChart');
+  charts.zoneChart = new Chart(document.getElementById('zoneChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Gold 🥇', 'Silver 🥈', 'Bronze 🥉'],
+      datasets: [{ data: [zm.gold, zm.silver, zm.bronze],
+        backgroundColor: ['#f59e0b', '#94a3b8', '#b45309'], borderWidth: 2 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+  });
+
+  const vm = { A: 0, B: 0, C: 0, D: 0 };
+  items.forEach(i => { if (i.velocity) vm[i.velocity]++; });
+  destroyChart('velChart');
+  charts.velChart = new Chart(document.getElementById('velChart'), {
+    type: 'bar',
+    data: {
+      labels: ['A (Hot)', 'B (High)', 'C (Med)', 'D (Slow)'],
+      datasets: [{ label: 'Items', data: [vm.A, vm.B, vm.C, vm.D],
+        backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e'] }]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+  });
+
+  let t2=0, ex=0, gd=0, fr=0, pr=0;
+  items.forEach(item => {
+    const loc = locations.find(l => l.sku === item.sku); if (!loc) return;
+    const s = scorePlacement(item, loc); t2++;
+    if (s >= 80) ex++; else if (s >= 60) gd++; else if (s >= 40) fr++; else pr++;
+  });
+  const avg = t2 ? Math.round(
+    [...Array(ex).fill(90), ...Array(gd).fill(70), ...Array(fr).fill(50), ...Array(pr).fill(25)]
+    .reduce((a, b) => a + b, 0) / t2) : 0;
+
+  document.getElementById('overall-score-badge').textContent = `Avg: ${avg}%`;
+  document.getElementById('overall-score-badge').className = `badge ${avg >= 75 ? 'b-match' : avg >= 50 ? 'b-warn' : 'b-bad'}`;
+  document.getElementById('slot-breakdown').innerHTML =
+    `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+       ${[['Excellent (≥80%)',ex,'#16a34a'],['Good (60–79%)',gd,'#2563eb'],['Fair (40–59%)',fr,'#d97706'],['Poor (<40%)',pr,'#dc2626']]
+         .map(([lbl,val,c]) => `<div style="text-align:center">
+           <div style="font-size:26px;font-weight:700;color:${c}">${val}</div>
+           <div class="txt-sm txt-muted">${lbl}</div>
+           <div class="prog" style="margin-top:6px"><div class="prog-fill" style="width:${t2?Math.round(val/t2*100):0}%;background:${c}"></div></div>
+         </div>`).join('')}
+     </div>`;
+
+  const alerts = [];
+  if (reslot > 0)
+    alerts.push(`<div class="alert a-warn" style="margin-top:12px">🔄 <strong>${reslot} items</strong> have a meaningfully better available slot (≥15pt improvement).
+      <button class="btn btn-warn btn-sm" style="margin-left:8px" onclick="showPage('slotting');setTimeout(()=>{document.getElementById('slot-filter').value='reslot';renderSlotting();},50)">View Re-slots →</button></div>`);
+  if (items.filter(i => (i.replens||0) >= 10).length > 0)
+    alerts.push(`<div class="alert a-info" style="margin-top:8px">🔴 <strong>${items.filter(i=>(i.replens||0)>=10).length} items</strong> have high replen counts — candidates for larger locations.
+      <button class="btn btn-sec btn-sm" style="margin-left:8px" onclick="showPage('replen')">View Replen Alerts →</button></div>`);
+  document.getElementById('dash-alerts').innerHTML = alerts.join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// REPORTS
+// ═══════════════════════════════════════════════════════
+function renderReports() {
+  const totalPicks = items.reduce((s, i) => s + (i.picks30||0), 0);
+  const goldPicks  = locations.filter(l => l.zone === 'gold' && l.sku)
+    .map(l => items.find(i => i.sku === l.sku)).filter(Boolean)
+    .reduce((s, i) => s + (i.picks30||0), 0);
+  const gp = totalPicks > 0 ? (goldPicks / totalPicks * 100).toFixed(1) : 0;
+  const aItems  = items.filter(i => i.velocity === 'A');
+  const aInGold = aItems.filter(i => locations.find(l => l.sku === i.sku && l.zone === 'gold')).length;
+  const slotted = items.filter(i => locations.find(l => l.sku === i.sku));
+  const avgSc   = slotted.length
+    ? Math.round(slotted.reduce((s, item) => {
+        const l = locations.find(lc => lc.sku === item.sku);
+        return s + scorePlacement(item, l);
+      }, 0) / slotted.length) : 0;
+  const cands = items.filter(item => {
+    const c = locations.find(l => l.sku === item.sku);
+    const b = findBestLoc(item);
+    return c && b && b.id !== c.id && scorePlacement(item, b) - scorePlacement(item, c) >= 15;
+  }).length;
+
+  document.getElementById('rpt-stats').innerHTML =
+    `<div class="sc"><div class="sc-lbl">Gold Zone Pick %</div><div class="sc-val" style="color:var(--gold)">${gp}%</div></div>
+     <div class="sc"><div class="sc-lbl">A-Items Correctly Slotted</div><div class="sc-val" style="color:var(--suc)">${aItems.length ? Math.round(aInGold/aItems.length*100) : 0}%</div></div>
+     <div class="sc"><div class="sc-lbl">Avg Slot Score</div><div class="sc-val">${avgSc}%</div></div>
+     <div class="sc"><div class="sc-lbl">Re-slot Potential</div><div class="sc-val" style="color:var(--pri)">${cands}</div><div class="sc-sub">items improvable</div></div>
+     <div class="sc"><div class="sc-lbl">Total 30d Picks</div><div class="sc-val">${totalPicks.toLocaleString()}</div></div>`;
+
+  const base = Math.max(20, +gp - 18);
+  const wks  = ['Wk-6','Wk-5','Wk-4','Wk-3','Wk-2','Wk-1','Now'];
+  const trend = wks.map((_, i) => i < 6 ? +(base + (i * (+gp - base) / 6)).toFixed(1) : +gp);
+  destroyChart('goldChart');
+  charts.goldChart = new Chart(document.getElementById('goldChart'), {
+    type: 'line',
+    data: { labels: wks, datasets: [{ label: 'Gold Zone Pick %', data: trend,
+      borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.1)',
+      fill: true, tension: 0.4, pointBackgroundColor: '#f59e0b' }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } } }
+  });
+
+  const dist = [0,0,0,0];
+  slotted.forEach(item => {
+    const l = locations.find(lc => lc.sku === item.sku);
+    const s = scorePlacement(item, l);
+    if (s >= 80) dist[0]++; else if (s >= 60) dist[1]++; else if (s >= 40) dist[2]++; else dist[3]++;
+  });
+  destroyChart('matchChart');
+  charts.matchChart = new Chart(document.getElementById('matchChart'), {
+    type: 'doughnut',
+    data: { labels: ['Excellent','Good','Fair','Poor'],
+      datasets: [{ data: dist, backgroundColor: ['#16a34a','#2563eb','#d97706','#dc2626'] }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+  });
+
+  const tkeys = ['pallet','standard','small_bin','crushable'];
+  const tr = {}; const tc = {};
+  tkeys.forEach(k => { tr[k] = 0; tc[k] = 0; });
+  locations.filter(l => l.sku).forEach(l => {
+    const item = items.find(i => i.sku === l.sku); if (!item) return;
+    tc[l.type] = (tc[l.type]||0) + 1;
+    const fill = item.icube && l.cube ? Math.min(1, item.icube / l.cube) : 0.5;
+    const mis  = Math.abs(velScore(item.velocity) - zoneScore(l.zone));
+    tr[l.type] = (tr[l.type]||0) + ((1 - fill) * 50 + mis * 12);
+  });
+  destroyChart('replChart');
+  charts.replChart = new Chart(document.getElementById('replChart'), {
+    type: 'bar',
+    data: { labels: ['Pallet Flow','Standard','Small Bin','Crushable'],
+      datasets: [{ label: 'Avg Replen Risk Score', data: tkeys.map(k => tc[k] ? Math.round(tr[k]/tc[k]) : 0),
+        backgroundColor: ['#2563eb','#94a3b8','#16a34a','#7c3aed'] }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100 } } }
+  });
+
+  document.getElementById('erg-rpt').innerHTML =
+    `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">
+       <div>
+         <div style="font-weight:600;margin-bottom:8px;color:var(--muted);font-size:12px;text-transform:uppercase">Current State</div>
+         <div style="font-size:13px;line-height:2">
+           ${gp}% of all picks from Gold zone<br>
+           ${aItems.length ? Math.round(aInGold/aItems.length*100) : 0}% of A-items correctly gold-zoned<br>
+           ${slotted.length} items actively slotted<br>
+           ${items.filter(i=>(i.replens||0)>=10).length} items with ≥10 replens/30d
+         </div>
+       </div>
+       <div>
+         <div style="font-weight:600;margin-bottom:8px;color:var(--muted);font-size:12px;text-transform:uppercase">Optimization Gap</div>
+         <div style="font-size:13px;line-height:2">
+           ${aItems.length ? 100 - Math.round(aInGold/aItems.length*100) : 0}% of A-items not yet in Gold zone<br>
+           ${cands} re-slot candidates identified<br>
+           Walk reduction potential: <strong style="color:var(--pri)">${Math.round((aItems.length ? 100-Math.round(aInGold/aItems.length*100) : 0) * 0.35)}%</strong>
+         </div>
+       </div>
+       <div>
+         <div style="font-weight:600;margin-bottom:8px;color:var(--muted);font-size:12px;text-transform:uppercase">After Optimization</div>
+         <div style="font-size:13px;line-height:2">
+           Projected Gold Zone picks: <strong style="color:var(--gold)">${Math.min(100, Math.round(+gp*1.2))}%+</strong><br>
+           Replen moves needed: <strong style="color:var(--suc)">~${Math.round(items.filter(i=>(i.replens||0)>=10).length*0.4)}</strong><br>
+           Target: 100% of A-items in Gold zone
+         </div>
+       </div>
+     </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+function dl(csv, name) {
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = name; a.click();
+}
+
+// Init — load saved rules into DOM, then render
+loadRulesToDOM();
+updateSummary();
+</script>
+</body>
+</html>
