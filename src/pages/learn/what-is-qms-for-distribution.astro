@@ -1,0 +1,135 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="What Is a QMS for Distribution? — VPick+"
+  description="How quality management systems for distribution centers and 3PLs differ from traditional manufacturing QMS tools — and why it matters for FSMA, GDP, and HACCP compliance."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">What Is a QMS for Distribution?</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">What Is a QMS for Distribution?</h1>
+      <p class="section-sub">How quality management systems for distribution centers differ from manufacturing QMS — and why it matters.</p>
+
+      <h2>The category problem</h2>
+      <p>
+        "Quality Management System" was a term coined for manufacturing. The standards that shaped it — ISO 9001, 21 CFR Part 820,
+        Good Manufacturing Practice — assume long production runs, fixed equipment, deviation investigations against specifications,
+        and a workforce of process engineers and technicians who own specific steps.
+      </p>
+      <p>
+        Distribution operations are different. A 3PL might handle products for fifty customers. A cold-chain warehouse receives,
+        stores, and ships across multiple temperature zones with hundreds of SKUs rotating in and out daily. The workforce is largely
+        warehouse staff — people who pick, pack, and move goods — supplemented by outside contractors who maintain equipment.
+      </p>
+      <p>
+        Applying a manufacturing QMS to a distribution operation usually creates one of two problems:
+        either you force-fit your workflows into a tool built for someone else's reality, or you bolt together five separate tools
+        (document control here, work orders there, training in a spreadsheet, contractor sign-offs on paper) and call it a system.
+      </p>
+
+      <h2>What distribution operations actually need</h2>
+      <p>A QMS designed for distribution should handle these realities head-on:</p>
+
+      <h3>Mobile-first execution</h3>
+      <p>
+        Floor staff don't sit at desks. They need to scan a QR code on an asset and complete an inspection from their phone in 90 seconds —
+        not log into a portal at the end of a shift. PM completion, work order updates, environmental walks, and corrective action sign-offs
+        all happen at the point of work.
+      </p>
+
+      <h3>Outside contractor accommodation</h3>
+      <p>
+        Pest control, HVAC, refrigeration, fire safety, lift truck service — your most regulated equipment is often maintained by people
+        who don't work for you. A distribution QMS needs to capture their work directly. Forcing each contractor to create an account
+        rarely sticks; manually re-entering their paperwork destroys the audit trail.
+      </p>
+
+      <h3>Multi-zone environmental tracking</h3>
+      <p>
+        Freezers, coolers, ambient zones, dock areas, and high-bay storage all have different specifications. A useful QMS calculates
+        mean kinetic temperature (MKT) per USP &lt;1118&gt;, flags excursions, tracks acknowledgment, and maintains sensor
+        calibration records. Generic systems that just record temperature numbers don't satisfy modern audit expectations.
+      </p>
+
+      <h3>Workforce training that scales</h3>
+      <p>
+        A 50-person seasonal hire wave doesn't get user accounts in your software. But they do need documented training,
+        signed acknowledgment of SOPs, and annual refreshers. The QMS has to handle your full workforce — not just the people
+        with software logins.
+      </p>
+
+      <h3>Cross-module workflows</h3>
+      <p>
+        A failed PM checklist item should generate a non-conformance automatically. A non-conformance should link to the supplier
+        whose product caused it. An excursion should trigger a CAPA when it crosses certain thresholds.
+        These workflows span modules; if your QMS is really five separate tools with API integrations, they don't actually connect
+        the way audits expect them to.
+      </p>
+
+      <h2>The regulatory frame is different too</h2>
+      <p>
+        Distribution operations live under different regulatory frameworks than manufacturing:
+      </p>
+      <ul class="list">
+        <li><strong>FSMA</strong> (Food Safety Modernization Act) — for food &amp; beverage warehouses and 3PLs handling human food</li>
+        <li><strong>HACCP</strong> — for food safety hazard analysis and critical control points</li>
+        <li><strong>GDP</strong> (Good Distribution Practice) — for pharmaceutical and biopharma distribution</li>
+        <li><strong>21 CFR §111.455</strong> — for dietary supplement warehousing and distribution</li>
+        <li><strong>USP &lt;1118&gt;</strong> — for environmental monitoring and MKT calculation in storage environments</li>
+      </ul>
+      <p>
+        These standards have specific requirements — supplier qualification, lot traceability, temperature mapping, recall readiness —
+        that aren't well-served by a generic ISO 9001 framework.
+      </p>
+
+      <h2>What about ERP and WMS?</h2>
+      <p>
+        Modern WMS and ERP systems handle some of this — inventory accuracy, lot tracking, basic temperature logging.
+        But they're not designed around the quality workflow: deviation management, root cause analysis, CAPA, training compliance,
+        approval chains for SOPs, supplier scorecards, audit preparation.
+      </p>
+      <p>
+        Forcing your WMS to do QMS work usually means custom development and a paper trail that auditors don't accept.
+      </p>
+
+      <h2>The shape of a distribution QMS</h2>
+      <p>A QMS built for distribution typically covers:</p>
+      <ul class="list">
+        <li><strong>Document Control</strong> — versioned SOPs with approvals and acknowledgments</li>
+        <li><strong>CMMS</strong> — work orders, PMs, asset registry, parts</li>
+        <li><strong>Environmental Monitoring</strong> — sensors, MKT, excursions, calibration</li>
+        <li><strong>Supplier Quality</strong> — qualification, inspections, COAs, scorecards, CARs</li>
+        <li><strong>Non-Conformance &amp; CAPA</strong> — deviation workflow with effectiveness verification</li>
+        <li><strong>Training Compliance</strong> — annual tracking for the full workforce</li>
+      </ul>
+      <p>
+        These modules need to actually share data — a workflow that touches three of them shouldn't require three separate manual entries.
+      </p>
+
+      <div class="card" style="margin-top:1.5rem">
+        <strong>See it in practice:</strong>
+        <p style="margin-top: 0.5rem;">
+          <a href="/qms">QMS Pro</a> is a quality management system built for distribution from the ground up.
+          The <a href="https://qms.vpickplus.us">live demo</a> is loaded with a fictional food &amp; beverage 3PL — try the workflows yourself.
+        </p>
+      </div>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/qms">Explore QMS Pro</a>
+        <a class="btn btn-ghost" href="/why-qms" style="margin-left:8px;">Why QMS Pro</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand
+    heading="Ready to see what distribution-first looks like?"
+    body="The QMS Pro demo is open. No signup."
+    ctaText="Try the demo"
+    ctaHref="https://qms.vpickplus.us" />
+</BaseLayout>
