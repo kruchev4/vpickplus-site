@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="What is SilentScan™ (Scan-Driven Mute Mode)? — VPick+"
+  description="SilentScan lets operators silence voice temporarily and advance with scans, then resume voice instantly — ideal for noisy zones."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">What is SilentScan™?</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">What is SilentScan™?</h1>
+      <p class="section-sub">A practical way to keep work moving when voice prompts aren't ideal.</p>
+
+      <h2>The problem it solves</h2>
+      <p>Noisy areas and high-traffic zones can force voice repeats or slowdowns. Operators sometimes prefer to move silently and confirm with scans.</p>
+
+      <h2>How it works in VPick+</h2>
+      <ul class="list">
+        <li>Operator <em>mutes voice</em> and proceeds with barcode scans + lightweight on-screen cues.</li>
+        <li>System continues tracking progress and validations.</li>
+        <li>Operator <em>resumes voice</em> instantly when conditions permit.</li>
+      </ul>
+
+      <h2>Where it's useful</h2>
+      <ul class="list">
+        <li>Outbound docks and cross-dock areas</li>
+        <li>Packout or value-add services zones</li>
+        <li>Any time ambient noise spikes</li>
+      </ul>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/vpick">Explore VPick+ Product</a>
+        <a class="btn btn-ghost" href="/why" style="margin-left:8px;">Why VPick+</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand />
+</BaseLayout>

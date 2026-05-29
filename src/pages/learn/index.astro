@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+
+const articles = [
+  { slug: 'what-is-pick-to-voice',         title: 'What is Pick-to-Voice?',                summary: 'A clear definition, how it works, strengths and tradeoffs.' },
+  { slug: 'pick-to-voice-vs-multimodal',   title: 'Pick-to-Voice vs Multimodal Picking',   summary: 'Voice only vs voice + screen + scan — when to use which.' },
+  { slug: 'what-is-multimodal-picking',    title: 'What Is Multimodal Picking?',           summary: 'How multimodal workflows combine voice, screen, and scanning.' },
+  { slug: 'android-for-voice-picking',     title: 'Why Move Pick-to-Voice to Android?',    summary: 'Hardware choice, MDM, cost, flexibility, future-readiness.' },
+  { slug: 'scan-driven-mute-mode',         title: 'What is Scan-Driven Mute Mode?',        summary: 'Keep work flowing in noisy zones without losing accuracy.' },
+  { slug: 'devices-for-voice-picking',     title: 'What Devices Work with Pick-to-Voice?', summary: 'Handhelds, wearables, Bluetooth scanners, and accessories.' },
+  { slug: 'warehouse-device-leasing',      title: 'Warehouse Device Leasing Explained',    summary: 'CAPEX vs OPEX, SLAs, refresh cycles, and what\'s included.' },
+  { slug: 'what-is-livemap',               title: 'What Is LiveMap™?',                     summary: 'Real-time visibility of active picker locations across the DC floor.' },
+]
+---
+<BaseLayout
+  title="Learn — VPick+"
+  description="Clear, vendor-neutral answers about pick-to-voice, multimodal picking, Android devices, Bluetooth scanners, and warehouse device leasing."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="separator">›</span>
+    <span aria-current="page">Learn</span>
+  </nav>
+
+  <section class="hero">
+    <div class="container hero-wrap">
+      <div class="hero-copy">
+        <h1>Learn</h1>
+        <p class="lead">Vendor-neutral answers about modern voice and multimodal warehouse workflows.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="grid-2">
+        {articles.map((a) => (
+          <article class="card hover-lift">
+            <h3><a href={`/learn/${a.slug}`}>{a.title}</a></h3>
+            <p class="muted">{a.summary}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    heading="Ready to see it in action?"
+    body="Explore VPick+ product capabilities or try the QMS Pro live demo."
+    ctaText="Explore Product"
+    ctaHref="/vpick"
+  />
+</BaseLayout>

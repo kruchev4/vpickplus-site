@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="What is Pick-to-Voice? — VPick+"
+  description="A clear definition of pick-to-voice: how it works, benefits, tradeoffs, and when to consider multimodal workflows on Android."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">What is Pick-to-Voice?</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">What is Pick-to-Voice?</h1>
+      <p class="section-sub">A concise explanation of voice-guided warehouse workflows and where they fit today.</p>
+
+      <h2>Definition</h2>
+      <p>Pick-to-voice (also called voice picking) is a workflow where operators receive verbal instructions over a headset and confirm steps using speech. The goal is to keep hands free and eyes up while moving through tasks like locating, picking, and confirming items and quantities.</p>
+
+      <h2>How it works</h2>
+      <ul class="list">
+        <li><strong>Prompting:</strong> The system guides the operator to a location and item.</li>
+        <li><strong>Verification:</strong> The operator confirms (e.g., check digit, quantity) by speaking or scanning.</li>
+        <li><strong>Progression:</strong> The system sends the next instruction until the assignment is complete.</li>
+      </ul>
+
+      <h2>Benefits</h2>
+      <ul class="list">
+        <li>Hands-free pace and predictable flow</li>
+        <li>Faster onboarding vs. complex handheld screens</li>
+        <li>Reduced look-away time vs. paper or full-screen reliance</li>
+      </ul>
+
+      <h2>Common tradeoffs</h2>
+      <ul class="list">
+        <li>Pure voice can be slower in certain tasks that benefit from quick visual cues.</li>
+        <li>Noisy areas can force repeats; scanning helps where speech recognition struggles.</li>
+        <li>Legacy systems may require proprietary hardware and licensing.</li>
+      </ul>
+
+      <h2>Modern approach: multimodal on Android</h2>
+      <p>Most organizations now blend <em>voice + screen + scan</em> on Android devices. This multimodal approach preserves hands-free benefits while adding clarity and precision when needed. With VPick+, operators can also use <strong>SilentScan™</strong> to work silently in loud zones and resume voice later.</p>
+
+      <div class="card" style="margin-top:1.5rem">
+        <strong>Related:</strong>
+        <ul class="list">
+          <li><a href="/learn/pick-to-voice-vs-multimodal">Pick-to-Voice vs Multimodal Picking</a></li>
+          <li><a href="/learn/scan-driven-mute-mode">What is SilentScan™?</a></li>
+        </ul>
+      </div>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/vpick">Explore VPick+ Product</a>
+        <a class="btn btn-ghost" href="/why" style="margin-left:8px;">Why VPick+</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand />
+</BaseLayout>

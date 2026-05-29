@@ -1,0 +1,82 @@
+---
+import '../styles/global.css'
+import Nav from '../components/Nav.astro'
+import Footer from '../components/Footer.astro'
+import MarqueeBanner from '../components/MarqueeBanner.astro'
+
+interface Props {
+  title: string
+  description?: string
+  canonical?: string
+  /** Set to false on pages where you don't want the QMS announcement banner. */
+  marquee?: boolean
+  /** OG image override. */
+  ogImage?: string
+}
+
+const {
+  title,
+  description = 'VPick+ — Android-native multimodal picking for warehouses, plus QMS Pro for quality and maintenance management.',
+  canonical,
+  marquee = true,
+  ogImage = 'https://vpickplus.us/assets/social/vpickplus-social.png',
+} = Astro.props
+
+const canonicalUrl = canonical ?? new URL(Astro.url.pathname, Astro.site).toString()
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonicalUrl} />
+
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:image" content={ogImage} />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={ogImage} />
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="icon" type="image/png" href="/assets/icons/favicon-32.png" />
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png" />
+  <meta name="theme-color" content="#2B8781" />
+
+  <slot name="head" />
+</head>
+<body>
+  {marquee && <MarqueeBanner />}
+  <Nav />
+
+  <main id="content">
+    <slot />
+  </main>
+
+  <Footer />
+
+  <script>
+    // Mobile nav toggle
+    const toggle = document.querySelector('.nav-toggle')
+    const navMenu = document.querySelector('.site-nav')
+    toggle?.addEventListener('click', () => {
+      navMenu?.classList.toggle('open')
+    })
+    // Close mobile nav when a link is clicked
+    navMenu?.querySelectorAll('a').forEach((a) => {
+      a.addEventListener('click', () => navMenu.classList.remove('open'))
+    })
+  </script>
+</body>
+</html>

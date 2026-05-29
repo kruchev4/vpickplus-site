@@ -1,0 +1,23 @@
+---
+interface Props {
+  heading?: string
+  body?: string
+  ctaText?: string
+  ctaHref?: string
+}
+const {
+  heading,
+  body = 'Lease preconfigured Android devices with updates and SLAs.',
+  ctaText = 'Explore Leasing',
+  ctaHref = '/leasing',
+} = Astro.props
+---
+<section class="cta-band">
+  <div class="container cta-band-inner">
+    <p>
+      {heading ? <strong>{heading}</strong> : <strong>Prefer OPEX?</strong>}
+      {' '}{body}
+    </p>
+    <a class="btn btn-secondary" href={ctaHref}>{ctaText}</a>
+  </div>
+</section>

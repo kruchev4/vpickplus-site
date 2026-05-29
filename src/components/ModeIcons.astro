@@ -1,0 +1,16 @@
+---
+const modes = [
+  { src: '/assets/icons/voice.svg',       alt: 'Voice mode icon',       label: 'Voice' },
+  { src: '/assets/icons/screen.svg',      alt: 'On-screen guidance icon', label: 'Screen' },
+  { src: '/assets/icons/scan.svg',        alt: 'Barcode scan icon',     label: 'Scan' },
+  { src: '/assets/icons/silentscan.svg',  alt: 'SilentScan icon',       label: 'SilentScan™' },
+]
+---
+<ul class="mode-icons" aria-label="Multimodal capabilities">
+  {modes.map((m) => (
+    <li>
+      <img src={m.src} alt={m.alt} width="56" height="56" loading="lazy" />
+      <span>{m.label}</span>
+    </li>
+  ))}
+</ul>

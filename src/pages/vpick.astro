@@ -1,0 +1,175 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import CtaBand from '../components/CtaBand.astro'
+---
+<BaseLayout
+  title="VPick+ — Android-Native Voice, Screen & Scan Workflows"
+  description="Modern pick-to-voice for warehouses. Android-native, multimodal guidance, and Scan-Driven Mute Mode for fast, accurate workflows."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="separator">›</span>
+    <span aria-current="page">VPick+</span>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container hero-wrap">
+      <div class="hero-copy">
+        <h1>Voice, screen, scan—your workflow, your way.</h1>
+        <p class="lead">
+          Android-native multimodal picking with <strong>Serverless Voice Picking™</strong>
+          and <strong>SilentScan™</strong>. No voice server. No middleware. No extra failure points.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href="mailto:info@vpickplus.us?subject=VPick%2B%20Demo%20Request">Request a Demo</a>
+          <a class="btn btn-secondary btn-lg" href="/learn/what-is-multimodal-picking">See how it works</a>
+        </div>
+        <p class="muted" style="margin-top:14px;">
+          Prefer OPEX? <a href="/leasing">Lease preconfigured Android devices</a> with updates and SLAs.
+        </p>
+      </div>
+      <div class="hero-image">
+        <img src="/assets/hero/operator-android-headset.jpg" alt="Warehouse operator using headset with Android device" />
+      </div>
+    </div>
+  </section>
+
+  <!-- LiveMap -->
+  <section id="livemap" class="section-accent">
+    <div class="container">
+      <div class="grid-2" style="align-items:center;">
+        <div>
+          <span class="pill new">New</span>
+          <h2 style="margin-top:0.75rem;">LiveMap™ — real-time picker visibility</h2>
+          <p class="lead">
+            Watch active pickers update on the floor plan—powered by the VPick+ location field.
+            Balance work, spot congestion, and see progress as it happens.
+          </p>
+          <a class="btn btn-primary" href="mailto:info@vpickplus.us?subject=LiveMap%20Demo%20Request">See your DC live</a>
+          <a class="btn btn-ghost" href="/learn/what-is-livemap">Learn about LiveMap™</a>
+        </div>
+        <div>
+          <img src="/assets/livemap-banner.png" alt="LiveMap preview" style="border-radius:var(--radius); box-shadow: var(--shadow-lg);" loading="lazy" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Serverless Voice Picking pitch -->
+  <section>
+    <div class="container">
+      <h2>Serverless Voice Picking™ — No Voice Server. No Middleware.</h2>
+      <p>
+        Traditional voice-picking systems rely on a dedicated <strong>voice server</strong> or middleware
+        layer to convert WMS tasks into spoken prompts and interpret confirmations <sup>[1]</sup>.
+        This architecture adds cost, latency, and a second point of failure.
+      </p>
+      <p>
+        Even enterprise systems like SAP EWM depend on external <strong>voice middleware</strong> for
+        recognition and dialog flow — SAP states that the middleware "handles the actual voice interface,"
+        meaning speech processing does not occur on the device <sup>[2]</sup>.
+      </p>
+      <p>
+        <strong>VPick+ eliminates this entire layer.</strong> All multimodal logic, speech behavior, confirmations,
+        and SilentScan™ mode run directly on the Android device — no servers to deploy, no middleware to patch,
+        and no backend voice engine to manage.
+      </p>
+      <ul class="list">
+        <li><strong>No voice-server hosting or licensing</strong></li>
+        <li><strong>No middleware integrations</strong> or maintenance windows</li>
+        <li><strong>Higher reliability</strong> — fewer moving parts</li>
+        <li><strong>Lower TCO</strong> compared to legacy voice systems</li>
+        <li><strong>Instant scalability</strong> across fleets and locations</li>
+        <li><strong>Faster response</strong> — no server round-trips</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Three modes -->
+  <section class="alt">
+    <div class="container">
+      <h2>Three Modes. One Workflow.</h2>
+      <div class="grid-3" style="margin-top:1.5rem;">
+        <article class="card">
+          <img src="/assets/icons/voice.svg" alt="" width="48" height="48" />
+          <h3>Voice</h3>
+          <p>Hands-free confirmations, guided steps, and rapid onboarding with spoken prompts — optimized for noisy environments.</p>
+        </article>
+        <article class="card">
+          <img src="/assets/icons/screen.svg" alt="" width="48" height="48" />
+          <h3>Screen</h3>
+          <p>On-device visuals for exceptions, lot/expiry checks, images, or multi-SKU clarity — no mode-switching overhead.</p>
+        </article>
+        <article class="card">
+          <img src="/assets/icons/scan.svg" alt="" width="48" height="48" />
+          <h3>Scan</h3>
+          <p>High-confidence validation with barcode scans; reduce mispicks and speed up confirmations at aisle, slot, and item level.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- SilentScan -->
+  <section>
+    <div class="container">
+      <img src="/assets/icons/silentscan.svg" alt="" width="48" height="48" />
+      <h2>SilentScan™ — Scan-Driven Mute Mode</h2>
+      <p>When scanning starts, voice output intelligently mutes. Workers stay focused with vibration and visual cues — ideal for dense pick faces and quiet zones.</p>
+      <ul class="list">
+        <li>Automatic voice suppression during rapid scan streaks</li>
+        <li>Haptic + UI confirmations in lieu of audio chatter</li>
+        <li>Seamless return to full voice when scanning stops</li>
+      </ul>
+      <p style="margin-top:16px;"><a href="/learn/scan-driven-mute-mode">Learn about SilentScan™ →</a></p>
+    </div>
+  </section>
+
+  <!-- Android-native -->
+  <section class="alt">
+    <div class="container">
+      <h2>Android-Native Advantages</h2>
+      <div class="grid-2" style="margin-top:1.5rem;">
+        <div><h3>Device Flexibility</h3><p>BYOD-friendly and works with major Android handhelds, ring scanners, headsets, and wearables.</p></div>
+        <div><h3>Lower TCO</h3><p>Modern management, rapid updates, and ecosystem breadth lower cost versus proprietary stacks.</p></div>
+        <div><h3>Fast Iteration</h3><p>Ship improvements weekly with minimal IT overhead. Keep pace with seasonal or process changes.</p></div>
+        <div><h3>Interoperability</h3><p>Integrates with leading WMS/ERP via APIs, files, or connectors without locking you in.</p></div>
+      </div>
+      <p class="small" style="margin-top:1.5rem;">See <a href="/learn/android-for-voice-picking">Why Pick-to-Voice is Moving to Android</a>.</p>
+    </div>
+  </section>
+
+  <!-- Outcomes -->
+  <section>
+    <div class="container">
+      <h2>Outcomes You Can Measure</h2>
+      <ul class="checklist">
+        <li>↑ Pick rate with fewer interruptions</li>
+        <li>↓ Mispicks via scan validation</li>
+        <li>↓ Onboarding time with familiar Android UX</li>
+        <li>↑ Worker satisfaction with quiet, focused flows</li>
+      </ul>
+      <div style="margin-top:1.5rem; display:flex; gap:12px; flex-wrap:wrap;">
+        <a class="btn btn-primary" href="mailto:info@vpickplus.us?subject=VPick%2B%20Demo%20Request">Request a Demo</a>
+        <a class="btn btn-ghost" href="/learn">Explore Learn</a>
+      </div>
+    </div>
+  </section>
+
+  <hr class="ref-line" />
+  <section class="references container">
+    <h3>References</h3>
+    <ol>
+      <li>
+        <sup>[1]</sup> Traditional voice-picking architectures use a <strong>voice server</strong> to convert WMS tasks into spoken dialog and interpret confirmations.
+        <a href="https://dvunified.com/3pl/voice-picking-warehouse/" target="_blank" rel="noopener">dvunified.com</a>
+      </li>
+      <li>
+        <sup>[2]</sup> SAP EWM Voice Picking requires <strong>voice middleware</strong> for recognition and dialog; SAP states middleware "handles the actual voice interface."
+        <a href="https://community.sap.com/t5/supply-chain-management-blog-posts-by-members/sap-ewm-voice-picking-setup-boost-accuracy-and-productivity-in-your/ba-p/14113494" target="_blank" rel="noopener">SAP Community</a>
+      </li>
+    </ol>
+  </section>
+
+  <CtaBand />
+</BaseLayout>

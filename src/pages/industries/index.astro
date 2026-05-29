@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+import { industries } from '../../data/industries.ts'
+---
+<BaseLayout
+  title="Industries — VPick+"
+  description="Explore how VPick+ supports 3PL, Retail & DC, eCommerce, Manufacturing & Kitting, and Grocery & CPG with Android-native multimodal picking."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="separator">›</span>
+    <span aria-current="page">Industries</span>
+  </nav>
+
+  <section class="hero">
+    <div class="container hero-wrap">
+      <div class="hero-copy">
+        <h1>Industries We Support</h1>
+        <p class="lead">
+          Android-native <strong>multimodal picking</strong> — voice, screen, and scan with <strong>SilentScan™</strong> —
+          built for real warehouse environments. Configure workflows per site, customer, or zone without legacy lock-in.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="/vpick">See VPick+ Product</a>
+          <a class="btn btn-ghost" href="/why">Why Multimodal</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="grid-2">
+        {industries.map((ind) => (
+          <article class="card hover-lift">
+            <h3>{ind.name}</h3>
+            <p class="muted">{ind.cardSummary.tagline}</p>
+            <ul class="list">
+              {ind.cardSummary.bullets.map((b) => <li>{b}</li>)}
+            </ul>
+            <p style="margin-top:1rem;"><a href={`/industries/${ind.slug}`}>Explore {ind.shortName} →</a></p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <CtaBand />
+</BaseLayout>

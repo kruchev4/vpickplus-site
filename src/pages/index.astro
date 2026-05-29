@@ -1,0 +1,120 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import CtaBand from '../components/CtaBand.astro'
+import { industries } from '../data/industries.ts'
+---
+<BaseLayout
+  title="VPick+ — Warehouse Software, Built for the Floor and the QA Office"
+  description="VPick+ makes two products for distribution operations: VPick+ for Android-native multimodal voice picking, and QMS Pro for quality and maintenance management."
+>
+  <!-- Diverging hero -->
+  <section class="diverging-hero">
+    <div class="container">
+      <h1>Software built for the warehouse floor <em style="color:var(--teal); font-style:normal;">and</em> the QA office.</h1>
+      <p class="lead">
+        We make two products for distribution operations.
+        Pick the one that fits your role.
+      </p>
+
+      <div class="product-split">
+        <article class="product-card">
+          <div class="product-card-buyer">For Operations</div>
+          <div class="product-card-header">
+            <h3>VPick+</h3>
+          </div>
+          <p class="product-card-tagline">
+            Android-native voice, screen, and scan picking — with SilentScan™ and Serverless Voice Picking™.
+          </p>
+          <ul class="product-card-features">
+            <li>No voice server, no middleware</li>
+            <li>Multimodal: voice + screen + scan</li>
+            <li>Real-time picker visibility with LiveMap™</li>
+            <li>Works with any modern Android device</li>
+          </ul>
+          <div class="product-card-cta">
+            <a class="btn btn-primary" href="/vpick">Explore VPick+ →</a>
+            <a class="btn btn-ghost" href="mailto:info@vpickplus.us?subject=VPick%2B%20Demo%20Request">Request a Demo</a>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <span class="product-card-badge">New</span>
+          <div class="product-card-buyer">For Quality &amp; Maintenance</div>
+          <div class="product-card-header">
+            <h3>QMS Pro</h3>
+          </div>
+          <p class="product-card-tagline">
+            Quality and maintenance management for distribution centers: document control, CMMS, environmental monitoring, and more.
+          </p>
+          <ul class="product-card-features">
+            <li>Document control with versioned approvals</li>
+            <li>CMMS: work orders, PMs, asset registry</li>
+            <li>Environmental monitoring with MKT (USP &lt;1118&gt;)</li>
+            <li>FSMA / HACCP supplier quality workflows</li>
+          </ul>
+          <div class="product-card-cta">
+            <a class="btn btn-primary" href="/qms">Explore QMS Pro →</a>
+            <a class="btn btn-secondary" href="https://qms.vpickplus.us" target="_blank" rel="noopener">Try the Live Demo →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why we built both -->
+  <section class="alt">
+    <div class="container">
+      <div style="max-width: 760px; margin: 0 auto; text-align: center;">
+        <h2>One company, two tools for one operation</h2>
+        <p class="lead" style="margin: 0 auto;">
+          Distribution centers depend on two things: getting product out the door fast,
+          and proving you did it right. VPick+ makes the first easy. QMS Pro makes the second auditable.
+          Both are built for real warehouses — not the slides about them.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Industries (existing content, preserved) -->
+  <section>
+    <div class="container">
+      <h2 class="section-title" style="text-align:center; margin-bottom: 0.25rem;">Industries We Support</h2>
+      <p class="section-sub" style="text-align:center; margin: 0 auto 2rem;">VPick+ adapts to the workflows of demanding distribution environments.</p>
+
+      <div class="grid-3">
+        {industries.map((ind) => (
+          <article class="card hover-lift">
+            <h3>{ind.name}</h3>
+            <p class="muted">{ind.cardSummary.tagline}</p>
+            <ul class="list">
+              {ind.cardSummary.bullets.map((b) => <li>{b}</li>)}
+            </ul>
+            <p style="margin-top:auto"><a href={`/industries/${ind.slug}`}>Explore {ind.shortName} →</a></p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- LiveMap teaser (preserved from your homepage) -->
+  <section class="section-accent">
+    <div class="container">
+      <div class="grid-2" style="align-items:center;">
+        <div>
+          <span class="pill new">New</span>
+          <h2 style="margin-top:0.75rem;">LiveMap™ — Real-Time Picker Visibility</h2>
+          <p class="lead">
+            See your distribution center come to life with real-time picker locations,
+            powered directly by VPick+.
+          </p>
+          <a href="/vpick#livemap" class="btn btn-primary">View LiveMap™</a>
+        </div>
+        <div>
+          <img src="/assets/livemap-banner.png" alt="LiveMap real-time view" style="border-radius:var(--radius); box-shadow: var(--shadow-lg);" loading="lazy" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand />
+</BaseLayout>

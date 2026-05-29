@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="Pick-to-Voice vs Multimodal — VPick+"
+  description="Voice-only vs. voice + screen + scan: where each approach excels, where it struggles, and how to choose for your workflows."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">Pick-to-Voice vs Multimodal</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">Pick-to-Voice vs Multimodal Picking</h1>
+      <p class="section-sub">Choose the right mode per task: speed from voice, clarity from screen, precision from scanning.</p>
+
+      <h2>At a glance</h2>
+      <ul class="list">
+        <li><strong>Voice-only:</strong> Great for steady pace and hands-free movement</li>
+        <li><strong>Multimodal (voice + screen + scan):</strong> Adds visual clarity and barcode precision</li>
+      </ul>
+
+      <h2>When voice-only shines</h2>
+      <ul class="list">
+        <li>Stable environments with clear acoustics</li>
+        <li>Repetitive paths where prompts are predictable</li>
+        <li>Operators who prefer hands-free confirmations</li>
+      </ul>
+
+      <h2>When multimodal wins</h2>
+      <ul class="list">
+        <li>Dense SKUs or look-alike items that benefit from quick visual checks</li>
+        <li>Noisy areas where repeats slow the flow</li>
+        <li>Steps requiring scan verification (location, item, lot, serial, quantity)</li>
+      </ul>
+
+      <h2>Hybrid in practice</h2>
+      <p>Most facilities blend both. With VPick+, you select per workflow or per step. <strong>SilentScan™</strong> lets operators silence voice temporarily and advance by scanning — then resume voice instantly when conditions improve.</p>
+
+      <div class="card" style="margin-top:1.5rem">
+        <strong>Related:</strong>
+        <ul class="list">
+          <li><a href="/learn/what-is-pick-to-voice">What is Pick-to-Voice?</a></li>
+          <li><a href="/learn/scan-driven-mute-mode">What is SilentScan™?</a></li>
+        </ul>
+      </div>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/vpick">Explore VPick+ Product</a>
+        <a class="btn btn-ghost" href="/why" style="margin-left:8px;">Why VPick+</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand body="Need devices? Lease preconfigured Android units with updates and SLAs." />
+</BaseLayout>

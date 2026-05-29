@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="What Devices Work with Pick-to-Voice? — VPick+"
+  description="Devices for voice and multimodal picking: rugged Android handhelds, wearables, headsets, and Bluetooth scanners — plus leasing options."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">What Devices Work with Pick-to-Voice?</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">What Devices Work with Pick-to-Voice?</h1>
+      <p class="section-sub">Selecting hardware for voice and multimodal workflows on Android.</p>
+
+      <h2>Common device types</h2>
+      <ul class="list">
+        <li><strong>Rugged Android handhelds:</strong> Well-balanced for day-to-day picking.</li>
+        <li><strong>Wearables:</strong> Wrist-mounts and ring scanners for high-velocity tasks.</li>
+        <li><strong>Enterprise smartphones:</strong> Lighter, cost-effective, and flexible.</li>
+        <li><strong>Headsets:</strong> Warehouse-grade audio with noise reduction.</li>
+        <li><strong>Bluetooth scanners:</strong> Optional add-on — lease from us or bring your own.</li>
+      </ul>
+
+      <h2>Considerations</h2>
+      <ul class="list">
+        <li>Environment (freezer, ambient, dock)</li>
+        <li>Battery life and charge management</li>
+        <li>Ergonomics across shifts</li>
+        <li>MDM enrollment and update windows</li>
+      </ul>
+
+      <div class="card" style="margin-top:1.5rem">
+        <strong>See also:</strong>
+        <ul class="list">
+          <li><a href="/learn/android-for-voice-picking">Why Move Pick-to-Voice to Android?</a></li>
+          <li><a href="/leasing">VPlus Device Leasing</a> — devices preconfigured for VPick+, VPlus, or VPlus Lite.</li>
+        </ul>
+      </div>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/vpick">Explore VPick+ Product</a>
+        <a class="btn btn-ghost" href="/contact" style="margin-left:8px;">Talk to Us</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand />
+</BaseLayout>

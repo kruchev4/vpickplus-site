@@ -1,0 +1,67 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="What Is LiveMap™? — VPick+"
+  description="Learn how LiveMap provides real-time picker visibility across the DC floor using the VPick+ location field."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">What Is LiveMap™?</span>
+  </nav>
+
+  <section class="hero">
+    <div class="container hero-wrap">
+      <div class="hero-copy">
+        <h1>What Is LiveMap™?</h1>
+        <p class="lead">Real-time visibility across the distribution center — see exactly where pickers are working as tasks update.</p>
+      </div>
+      <div class="hero-image">
+        <img src="/assets/livemap-banner.png" alt="LiveMap real-time DC visibility" />
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container container-narrow">
+      <h2>Why LiveMap™ Matters</h2>
+      <p class="muted">
+        Supervisors need real-time clarity — not delayed reports. LiveMap™ gives operations leaders a constantly updating picture of where pickers are inside the DC.
+      </p>
+      <ul class="checklist">
+        <li>Balance work across zones based on live movement</li>
+        <li>Reduce congestion before it slows picking</li>
+        <li>See active vs idle time without walking the floor</li>
+        <li>Monitor throughput visually, as it happens</li>
+        <li>Increase supervisor reach in large DC environments</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="alt">
+    <div class="container container-narrow">
+      <h2>How LiveMap™ Works</h2>
+      <p>
+        LiveMap™ uses the existing <strong>VPick+ location field</strong>, updated automatically as each picker completes tasks. Every confirmation includes:
+      </p>
+      <ul class="checklist">
+        <li>Aisle location</li>
+        <li>Bay location</li>
+        <li>Timestamp</li>
+        <li>Picker ID</li>
+      </ul>
+      <p>
+        These updates power a real-time map that shows pickers moving across the floor — without needing Bluetooth beacons, RTLS hardware, or sensors.
+      </p>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/vpick#livemap">View LiveMap™ on the Product Page</a>
+        <a class="btn btn-ghost" href="mailto:info@vpickplus.us?subject=LiveMap%20Demo%20Request" style="margin-left:8px;">See your DC live</a>
+      </p>
+    </div>
+  </section>
+
+  <CtaBand />
+</BaseLayout>

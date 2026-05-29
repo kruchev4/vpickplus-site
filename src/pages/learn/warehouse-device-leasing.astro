@@ -1,0 +1,56 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="Warehouse Device Leasing Explained — VPick+"
+  description="A practical guide to Android device leasing for warehouses: CAPEX vs OPEX, SLAs, updates, refresh cycles, and optional accessories."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">Warehouse Device Leasing Explained</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">Warehouse Device Leasing Explained</h1>
+      <p class="section-sub">Reduce CAPEX, accelerate rollout, and keep costs predictable with refresh cycles and SLAs.</p>
+
+      <h2>Leasing in a nutshell</h2>
+      <ul class="list">
+        <li><strong>OPEX over CAPEX:</strong> Smooth, predictable costs</li>
+        <li><strong>Provisioned and ready:</strong> MDM enrollment, Wi-Fi profiles, app configuration</li>
+        <li><strong>Support:</strong> Updates, RMAs, and optional advance replacement</li>
+        <li><strong>Refresh:</strong> Replace or retire at the 36-month mark</li>
+      </ul>
+
+      <h2>What's included vs. add-ons</h2>
+      <ul class="list">
+        <li><strong>Included:</strong> Android device provisioning, OS/app updates, RMA handling, lifecycle refresh</li>
+        <li><strong>Add-ons:</strong> Bluetooth scanners, headsets, belt slings/holsters, cases, cradles/mounts</li>
+      </ul>
+
+      <h2>Which bundle?</h2>
+      <ul class="list">
+        <li><strong>VPlus Lite:</strong> Lightweight UI (no voice)</li>
+        <li><strong>VPlus:</strong> Programmable UI, richer integrations (no voice)</li>
+        <li><strong>VPick+:</strong> Voice + screen + scan with SilentScan™</li>
+      </ul>
+
+      <div class="card" style="margin-top:1.5rem">
+        <strong>See also:</strong>
+        <ul class="list">
+          <li><a href="/leasing">VPlus Device Leasing</a> (program details, SLAs)</li>
+          <li><a href="/learn/devices-for-voice-picking">Devices for Voice &amp; Multimodal Picking</a></li>
+        </ul>
+      </div>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/leasing">Request a Leasing Quote</a>
+        <a class="btn btn-ghost" href="/contact" style="margin-left:8px;">Talk to Us</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand />
+</BaseLayout>

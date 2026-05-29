@@ -1,0 +1,192 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import CtaBand from '../components/CtaBand.astro'
+
+const DEMO_URL = 'https://qms.vpickplus.us'
+
+// Placeholders. To swap in real screenshots: drop them in /public/assets/qms/
+// with the filenames below and set `placeholder: false`.
+const screenshots = [
+  { src: '/assets/qms/dashboard.png',   alt: 'QMS Pro dashboard overview', label: 'Dashboard', desc: 'A single view of overdue PMs, open alerts, NCs, and approvals', placeholder: true },
+  { src: '/assets/qms/env.png',         alt: 'Environmental monitoring with MKT', label: 'Environmental Monitoring', desc: 'Continuous temp/humidity with MKT per USP <1118>', placeholder: true },
+  { src: '/assets/qms/workorders.png',  alt: 'Work orders list', label: 'CMMS Work Orders', desc: 'QR-driven mobile completion with checklist support', placeholder: true },
+  { src: '/assets/qms/documents.png',   alt: 'Document control', label: 'Document Control', desc: 'Versioned SOPs, approvals, and acknowledgments', placeholder: true },
+  { src: '/assets/qms/alerts.png',      alt: 'Smart alerts feed', label: 'Smart Alerts', desc: 'Review deadlines, excursions, and approvals — surfaced automatically', placeholder: true },
+  { src: '/assets/qms/training.png',    alt: 'Training compliance dashboard', label: 'Training', desc: 'Annual compliance tracking with e-signature capture', placeholder: true },
+]
+---
+<BaseLayout
+  title="QMS Pro — Quality & Maintenance Management for Distribution Centers"
+  description="QMS Pro brings document control, CMMS, environmental monitoring, supplier quality, and non-conformance management into one system built for distribution operations."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="separator">›</span>
+    <span aria-current="page">QMS Pro</span>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container hero-wrap">
+      <div class="hero-copy">
+        <span class="pill new" style="margin-bottom:1rem;">Now Available</span>
+        <h1>Quality and maintenance management, built for distribution.</h1>
+        <p class="lead">
+          QMS Pro unifies the documents, work orders, sensors, suppliers, and audits a modern DC needs to prove what it's doing — and to fix things before regulators or customers notice.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href={DEMO_URL} target="_blank" rel="noopener">Try the Live Demo →</a>
+          <a class="btn btn-secondary btn-lg" href="mailto:info@vpickplus.us?subject=QMS%20Pro%20Inquiry">Request a Conversation</a>
+        </div>
+        <p class="muted" style="margin-top:14px; font-size:0.9rem;">
+          The demo is a self-resetting sandbox loaded with Meridian Cold Chain Logistics — a fictional food &amp; beverage 3PL.
+          Click around, complete work orders, acknowledge alerts. We reset it nightly.
+        </p>
+      </div>
+      <div class="hero-image">
+        <div class="qms-screenshot">
+          <div class="qms-screenshot-placeholder">
+            <div>
+              <strong>QMS Pro dashboard</strong>
+              Hero screenshot will live here
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What it does (module overview) -->
+  <section>
+    <div class="container">
+      <h2 style="text-align:center;">One system for everything quality and maintenance teams own</h2>
+      <p class="section-sub" style="text-align:center; margin: 0 auto 2.5rem;">
+        Six tightly integrated modules. Nothing bolted on, nothing missing.
+      </p>
+
+      <div class="grid-3">
+        <article class="card hover-lift">
+          <h3>📄 Document Control</h3>
+          <p>Versioned SOPs with approval workflows, acknowledgments, review-cycle automation, and a full audit log.</p>
+        </article>
+        <article class="card hover-lift">
+          <h3>🔧 CMMS</h3>
+          <p>Work orders, PM schedules with checklists, asset registry, parts inventory, contractor coordination, and QR-driven mobile completion.</p>
+        </article>
+        <article class="card hover-lift">
+          <h3>🌡️ Environmental Monitoring</h3>
+          <p>Continuous temperature and humidity tracking with MKT calculation per USP &lt;1118&gt;, excursion management, and calibration history.</p>
+        </article>
+        <article class="card hover-lift">
+          <h3>🚚 Supplier Quality</h3>
+          <p>FSMA/HACCP-ready: PO tracking, receiving inspections, COAs, scorecards, corrective action requests, supplier audits.</p>
+        </article>
+        <article class="card hover-lift">
+          <h3>⚠️ Non-Conformance &amp; CAPA</h3>
+          <p>End-to-end NC workflow: detection, 5-Why RCA, corrective and preventive actions, effectiveness verification, approval, closure.</p>
+        </article>
+        <article class="card hover-lift">
+          <h3>🎓 Training Compliance</h3>
+          <p>Annual training tracking with e-signature capture and roster-level compliance metrics, separate from app users.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshots tour -->
+  <section class="alt">
+    <div class="container">
+      <h2 style="text-align:center;">See it in motion</h2>
+      <p class="section-sub" style="text-align:center; margin: 0 auto 2.5rem;">
+        A look at the major workflows. The live demo lets you click through them all.
+      </p>
+
+      <div class="qms-feature-grid">
+        {screenshots.map((s) => (
+          <article class="qms-screenshot">
+            {s.placeholder ? (
+              <div class="qms-screenshot-placeholder">
+                <div>
+                  <strong>{s.label}</strong>
+                  {s.desc}
+                </div>
+              </div>
+            ) : (
+              <img src={s.src} alt={s.alt} loading="lazy" />
+            )}
+            <div style="padding: 14px 18px;">
+              <strong style="display:block; color:var(--ink);">{s.label}</strong>
+              <span class="small">{s.desc}</span>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <p class="small text-center" style="margin-top:1.5rem;">
+        These are placeholders. Real screenshots from the live demo will replace them shortly.
+      </p>
+    </div>
+  </section>
+
+  <!-- Why we built it -->
+  <section>
+    <div class="container container-narrow">
+      <h2>Why we built QMS Pro</h2>
+      <p>
+        Distribution centers run on two complementary systems: one that gets product out the door, and one that proves it
+        was handled right. The first usually has good software. The second usually has a binder, a spreadsheet, three siloed
+        tools, and a quality manager who knows where every gap is.
+      </p>
+      <p>
+        QMS Pro replaces the binder. It's the system a modern DC needs to be audit-ready — FSMA, HACCP, GDP — without
+        running five separate tools that don't talk to each other. Documents, equipment, sensors, suppliers, deviations,
+        and training: one place, one audit trail, one source of truth.
+      </p>
+    </div>
+  </section>
+
+  <!-- Technical -->
+  <section class="alt">
+    <div class="container">
+      <h2>Built for real operations</h2>
+      <div class="grid-2" style="margin-top:1.5rem;">
+        <div>
+          <h3>Mobile-first where it matters</h3>
+          <p>QR codes on every asset and PM. Technicians and contractors complete work from a phone in the aisle — no laptop, no paperwork.</p>
+        </div>
+        <div>
+          <h3>Sensors, not spreadsheets</h3>
+          <p>Direct integration with Ecowitt and other gateway-based sensors. Mean kinetic temperature calculated continuously per USP &lt;1118&gt;.</p>
+        </div>
+        <div>
+          <h3>Real workflows, not forms</h3>
+          <p>Approval chains. Acknowledgment tracking. CAPA effectiveness verification. The things audits actually look for.</p>
+        </div>
+        <div>
+          <h3>Notification where you live</h3>
+          <p>Email via Resend, alerts via Teams webhooks. Smart Alerts surface what needs attention without inbox spam.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Demo CTA -->
+  <section>
+    <div class="container">
+      <div class="cta-strong">
+        <h2>Try the live demo.</h2>
+        <p>No signup. No sales call. Just the actual product, loaded with realistic fictional data.</p>
+        <a class="btn btn-lg" href={DEMO_URL} target="_blank" rel="noopener">
+          Open the QMS Pro demo →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    heading="Interested in deploying it for your operation?"
+    body="Each implementation is tailored — let's talk about scope, integrations, and timing."
+    ctaText="Request a conversation"
+    ctaHref="mailto:info@vpickplus.us?subject=QMS%20Pro%20Implementation%20Inquiry"
+  />
+</BaseLayout>
