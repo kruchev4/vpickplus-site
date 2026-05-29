@@ -1,0 +1,154 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="Working with Outside Contractors in Your QMS — VPick+"
+  description="How distribution centers can capture contractor work — pest control, HVAC, fire safety — directly in their QMS without forcing contractors to create accounts."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">Outside Contractors in Your QMS</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">Working with Outside Contractors in Your QMS</h1>
+      <p class="section-sub">How to capture contractor work directly — without forcing them to create accounts.</p>
+
+      <h2>The audit problem nobody talks about</h2>
+      <p>
+        Walk a distribution center and count the equipment maintained by people who don't work for you. Pest control technicians.
+        HVAC service contractors. Refrigeration technicians. Fire safety inspectors. Lift truck mechanics. Generator service.
+        Sprinkler system inspectors.
+      </p>
+      <p>
+        Now look at how their work gets into your quality management system. Usually one of three ways:
+      </p>
+      <ol class="list">
+        <li>The contractor leaves a paper service report. Someone on your team eventually types or scans it into the system.</li>
+        <li>The contractor emails a PDF. It sits in someone's inbox until they remember to upload it.</li>
+        <li>The contractor signs a logbook at the dock. The logbook is reviewed quarterly, at best.</li>
+      </ol>
+      <p>
+        Every one of these creates an audit gap. When the FDA inspector or a customer auditor asks "show me the documented evidence
+        of last month's pest control inspection," the answer is often "it's around here somewhere" — followed by a frantic search
+        through emails, file cabinets, and the maintenance manager's truck.
+      </p>
+
+      <h2>Why traditional QMS approaches fail here</h2>
+      <p>
+        Most QMS platforms handle contractors one of two ways, and both have problems:
+      </p>
+
+      <h3>Approach 1: Make contractors users</h3>
+      <p>
+        Invite the contractor as a user in your system. Now they have a login. Now they're supposed to log in, find the right inspection
+        form, and complete it after each visit.
+      </p>
+      <p>
+        In practice: they don't. They use the software you make them use, which is their own. They might do it the first time someone
+        asks. They won't do it the fiftieth. And every new technician at the contractor company requires onboarding, which doesn't happen.
+      </p>
+
+      <h3>Approach 2: Internal staff enter contractor work</h3>
+      <p>
+        Your maintenance manager or quality coordinator transcribes contractor reports into your system. This shifts the burden to your team
+        and adds latency. It also creates a credibility problem: when the auditor sees that the system entry was made three days after the
+        contractor was on-site, by someone who wasn't there, the audit trail starts to look fabricated.
+      </p>
+
+      <h2>A different approach: tokenized contractor access</h2>
+      <p>
+        There's a third option that's been quietly emerging in modern QMS design: <strong>tokenized contractor interfaces</strong> via QR codes.
+      </p>
+      <p>How it works:</p>
+      <ol class="list">
+        <li>You generate a QR code for each contractor (or for each piece of equipment they service).</li>
+        <li>The contractor scans the QR code with their phone — no app to install, no account to create.</li>
+        <li>They land on a mobile-friendly inspection form, branded with your company name and the specific equipment context.</li>
+        <li>They complete the form on the spot, capturing signatures, photos, and any required compliance data.</li>
+        <li>Submission goes directly into your QMS, with timestamp, device fingerprint, and GPS location captured automatically.</li>
+      </ol>
+      <p>
+        The contractor never creates an account. The work is captured at the point of service. The audit trail is clean.
+      </p>
+
+      <h2>What this looks like in practice</h2>
+      <p>
+        A pest control technician walks into your warehouse. The route binder has a QR code on the cover. They scan it with their phone.
+        The form that opens already knows: which DC this is, what their contractor name is, which routes they're responsible for.
+      </p>
+      <p>
+        They complete the route, photograph any findings, note any new pest activity, and submit. By the time they walk out, your QMS
+        has a complete inspection record — including the photos — tied to the specific contractor, the specific date, and the specific
+        equipment areas inspected.
+      </p>
+      <p>
+        Your maintenance manager doesn't have to transcribe anything. Your quality coordinator doesn't have to chase down a missing PDF.
+        And when the auditor asks for the last 12 months of pest control inspections, you export them in 30 seconds.
+      </p>
+
+      <h2>The categories where this matters most</h2>
+      <p>
+        Tokenized contractor interfaces work especially well for these service types:
+      </p>
+      <ul class="list">
+        <li><strong>Pest control</strong> — FSMA-relevant, photo evidence helpful, frequent recurring visits</li>
+        <li><strong>HVAC and refrigeration</strong> — directly affects environmental compliance, requires equipment-specific data</li>
+        <li><strong>Fire safety inspections</strong> — annual/quarterly regulatory inspections with specific documentation requirements</li>
+        <li><strong>Sprinkler system inspections</strong> — NFPA compliance with detailed checklist requirements</li>
+        <li><strong>Lift truck service</strong> — OSHA documentation, lockout/tagout, repair history</li>
+        <li><strong>Generator service</strong> — backup power critical to refrigeration uptime</li>
+        <li><strong>Loading dock equipment</strong> — workplace safety and operational continuity</li>
+      </ul>
+
+      <h2>Implementation considerations</h2>
+      <p>If you're evaluating QMS systems for distribution operations, look for these capabilities:</p>
+      <ul class="checklist">
+        <li>QR code generation per contractor and per equipment area</li>
+        <li>No login required for contractor submissions</li>
+        <li>Mobile-optimized forms (touch-friendly, no horizontal scrolling)</li>
+        <li>Photo upload from the device camera</li>
+        <li>Signature capture (touch or stylus)</li>
+        <li>Automatic timestamp and device metadata</li>
+        <li>Direct submission into the QMS workflow — not email, not file upload</li>
+        <li>Internal review and approval workflow before records are finalized</li>
+        <li>Audit-ready export of contractor records by date range, contractor, or service type</li>
+      </ul>
+
+      <h2>What about security?</h2>
+      <p>
+        Tokenized access raises a fair question: if there's no login, what stops abuse?
+      </p>
+      <p>
+        Good implementations handle this several ways:
+      </p>
+      <ul class="list">
+        <li><strong>Tokens are unique and revocable</strong> — if a contractor relationship ends, you invalidate their QR code</li>
+        <li><strong>Submissions require internal review</strong> before they're finalized in the audit record</li>
+        <li><strong>Submissions are scoped</strong> — a pest control QR code can only file pest control reports, not modify other data</li>
+        <li><strong>Anomaly detection</strong> — submissions from unexpected geolocations or at unexpected hours can be flagged</li>
+      </ul>
+
+      <div class="card" style="margin-top:1.5rem">
+        <strong>QMS Pro is built around tokenized contractor access.</strong>
+        <p style="margin-top: 0.5rem;">
+          Pest control, HVAC, and other contractor inspections can be completed from any phone via QR code — no account required.
+          See it working in the <a href="https://qms.vpickplus.us">live demo</a>.
+        </p>
+      </div>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/qms">Explore QMS Pro</a>
+        <a class="btn btn-ghost" href="/why-qms" style="margin-left:8px;">Why QMS Pro</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand
+    heading="Close the contractor audit gap"
+    body="See how tokenized contractor access works in a real product."
+    ctaText="Try the demo"
+    ctaHref="https://qms.vpickplus.us" />
+</BaseLayout>
