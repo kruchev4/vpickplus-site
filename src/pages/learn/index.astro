@@ -2,7 +2,8 @@
 import BaseLayout from '../../layouts/BaseLayout.astro'
 import CtaBand from '../../components/CtaBand.astro'
 
-const articles = [
+// VPick+ articles
+const vpickArticles = [
   { slug: 'what-is-pick-to-voice',         title: 'What is Pick-to-Voice?',                summary: 'A clear definition, how it works, strengths and tradeoffs.' },
   { slug: 'pick-to-voice-vs-multimodal',   title: 'Pick-to-Voice vs Multimodal Picking',   summary: 'Voice only vs voice + screen + scan — when to use which.' },
   { slug: 'what-is-multimodal-picking',    title: 'What Is Multimodal Picking?',           summary: 'How multimodal workflows combine voice, screen, and scanning.' },
@@ -12,10 +13,17 @@ const articles = [
   { slug: 'warehouse-device-leasing',      title: 'Warehouse Device Leasing Explained',    summary: 'CAPEX vs OPEX, SLAs, refresh cycles, and what\'s included.' },
   { slug: 'what-is-livemap',               title: 'What Is LiveMap™?',                     summary: 'Real-time visibility of active picker locations across the DC floor.' },
 ]
+
+// QMS Pro articles
+const qmsArticles = [
+  { slug: 'what-is-qms-for-distribution',     title: 'What Is a QMS for Distribution?',          summary: 'How distribution QMS differs from manufacturing QMS, and why it matters.' },
+  { slug: 'mean-kinetic-temperature-explained', title: 'Mean Kinetic Temperature Explained (USP <1118>)', summary: 'What MKT is, why USP <1118> matters, and how to calculate it.' },
+  { slug: 'working-with-outside-contractors', title: 'Working with Outside Contractors',         summary: 'How tokenized QR access closes the contractor audit gap.' },
+]
 ---
 <BaseLayout
   title="Learn — VPick+"
-  description="Clear, vendor-neutral answers about pick-to-voice, multimodal picking, Android devices, Bluetooth scanners, and warehouse device leasing."
+  description="Vendor-neutral answers about voice picking, multimodal warehouse workflows, quality management for distribution, FSMA, MKT, and more."
 >
   <nav class="breadcrumb container" aria-label="Breadcrumb">
     <a href="/">Home</a>
@@ -27,15 +35,40 @@ const articles = [
     <div class="container hero-wrap">
       <div class="hero-copy">
         <h1>Learn</h1>
-        <p class="lead">Vendor-neutral answers about modern voice and multimodal warehouse workflows.</p>
+        <p class="lead">Vendor-neutral answers about modern warehouse workflows — picking, quality management, regulatory frameworks, and the technology behind them.</p>
       </div>
     </div>
   </section>
 
+  <!-- QMS Pro articles -->
   <section>
     <div class="container">
+      <div style="margin-bottom: 2rem;">
+        <span class="pill teal">QMS Pro</span>
+        <h2 style="margin-top: 0.75rem;">Quality Management for Distribution</h2>
+        <p class="muted">Documents, deviations, environmental monitoring, and compliance for distribution operations.</p>
+      </div>
       <div class="grid-2">
-        {articles.map((a) => (
+        {qmsArticles.map((a) => (
+          <article class="card hover-lift">
+            <h3><a href={`/learn/${a.slug}`} set:html={a.title} /></h3>
+            <p class="muted" set:html={a.summary} />
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- VPick+ articles -->
+  <section class="alt">
+    <div class="container">
+      <div style="margin-bottom: 2rem;">
+        <span class="pill teal">VPick+</span>
+        <h2 style="margin-top: 0.75rem;">Voice &amp; Multimodal Picking</h2>
+        <p class="muted">Pick-to-voice, multimodal workflows, Android devices, and warehouse hardware.</p>
+      </div>
+      <div class="grid-2">
+        {vpickArticles.map((a) => (
           <article class="card hover-lift">
             <h3><a href={`/learn/${a.slug}`}>{a.title}</a></h3>
             <p class="muted">{a.summary}</p>
@@ -47,8 +80,8 @@ const articles = [
 
   <CtaBand
     heading="Ready to see it in action?"
-    body="Explore VPick+ product capabilities or try the QMS Pro live demo."
-    ctaText="Explore Product"
-    ctaHref="/vpick"
+    body="Explore the products or try the QMS Pro live demo."
+    ctaText="Explore Products"
+    ctaHref="/"
   />
 </BaseLayout>
