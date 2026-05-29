@@ -1,0 +1,160 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import CtaBand from '../components/CtaBand.astro'
+
+const DEMO_URL = 'https://qms.vpickplus.us'
+---
+<BaseLayout
+  title="Why QMS Pro — Quality Management Built for Distribution"
+  description="QMS Pro is the only quality management system designed for distribution operations from the ground up. Mobile-first, contractor-friendly, integrated across six modules."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="separator">›</span>
+    <a href="/qms">QMS Pro</a>
+    <span class="separator">›</span>
+    <span aria-current="page">Why QMS Pro</span>
+  </nav>
+
+  <!-- Intro -->
+  <section>
+    <div class="container">
+      <h1 class="section-title">Built for distribution, not retrofitted from manufacturing.</h1>
+      <p class="section-sub">
+        Most QMS tools were built for plants — long production runs, fixed equipment lists, a handful of specialized operators.
+        Distribution operations are different: hundreds of SKUs, dozens of contractors, scattered temperature zones, a workforce that
+        rarely sits at a desk. QMS Pro was designed for that reality from the start.
+      </p>
+    </div>
+  </section>
+
+  <!-- The five things -->
+  <section class="alt">
+    <div class="container">
+      <h2 style="text-align:center;">Five things that make QMS Pro different</h2>
+      <p class="section-sub" style="text-align:center; margin: 0 auto 2.5rem;">
+        Not feature lists. Real architectural decisions that matter when you run a DC.
+      </p>
+
+      <div class="grid-2" style="gap: 24px;">
+
+        <article class="card">
+          <h3>📱 Mobile-first, by design — not bolted on</h3>
+          <p>
+            Every asset has a QR code. Every PM has a QR code. A technician scans it in the aisle and completes the inspection from their phone
+            — no laptop, no paperwork, no "I'll log it later." Failed checklist items auto-generate Smart Alerts. Photos and signatures
+            captured at the point of work.
+          </p>
+          <p class="muted small">
+            Most QMS systems treat mobile as a companion app. QMS Pro treats it as the primary interface for floor work.
+          </p>
+        </article>
+
+        <article class="card">
+          <h3>🔗 Contractors don't need accounts</h3>
+          <p>
+            Outside contractors — pest control, HVAC, electrical, fire safety — scan a QR token and complete inspections from their phone.
+            No account creation, no IT involvement, no "we'll add it to the system after."
+            Their work is captured directly, with a full audit trail.
+          </p>
+          <p class="muted small">
+            Other QMS systems force you to either invite contractors as users (which never happens) or manually re-enter their work
+            (which destroys the audit trail). This is a different approach.
+          </p>
+        </article>
+
+        <article class="card">
+          <h3>🎓 Training tracks your whole workforce</h3>
+          <p>
+            Training compliance covers your entire roster — not just app users. Warehouse staff, seasonal hires, and contractors all
+            get tracked separately from the user accounts in the system. E-signature capture, annual rollover, real compliance percentages
+            for audits.
+          </p>
+          <p class="muted small">
+            Most QMS training modules conflate "employees" with "app users." That breaks the moment you hire a 30-person seasonal team
+            who don't need software accounts but do need documented training.
+          </p>
+        </article>
+
+        <article class="card">
+          <h3>🌡️ Environmental monitoring, by the standard</h3>
+          <p>
+            Continuous temperature and humidity tracking with <strong>mean kinetic temperature</strong> calculated per
+            USP &lt;1118&gt;. Excursion events captured with peak value, duration, and acknowledgment tracking.
+            Sensor calibration history maintained per device. Data ingested from Ecowitt cloud sensors — no proprietary hardware.
+          </p>
+          <p class="muted small">
+            Generic QMS tools track temperature as a number. QMS Pro implements the actual regulatory standard.
+          </p>
+        </article>
+
+        <article class="card">
+          <h3>🔄 Six modules, one workflow</h3>
+          <p>
+            A failed PM checklist item auto-generates a non-conformance.
+            An NC links to the supplier that caused it. An excursion can trigger a CAPA.
+            A document review pulls in the right approvers based on category.
+            Workflows that span modules — without the API duct tape that most "QMS suites" require.
+          </p>
+          <p class="muted small">
+            Most enterprise QMS implementations are five separate tools with integrations that break under audit pressure.
+            QMS Pro is one schema, one auth, one alert system.
+          </p>
+        </article>
+
+        <article class="card">
+          <h3>🎯 Try it without a sales call</h3>
+          <p>
+            Click a button. Land in a fully populated demo environment. Complete a work order. Acknowledge an alert.
+            Open a non-conformance. Close one. Pull up an MKT chart with a real excursion in it.
+            All without typing an email address or scheduling a call.
+          </p>
+          <p class="muted small">
+            We reset the demo every night, so the next visitor sees it the way you did. That's an architecture choice, not a marketing one.
+          </p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison framing -->
+  <section>
+    <div class="container">
+      <h2>What we're <em>not</em> trying to be</h2>
+      <p>
+        Plenty of QMS platforms exist already — for biotech manufacturing, for medical device, for automotive Tier 1.
+        They're excellent at what they do. QMS Pro isn't trying to replace them.
+      </p>
+      <p>
+        QMS Pro is for the distribution center, the 3PL, the cold-chain warehouse, the food &amp; bev DC.
+        Operations where the regulatory framework is FSMA or GDP rather than 21 CFR Part 820, where the workforce is hundreds of
+        warehouse staff rather than a dozen process engineers, and where the auditor walks the dock — not the line.
+      </p>
+      <p>
+        If you run that kind of operation, the QMS tools built for manufacturing don't fit your reality.
+        That's the gap QMS Pro fills.
+      </p>
+    </div>
+  </section>
+
+  <!-- Demo CTA -->
+  <section class="alt">
+    <div class="container">
+      <div class="cta-strong">
+        <h2>The demo is real.</h2>
+        <p>Pre-loaded with a fictional food &amp; bev 3PL. Click through every module. Reset nightly.</p>
+        <a class="btn btn-lg" href={DEMO_URL} target="_blank" rel="noopener">
+          Try the live demo →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    heading="Want to see how it would work for your operation?"
+    body="Implementations are tailored — let's talk about scope and timing."
+    ctaText="Request a conversation"
+    ctaHref="mailto:info@vpickplus.us?subject=QMS%20Pro%20Implementation%20Inquiry"
+  />
+</BaseLayout>
