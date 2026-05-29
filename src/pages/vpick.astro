@@ -38,21 +38,37 @@ import CtaBand from '../components/CtaBand.astro'
   <!-- LiveMap -->
   <section id="livemap" class="section-accent">
     <div class="container">
-      <div class="grid-2" style="align-items:center;">
-        <div>
-          <span class="pill new">New</span>
-          <h2 style="margin-top:0.75rem;">LiveMap™ — real-time picker visibility</h2>
-          <p class="lead">
-            Watch active pickers update on the floor plan—powered by the VPick+ location field.
-            Balance work, spot congestion, and see progress as it happens.
-          </p>
-          <a class="btn btn-primary" href="mailto:info@vpickplus.us?subject=LiveMap%20Demo%20Request">See your DC live</a>
-          <a class="btn btn-ghost" href="/learn/what-is-livemap">Learn about LiveMap™</a>
-        </div>
-        <div>
-          <img src="/assets/livemap-banner.png" alt="LiveMap preview" style="border-radius:var(--radius); box-shadow: var(--shadow-lg);" loading="lazy" />
-        </div>
+      <div style="text-align:center; margin-bottom: 2rem;">
+        <span class="pill new">New</span>
+        <h2 style="margin-top:0.75rem;">LiveMap™ — real-time picker visibility</h2>
+        <p class="lead" style="margin: 0 auto;">
+          Watch active pickers update on the floor plan — powered by the VPick+ location field.
+          Balance work, spot congestion, and see progress as it happens.
+        </p>
       </div>
+
+      <div class="livemap-frame-wrap">
+        <iframe
+          src="/assets/widgets/picker-dashboard.html#mode=sim"
+          title="VPick+ LiveMap — real-time picker visibility"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+        ></iframe>
+        <noscript>
+          <img src="/assets/livemap-banner.png" alt="LiveMap preview (requires JavaScript)" style="width:100%; border-radius:var(--radius);" />
+        </noscript>
+      </div>
+
+      <p class="small" style="text-align:center; margin-top:1rem; color: var(--slate-2);">
+        Live demo — sign in to VPick+ on any Android device to see yourself appear on the map.
+      </p>
+
+      <div style="display:flex; gap:12px; justify-content:center; margin-top:1.5rem; flex-wrap:wrap;">
+        <a class="btn btn-primary" href="mailto:info@vpickplus.us?subject=LiveMap%20Demo%20Request">See your DC live</a>
+        <a class="btn btn-ghost" href="/learn/what-is-livemap">Learn about LiveMap™</a>
+      </div>
+    </div>
+  </section>
     </div>
   </section>
 
