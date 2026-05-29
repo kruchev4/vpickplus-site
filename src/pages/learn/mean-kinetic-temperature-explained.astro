@@ -1,0 +1,155 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="Mean Kinetic Temperature (MKT) Explained — USP &lt;1118&gt; — VPick+"
+  description="What mean kinetic temperature is, why USP <1118> matters for regulated storage, and how distribution centers calculate MKT in practice."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">Mean Kinetic Temperature Explained</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">Mean Kinetic Temperature (MKT) Explained</h1>
+      <p class="section-sub">What MKT is, why USP &lt;1118&gt; matters for regulated storage, and how to calculate it in a distribution environment.</p>
+
+      <h2>The short definition</h2>
+      <p>
+        <strong>Mean kinetic temperature (MKT)</strong> is a single, weighted-average temperature that represents the cumulative
+        thermal stress on a product over a period of time. Unlike an arithmetic mean, MKT weights higher temperatures more heavily —
+        because chemical degradation is exponentially faster at warmer temperatures.
+      </p>
+      <p>
+        It answers a question that a simple average can't: <em>was this product really kept "cold enough" over the past 30 days,
+        accounting for the brief spikes when the cooler door was left open?</em>
+      </p>
+
+      <h2>Why a simple average isn't enough</h2>
+      <p>Consider two coolers, both targeting 5°C, monitored for 30 days:</p>
+      <ul class="list">
+        <li><strong>Cooler A:</strong> Holds steady at 5°C the entire month. Arithmetic mean: 5°C.</li>
+        <li><strong>Cooler B:</strong> Spends 29 days at 4°C and one day at 35°C (compressor failure). Arithmetic mean: 5°C.</li>
+      </ul>
+      <p>
+        The arithmetic means are identical, but the product impact is wildly different. Cooler B exposed product to a temperature
+        that, for many pharmaceuticals, would have caused enough degradation to compromise shelf life. MKT captures that —
+        Cooler B's MKT will be significantly higher than its arithmetic mean, reflecting the disproportionate impact of the spike.
+      </p>
+
+      <h2>The math (briefly)</h2>
+      <p>The MKT formula uses the Arrhenius equation:</p>
+      <p style="font-family: monospace; background: var(--bg-alt); padding: 12px 16px; border-radius: var(--radius-sm); font-size: 0.95rem;">
+        T<sub>K</sub> = ΔH / R / -ln( (Σ e<sup>-ΔH/(R·T<sub>i</sub>)</sup>) / n )
+      </p>
+      <p>Where:</p>
+      <ul class="list">
+        <li><strong>T<sub>K</sub></strong> — mean kinetic temperature in Kelvin</li>
+        <li><strong>ΔH</strong> — heat of activation (typically 83.144 kJ/mol for pharmaceutical products)</li>
+        <li><strong>R</strong> — universal gas constant (8.314 × 10<sup>-3</sup> kJ/(mol·K))</li>
+        <li><strong>T<sub>i</sub></strong> — individual temperature readings in Kelvin</li>
+        <li><strong>n</strong> — number of readings</li>
+      </ul>
+      <p>
+        In practice, MKT is computed continuously by software — most operations don't compute it by hand.
+        What matters is that the calculation is done correctly, consistently, and against the right window of time
+        (typically rolling 30 days, but sometimes 7 days or 90 days depending on the product and regulation).
+      </p>
+
+      <h2>What USP &lt;1118&gt; actually requires</h2>
+      <p>
+        <strong>USP General Chapter &lt;1118&gt; Monitoring Devices — Time, Temperature, and Humidity</strong>
+        is the standard that codifies MKT for pharmaceutical storage and distribution. It establishes:
+      </p>
+      <ul class="list">
+        <li>Continuous monitoring of temperature in storage environments</li>
+        <li>MKT calculation as the basis for evaluating storage conditions</li>
+        <li>Calibrated, qualified monitoring devices with documented accuracy</li>
+        <li>Records suitable for retrospective review and audit</li>
+        <li>Investigation of excursions and documented response</li>
+      </ul>
+      <p>
+        For food distribution operations under FSMA, MKT isn't always strictly required — but it's increasingly expected as
+        the standard for demonstrating temperature compliance, particularly for high-value or temperature-sensitive products.
+      </p>
+
+      <h2>The four common pitfalls in practice</h2>
+      <p>Operations that try to implement MKT correctly often run into these issues:</p>
+
+      <h3>1. Sampling intervals matter</h3>
+      <p>
+        MKT calculated from one reading per hour gives different results than MKT from one reading per minute. Industry practice
+        typically uses readings every 5-15 minutes; reading too infrequently can mask short excursions.
+      </p>
+
+      <h3>2. Sensor placement matters</h3>
+      <p>
+        A sensor in the warmest part of the warehouse will produce a higher MKT than a sensor near the cooling coils.
+        Modern guidance suggests temperature mapping the space first, then placing sensors at representative warm points.
+      </p>
+
+      <h3>3. Calibration history is part of the record</h3>
+      <p>
+        An MKT calculation is only as good as the sensors that produced it. Auditors will ask to see calibration certificates,
+        replacement history, and drift checks for every sensor in the system.
+      </p>
+
+      <h3>4. Excursions need response, not just recording</h3>
+      <p>
+        Recording an excursion isn't enough. The system needs to capture: who acknowledged it, what investigation was performed,
+        what the impact on product was determined to be, and what corrective action was taken. That's the audit trail.
+      </p>
+
+      <h2>What a properly implemented MKT system looks like</h2>
+      <p>An MKT implementation that satisfies modern audit expectations should include:</p>
+      <ul class="checklist">
+        <li>Continuous temperature monitoring (5-15 minute intervals)</li>
+        <li>Automatic MKT calculation over configurable rolling windows</li>
+        <li>Excursion detection against per-zone thresholds</li>
+        <li>Acknowledgment tracking by named user</li>
+        <li>Investigation workflow with documented impact assessment</li>
+        <li>Sensor calibration history and replacement records</li>
+        <li>Audit-ready export of all the above</li>
+      </ul>
+
+      <h2>Distribution-specific considerations</h2>
+      <p>
+        Pharmaceutical manufacturing implements MKT in a relatively controlled environment — known products, known specifications,
+        known storage conditions. Distribution operations face a messier reality:
+      </p>
+      <ul class="list">
+        <li>Multiple zones with different specifications (freezer, cooler, ambient)</li>
+        <li>Dock doors that open frequently, causing recoverable spikes</li>
+        <li>Mixed-customer 3PL operations where different products have different MKT windows</li>
+        <li>Seasonal HVAC strain (worst-case is usually August)</li>
+        <li>Outside contractor maintenance affecting equipment performance</li>
+      </ul>
+      <p>
+        A distribution QMS should accommodate per-zone configuration, multi-window MKT (different products may need different rolling windows),
+        and integration with the same maintenance and contractor workflows that affect environmental performance.
+      </p>
+
+      <div class="card" style="margin-top:1.5rem">
+        <strong>QMS Pro implements MKT per USP &lt;1118&gt; out of the box.</strong>
+        <p style="margin-top: 0.5rem;">
+          Continuous monitoring via Ecowitt cloud sensors, per-zone configuration, automatic excursion detection,
+          and full calibration history. The <a href="https://qms.vpickplus.us">live demo</a> has a real engineered excursion
+          you can see in the environmental monitoring module.
+        </p>
+      </div>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/qms">Explore QMS Pro</a>
+        <a class="btn btn-ghost" href="/why-qms" style="margin-left:8px;">Why QMS Pro</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand
+    heading="See MKT calculated on real sensor data"
+    body="The QMS Pro demo has an engineered excursion you can investigate end-to-end."
+    ctaText="Try the demo"
+    ctaHref="https://qms.vpickplus.us" />
+</BaseLayout>
