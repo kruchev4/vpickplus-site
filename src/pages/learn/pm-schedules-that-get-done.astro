@@ -1,0 +1,254 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="How to Build Preventive Maintenance Schedules That Actually Get Done — VPick+"
+  description="Most PM programs slip within 90 days. Here's why — and how to design schedules with the right trigger type, the right cadence, and the right execution model to keep them on track."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">PM Schedules That Get Done</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">How to Build Preventive Maintenance Schedules That Actually Get Done</h1>
+      <p class="section-sub">Most PM programs slip within 90 days. The fix usually isn't more discipline — it's picking the right trigger model up front and removing friction at the point of work.</p>
+
+      <h2>The pattern almost every maintenance manager has lived</h2>
+      <p>
+        You inherit (or build) a preventive maintenance program. The spreadsheet is detailed. Every asset has a PM cadence.
+        Every technician has assignments. The first month goes well. PM compliance sits around 90%.
+      </p>
+      <p>
+        By month three, compliance has drifted to 70%. Some PMs are getting done — the easy ones, the ones near other work, the ones
+        the technicians remember. Others are quietly slipping. Nobody's catching it because the dashboard hasn't been updated in three weeks.
+      </p>
+      <p>
+        By month six, the program is more theatre than execution. The PMs that didn't get done aren't getting caught up — they're just
+        absorbed into the new month's load, where they'll slip again. The audit shows up and you scramble.
+      </p>
+      <p>
+        This pattern repeats so consistently across operations that it's worth treating as a design problem, not a discipline problem.
+        PM programs don't fail because technicians are lazy. They fail because of decisions made — or skipped — at the design stage.
+      </p>
+
+      <h2>Decision 1: pick the right trigger type for each asset</h2>
+      <p>
+        The most common reason PMs slip is that the trigger doesn't match the asset's actual failure pattern. There are three trigger
+        types, and each fits a specific class of equipment.
+      </p>
+
+      <h3>Calendar-based triggers</h3>
+      <p>
+        The PM is due every N days regardless of actual usage. Daily, weekly, monthly, quarterly, annual.
+      </p>
+      <p><strong>Works well for:</strong></p>
+      <ul class="list">
+        <li>Equipment with relatively consistent duty cycles</li>
+        <li>Regulatory inspections with mandated frequencies (fire safety, pest control)</li>
+        <li>Time-degrading components (lubricants, gaskets, seals)</li>
+        <li>Building infrastructure that operates continuously</li>
+      </ul>
+      <p><strong>Fails for:</strong></p>
+      <ul class="list">
+        <li>Equipment with highly variable usage (forklifts during peak vs off-season)</li>
+        <li>Spare or standby equipment that sits idle most of the time</li>
+        <li>Anything where wear is dominated by cycle count, not elapsed time</li>
+      </ul>
+
+      <h3>Runtime-based triggers</h3>
+      <p>
+        The PM is due after N hours of operation, N cycles, N miles, or some other usage metric. This requires runtime tracking — either
+        via the equipment itself, an integrated system, or manual operator entry.
+      </p>
+      <p><strong>Works well for:</strong></p>
+      <ul class="list">
+        <li>Forklifts and other mobile equipment (hour meters track operating time)</li>
+        <li>Conveyor and sortation systems with cycle counters</li>
+        <li>Pumps, motors, and compressors with runtime instrumentation</li>
+        <li>Vehicles (mileage-based)</li>
+      </ul>
+      <p><strong>Fails for:</strong></p>
+      <ul class="list">
+        <li>Equipment without reliable runtime measurement</li>
+        <li>Assets where elapsed time matters more than usage (rubber seals dry-rotting in storage)</li>
+        <li>Operations where you can't trust manual hour-meter logging</li>
+      </ul>
+
+      <h3>Condition-based triggers</h3>
+      <p>
+        The PM is triggered when a measured condition crosses a threshold. Temperature drift, vibration increase, current draw rising,
+        differential pressure climbing. Requires sensors and integration.
+      </p>
+      <p><strong>Works well for:</strong></p>
+      <ul class="list">
+        <li>Critical equipment where failure has high consequences (refrigeration, fire suppression)</li>
+        <li>Equipment with characteristic degradation signatures (bearings, motors, compressors)</li>
+        <li>Operations with environmental monitoring already in place</li>
+      </ul>
+      <p><strong>Fails for:</strong></p>
+      <ul class="list">
+        <li>Equipment without sensor instrumentation (and the sensors aren't cheap)</li>
+        <li>Failure modes that don't have early warning signals (sudden bearing failures)</li>
+        <li>Programs without the analytical capability to act on sensor data</li>
+      </ul>
+
+      <h3>How to pick</h3>
+      <p>
+        For most distribution operations, the right pattern is a mix:
+      </p>
+      <ul class="list">
+        <li><strong>Calendar-based</strong> for regulatory inspections and building infrastructure</li>
+        <li><strong>Runtime-based</strong> for lift trucks and mobile equipment</li>
+        <li><strong>Condition-based</strong> for refrigeration (paired with your environmental monitoring)</li>
+      </ul>
+      <p>
+        Most CMMS tools support all three. What separates them is how easy it is to actually configure runtime tracking and condition triggers —
+        many systems claim support but require extensive manual setup that nobody ever finishes.
+      </p>
+
+      <h2>Decision 2: cadence has to match maintenance reality, not warranty docs</h2>
+      <p>
+        A common mistake: pulling PM frequencies straight from manufacturer documentation. The manufacturer's recommended cadence is
+        usually conservative — it covers the worst-case operating environment to protect their warranty exposure. In a normal operation,
+        that cadence is often overkill.
+      </p>
+      <p>
+        Two failure modes:
+      </p>
+      <ul class="list">
+        <li><strong>Too frequent:</strong> Technicians lose faith in the program. "We did this last week" becomes a refrain. PMs get pencil-whipped.</li>
+        <li><strong>Too infrequent:</strong> Equipment fails between PMs. The program isn't catching real issues. Trust evaporates from the other direction.</li>
+      </ul>
+      <p>
+        The right cadence usually emerges from history. Start with manufacturer recommendations, then adjust based on what you actually
+        find when you do the inspections. If you've done six quarterly inspections and never found anything actionable, the cadence is too
+        tight. If you keep finding issues that have clearly been developing for weeks, it's too loose.
+      </p>
+      <p>
+        This argues for a CMMS that lets you adjust cadences easily, and that captures findings during PM completion (not just "yes I did it")
+        so you can see whether the program is producing real value.
+      </p>
+
+      <h2>Decision 3: every PM needs a checklist, not just a name</h2>
+      <p>
+        A PM that says "Quarterly inspection — Cooler 3" leaves everything to the technician's memory. Different technicians do different
+        inspections. Some skip steps. Some add steps. Documentation is inconsistent.
+      </p>
+      <p>
+        A PM with a structured checklist eliminates that variability:
+      </p>
+      <ul class="list">
+        <li>Each step is named explicitly</li>
+        <li>Each step has a pass/fail or measurement field</li>
+        <li>Failed steps trigger follow-up actions automatically</li>
+        <li>Photo capture for specific items (gaskets, condenser coils, gauge readings)</li>
+        <li>Notes field for anything outside the checklist</li>
+      </ul>
+      <p>
+        Checklists also make new-technician onboarding dramatically easier. A new tech can do a PM they've never done before if the
+        checklist is good. Without one, every new asset is a teaching session.
+      </p>
+
+      <h2>Decision 4: completion has to be mobile, fast, and at the equipment</h2>
+      <p>
+        This is the biggest single execution lever. The same PM is dramatically more likely to get done if the technician can complete it
+        from their phone at the equipment, versus having to log it at a desk later.
+      </p>
+      <p>
+        The friction at "log it later" is real:
+      </p>
+      <ul class="list">
+        <li>Technician finishes the work, walks back to the office, finds something else demanding attention</li>
+        <li>By end of shift, the PM hasn't been logged</li>
+        <li>The next day, details are fuzzy ("did I check the gasket or not?")</li>
+        <li>The log entry gets vaguer over time, or skipped entirely</li>
+      </ul>
+      <p>
+        Mobile completion at the asset means:
+      </p>
+      <ul class="checklist">
+        <li>QR code on the asset opens the right PM directly</li>
+        <li>Checklist completion happens as the work is done</li>
+        <li>Photos captured at the point of inspection, not from memory</li>
+        <li>Signature captured before walking away</li>
+        <li>The record is complete before the technician moves to the next task</li>
+      </ul>
+
+      <h2>Decision 5: visibility, not discipline, is what saves slipping programs</h2>
+      <p>
+        Most slipping PM programs don't lack discipline. They lack visibility. By the time anyone notices PMs are slipping, weeks have
+        passed. The recovery cost is high — a backlog accumulates faster than it gets worked down.
+      </p>
+      <p>
+        Visibility means three things, in order of importance:
+      </p>
+      <ol class="list">
+        <li><strong>A real-time dashboard that shows current compliance percentage.</strong> Not a report you have to run; a number you see daily.</li>
+        <li><strong>Alerts that fire when something is overdue.</strong> Routed to the right person, not buried in a notifications inbox.</li>
+        <li><strong>A 7-day forward view that shows what's coming.</strong> So PMs don't surprise anyone.</li>
+      </ol>
+      <p>
+        These three elements together make slipping visible at the moment it starts, not weeks after. That's the difference between
+        a program that recovers easily and a program that quietly fails.
+      </p>
+
+      <h2>The harder question: what about PMs that never should have existed?</h2>
+      <p>
+        Most operations carry PMs that aren't actually useful — inherited from previous managers, copied from manufacturer docs that
+        don't fit the operation, added in response to a single failure event from years ago.
+      </p>
+      <p>
+        Annually, it's worth reviewing the PM program against actual failure data:
+      </p>
+      <ul class="list">
+        <li>Which failures did the PM program prevent or catch early? (Look at PM completion records with findings.)</li>
+        <li>Which failures happened anyway, between scheduled PMs?</li>
+        <li>Which PMs have produced zero findings in 12+ months?</li>
+      </ul>
+      <p>
+        PMs that consistently find nothing are candidates for either reduced cadence or elimination. PMs that didn't prevent the failures
+        they should have are candidates for redesign — different cadence, different checklist, different trigger type.
+      </p>
+      <p>
+        This is the work that separates a maintenance program from a maintenance ritual.
+      </p>
+
+      <h2>What QMS Pro CMMS does about all this</h2>
+      <p>
+        QMS Pro CMMS is structured around these decisions:
+      </p>
+      <ul class="checklist">
+        <li>Calendar, runtime, and condition-based PM triggers (the last one tied directly to environmental sensors)</li>
+        <li>Checklist support on every PM with photo and signature capture</li>
+        <li>QR code on every asset for direct mobile PM completion</li>
+        <li>Real-time compliance dashboard with overdue alerts</li>
+        <li>7-day forward view on the operations dashboard</li>
+        <li>Findings recorded against PMs, so you can see whether the program is producing real value</li>
+        <li>Failed checklist items auto-route to Smart Alerts and can generate non-conformances when appropriate</li>
+      </ul>
+
+      <div class="card" style="margin-top:1.5rem">
+        <strong>See it in practice:</strong>
+        <p style="margin-top: 0.5rem;">
+          The <a href="https://qms.vpickplus.us">QMS Pro demo</a> includes a working PM program with calendar and runtime-based schedules,
+          mobile QR-driven completion, and a dashboard showing compliance percentages. Click around the CMMS module to see the patterns
+          described in this article working end to end.
+        </p>
+      </div>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/cmms">Explore QMS Pro CMMS</a>
+        <a class="btn btn-ghost" href="/learn/why-standalone-cmms-isnt-enough" style="margin-left:8px;">Why a standalone CMMS isn't enough</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand
+    heading="See PM execution that actually sticks"
+    body="The demo has a working PM program you can navigate through."
+    ctaText="Try the demo"
+    ctaHref="https://qms.vpickplus.us" />
+</BaseLayout>
