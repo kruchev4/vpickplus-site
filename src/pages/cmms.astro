@@ -1,0 +1,247 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import CtaBand from '../components/CtaBand.astro'
+
+const DEMO_URL = 'https://qms.vpickplus.us'
+
+// Same product, same screenshots — different framing.
+// When QMS screenshots come in, set placeholder: false and they show here too.
+const screenshots = [
+  { src: '/assets/qms/workorders.png', alt: 'CMMS work orders list',                  label: 'Work Orders',              desc: 'Full lifecycle: open, assigned, in-progress, on-hold, completed', placeholder: false },
+  { src: '/assets/qms/dashboard.png',  alt: 'CMMS dashboard with KPIs and excursions', label: 'Operations Dashboard',     desc: 'Open WOs, PMs due, asset health, and trends at a glance',      placeholder: false },
+  { src: '/assets/qms/env.png',        alt: 'Environmental monitoring with MKT',       label: 'Environmental Monitoring', desc: 'Asset performance data tied to environmental conditions',      placeholder: false },
+  { src: '/assets/qms/alerts.png',     alt: 'Smart alerts feed',                       label: 'Smart Alerts',             desc: 'Failed PM checklists auto-route to the maintenance manager',  placeholder: false },
+  { src: '/assets/qms/training.png',   alt: 'Technician training compliance',          label: 'Technician Compliance',    desc: 'Track who is qualified to perform what, with annual rollover', placeholder: false },
+  { src: '/assets/qms/documents.png',  alt: 'Maintenance manuals and SOPs',            label: 'Maintenance Procedures',   desc: 'Versioned manuals, SOPs, and checklists \u2014 always current',  placeholder: false },
+]
+---
+<BaseLayout
+  title="QMS Pro CMMS — Maintenance Management for Distribution Centers"
+  description="A modern CMMS built for distribution operations: QR-driven mobile work orders, PM schedules with checklists, asset registry, contractor management, and integrated quality compliance \u2014 included."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="separator">›</span>
+    <span aria-current="page">CMMS</span>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container hero-wrap">
+      <div class="hero-copy">
+        <span class="pill new" style="margin-bottom:1rem;">Now Available</span>
+        <h1>A CMMS that knows your warehouse is also regulated.</h1>
+        <p class="lead">
+          Work orders, PM schedules, asset registry, contractor management — everything you expect from a modern CMMS.
+          Plus the quality, environmental, and compliance modules a distribution center actually needs, integrated from day one.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href={DEMO_URL} target="_blank" rel="noopener">Try the Live Demo →</a>
+          <a class="btn btn-secondary btn-lg" href="mailto:info@vpickplus.us?subject=CMMS%20Inquiry">Request a Conversation</a>
+        </div>
+        <p class="muted" style="margin-top:14px; font-size:0.9rem;">
+          The demo is a self-resetting sandbox loaded with realistic 3PL data — work orders to complete, PMs to acknowledge, assets to inspect.
+        </p>
+      </div>
+      <div class="hero-image">
+        <img src="/assets/qms/dashboard.png" alt="CMMS dashboard overview" style="border-radius: var(--radius); box-shadow: var(--shadow-lg);" />
+      </div>
+    </div>
+  </section>
+
+  <!-- The CMMS pitch -->
+  <section>
+    <div class="container">
+      <h2 style="text-align:center;">Everything a maintenance manager expects from a modern CMMS</h2>
+      <p class="section-sub" style="text-align:center; margin: 0 auto 2.5rem;">
+        And nothing a distribution operation has to bolt on separately.
+      </p>
+
+      <div class="grid-3">
+        <article class="card hover-lift">
+          <h3>🔧 Work Orders</h3>
+          <p>Full lifecycle from creation to completion. Mobile-first via QR codes on every asset. Failed checklist items auto-generate Smart Alerts to the right person.</p>
+        </article>
+        <article class="card hover-lift">
+          <h3>🔁 PM Schedules</h3>
+          <p>Configurable preventive maintenance with checklist support. Recurring schedules, calendar or runtime-based triggers, automatic WO generation.</p>
+        </article>
+        <article class="card hover-lift">
+          <h3>📋 Asset Registry</h3>
+          <p>Equipment hierarchy with QR codes, service history, manuals, parts lists, and warranty tracking. Every asset has a complete record.</p>
+        </article>
+        <article class="card hover-lift">
+          <h3>📦 Parts Inventory</h3>
+          <p>Stock levels, reorder points, vendor links, and consumption tracking against specific work orders.</p>
+        </article>
+        <article class="card hover-lift">
+          <h3>🔗 Outside Contractors</h3>
+          <p>Pest control, HVAC, fire safety, refrigeration — contractors scan a QR code, complete inspections from their phone, no account needed. Their work flows directly into your CMMS.</p>
+        </article>
+        <article class="card hover-lift">
+          <h3>📱 Mobile-First</h3>
+          <p>Technicians complete work orders from their phone in the aisle — no laptop, no paperwork, no "I'll log it later." Photos and signatures captured at the point of work.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- The integration story -->
+  <section class="alt">
+    <div class="container">
+      <h2 style="text-align:center;">Plus the things that matter in a regulated warehouse</h2>
+      <p class="section-sub" style="text-align:center; margin: 0 auto 2.5rem;">
+        Every CMMS handles work orders. QMS Pro CMMS also handles the regulatory reality of running a distribution center.
+      </p>
+
+      <div class="grid-2" style="gap: 24px;">
+
+        <article class="card">
+          <h3>🌡️ Environmental Monitoring — included</h3>
+          <p>
+            Continuous temperature and humidity tracking across freezers, coolers, dock zones, and storage areas. Mean kinetic
+            temperature calculated per USP &lt;1118&gt;. Excursion events tied to the specific assets that caused them.
+          </p>
+          <p class="muted small">
+            Maintenance and environmental performance aren't separate problems — they're the same problem. A failing compressor
+            shows up as both a work order and a temperature excursion. We treat them as connected.
+          </p>
+        </article>
+
+        <article class="card">
+          <h3>⚠️ Quality &amp; Deviation Management — included</h3>
+          <p>
+            When a failed PM checklist signals a quality issue, it auto-generates a non-conformance. Full workflow with
+            5-Why root cause analysis, CAPA tracking, and effectiveness verification. Audit-ready records, not afterthoughts.
+          </p>
+          <p class="muted small">
+            A standalone CMMS makes you re-enter quality issues into a separate system. We don't.
+          </p>
+        </article>
+
+        <article class="card">
+          <h3>🎓 Technician Compliance — included</h3>
+          <p>
+            Track which technicians are qualified to perform which tasks. Annual recertification reminders. SOP acknowledgments
+            for sensitive procedures. Required training shows up before a tech is assigned a work order they aren't certified for.
+          </p>
+          <p class="muted small">
+            Most CMMS tools assume your maintenance staff is trained on everything. Reality is more nuanced.
+          </p>
+        </article>
+
+        <article class="card">
+          <h3>📄 Documentation &amp; Procedures — included</h3>
+          <p>
+            Maintenance manuals, SOPs, lockout/tagout procedures, and safety documentation — version-controlled, approved, and
+            linked to the assets they apply to. The current version is always one tap away from the work order.
+          </p>
+          <p class="muted small">
+            Outdated procedures cause more failures than missing parts. We've seen it.
+          </p>
+        </article>
+
+      </div>
+
+      <div style="margin-top: 2.5rem; padding: 24px; background: var(--teal-light); border-left: 4px solid var(--teal); border-radius: var(--radius);">
+        <p style="margin: 0; font-size: 1.05rem;">
+          <strong>The honest pitch:</strong> If you're shopping for a CMMS for a distribution operation, you're going to need most of
+          this anyway — separately, eventually. QMS Pro CMMS gives it to you on day one, integrated, for the price of a CMMS.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshots -->
+  <section>
+    <div class="container">
+      <h2 style="text-align:center;">See it in motion</h2>
+      <p class="section-sub" style="text-align:center; margin: 0 auto 2.5rem;">
+        A look at the major workflows. The live demo lets you click through them all.
+      </p>
+
+      <div class="qms-feature-grid">
+        {screenshots.map((s) => (
+          <article class="qms-screenshot">
+            {s.placeholder ? (
+              <div class="qms-screenshot-placeholder">
+                <div><strong>{s.label}</strong>{s.desc}</div>
+              </div>
+            ) : (
+              <img src={s.src} alt={s.alt} loading="lazy" />
+            )}
+            <div style="padding: 14px 18px;">
+              <strong style="display:block; color:var(--ink);">{s.label}</strong>
+              <span class="small">{s.desc}</span>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Why distribution-specific -->
+  <section class="alt">
+    <div class="container container-narrow">
+      <h2>Why "CMMS for distribution" matters</h2>
+      <p>
+        Generic CMMS tools — UpKeep, MaintainX, Fiix, Limble — are built for any industry with equipment. They're solid products,
+        and for a generic facility, they'll do the job.
+      </p>
+      <p>
+        Distribution operations have specific realities that generic CMMS tools weren't designed for:
+      </p>
+      <ul class="list">
+        <li><strong>Outside contractors do the regulated work.</strong> Pest control, HVAC, refrigeration, fire safety — their inspections
+          need to flow into the same system as internal work orders, with the same audit trail.</li>
+        <li><strong>Equipment failures cause regulatory exposure.</strong> A failing cooler isn't just a maintenance problem; it's an FSMA
+          compliance issue. You need both stories in one place.</li>
+        <li><strong>Environmental monitoring and maintenance are connected.</strong> The compressor work order and the temperature
+          excursion are the same event told two ways.</li>
+        <li><strong>Workforce includes seasonal hires and contractors.</strong> Training and certification have to handle people who
+          aren't in your software user table.</li>
+      </ul>
+      <p>
+        QMS Pro CMMS is the same product we built for quality directors at distribution centers — except the maintenance manager gets to use it as a CMMS, and gets the quality and compliance features as a bonus.
+      </p>
+    </div>
+  </section>
+
+  <!-- Pricing/positioning -->
+  <section>
+    <div class="container container-narrow">
+      <h2>What this costs vs. what you'd pay separately</h2>
+      <p>
+        Most distribution operations eventually need: a CMMS, a document management system, a sensor monitoring platform,
+        a training tracker, and some way to handle contractor work and deviations. Buy them separately and you'll spend $40-80K/year
+        on tooling alone, plus the integration work to make them talk to each other (which usually doesn't happen).
+      </p>
+      <p>
+        QMS Pro CMMS is priced as a CMMS. The QMS modules are included.
+      </p>
+      <p class="small muted">
+        Pricing is tailored to your operation's size and complexity. <a href="mailto:info@vpickplus.us?subject=QMS%20Pro%20CMMS%20Pricing">Get a quote</a>.
+      </p>
+    </div>
+  </section>
+
+  <!-- Demo CTA -->
+  <section class="alt">
+    <div class="container">
+      <div class="cta-strong">
+        <h2>Try the live demo.</h2>
+        <p>No signup. No sales call. Just the actual product, loaded with realistic fictional data — including a fleet of assets, active PMs, open work orders, and a running maintenance backlog.</p>
+        <a class="btn btn-lg" href={DEMO_URL} target="_blank" rel="noopener">
+          Open the CMMS demo →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    heading="Quality leader at your company should see this too"
+    body="The same product also functions as a complete QMS — same demo, different lens."
+    ctaText="See the QMS view"
+    ctaHref="/qms"
+  />
+</BaseLayout>
