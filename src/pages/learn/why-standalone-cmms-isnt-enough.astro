@@ -1,0 +1,177 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="Why a Standalone CMMS Isn't Enough for Distribution Operations — VPick+"
+  description="Most CMMS systems are built for generic facilities. For distribution centers, 3PLs, and cold-chain warehouses, a standalone CMMS leaves critical compliance and quality gaps."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">Why a Standalone CMMS Isn't Enough</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">Why a Standalone CMMS Isn't Enough for Distribution Operations</h1>
+      <p class="section-sub">Generic CMMS tools handle work orders well. They don't handle the compliance reality of a regulated warehouse.</p>
+
+      <h2>The problem isn't the CMMS — it's what surrounds it</h2>
+      <p>
+        Modern cloud-based CMMS platforms — UpKeep, Fiix, MaintainX, Limble — are good products. They've made maintenance management
+        accessible to mid-market operations that previously ran on spreadsheets. If you need a CMMS for a manufacturing plant,
+        a property management firm, or a generic facility, any of these will do the job.
+      </p>
+      <p>
+        Distribution centers, 3PLs, and cold-chain warehouses are different. Not because the maintenance work itself is exotic —
+        most of it is similar to any other facility. But because of <strong>everything that wraps around the maintenance work</strong>.
+      </p>
+
+      <h2>Five gaps that show up in distribution operations</h2>
+
+      <h3>1. Outside contractors do the regulated work</h3>
+      <p>
+        Pest control. HVAC. Refrigeration. Fire safety. Sprinkler inspections. Lift truck service. In a distribution center,
+        a significant fraction of equipment is maintained by people who don't work for you. Their inspections aren't optional —
+        many are regulatory requirements (FSMA pest control, OSHA fire safety, etc.).
+      </p>
+      <p>
+        Generic CMMS tools handle contractors one of two ways: either invite them as users (which they won't do consistently) or
+        have internal staff transcribe their work (which destroys the audit trail and slows everything down).
+      </p>
+      <p>
+        Neither solution actually works at scale. The result: contractor records live in email, in file cabinets, in the maintenance manager's
+        truck. When the FDA auditor asks for last quarter's pest control records, the answer is "it's around here somewhere."
+      </p>
+
+      <h3>2. Equipment failures cause regulatory exposure</h3>
+      <p>
+        A failing compressor in a cooler isn't just a maintenance problem — it's an FSMA compliance issue. A failing dock leveler isn't
+        just a maintenance problem — it's an OSHA documentation requirement.
+      </p>
+      <p>
+        Generic CMMS tools record work orders. They don't know that a temperature excursion on a cooler should be linked to the work
+        order that addressed the compressor that caused it. So you end up with two parallel records of the same event in two different systems
+        — and reconciling them during an audit is somebody's full-time job.
+      </p>
+
+      <h3>3. Environmental monitoring and maintenance are connected problems</h3>
+      <p>
+        Why is a freezer drifting upward over the past two weeks? Probably a maintenance issue — a clogged condenser coil,
+        a refrigerant leak, a failing compressor. The data lives in two systems: maintenance history in the CMMS, temperature data in
+        a separate sensor platform. The connection between them lives in the maintenance manager's head.
+      </p>
+      <p>
+        When that maintenance manager leaves, the institutional knowledge leaves with them.
+      </p>
+
+      <h3>4. Your workforce includes people who aren't software users</h3>
+      <p>
+        Distribution operations run on seasonal hires, peak workforce expansions, and contract labor.
+        These people need documented training — they handle product, they operate equipment, they need to know SOPs.
+        But they don't need (and shouldn't have) accounts in your maintenance software.
+      </p>
+      <p>
+        Generic CMMS tools assume "trained user" and "software user" are the same person. They aren't.
+        So training compliance lives in a spreadsheet or a separate LMS, and the maintenance work order doesn't know whether
+        the technician (internal or contractor) is actually certified to perform it.
+      </p>
+
+      <h3>5. Maintenance procedures need to be the current version</h3>
+      <p>
+        Modern equipment has detailed maintenance procedures, lockout/tagout requirements, and safety protocols.
+        These procedures get updated. The version a technician pulls up needs to be the current one — not the one printed
+        in the binder in 2019.
+      </p>
+      <p>
+        Generic CMMS tools let you attach PDFs to assets. They don't version-control them or require acknowledgment of updates.
+        So when the manufacturer issues a service bulletin and you update the procedure, you have no record of which technicians have
+        actually seen the new version.
+      </p>
+
+      <h2>What the gaps look like during an audit</h2>
+      <p>
+        Most CMMS evaluations happen in calm operational conditions. The audit happens in different conditions: an inspector showing up,
+        asking specific questions, expecting specific documentation, within specific time windows.
+      </p>
+      <p>
+        The questions auditors actually ask in distribution audits:
+      </p>
+      <ul class="list">
+        <li>"Show me the pest control inspection records for the last 12 months."</li>
+        <li>"Show me documented response to the temperature excursion from March 14th."</li>
+        <li>"Show me the maintenance history on this cooler from the past six months."</li>
+        <li>"Show me proof that this technician was trained on this procedure."</li>
+        <li>"Show me the corrective action taken after the December audit findings."</li>
+      </ul>
+      <p>
+        If your maintenance records, environmental data, training records, contractor inspections, and corrective actions live in
+        five different systems — each of these questions takes hours to answer. If they live in one integrated system, each answer
+        is a 30-second export.
+      </p>
+
+      <h2>The bolt-on approach and why it doesn't work</h2>
+      <p>
+        A common pattern: buy a generic CMMS, then bolt on additional tools for the gaps. CMMS for work orders. A separate sensor
+        platform for environmental monitoring. A document management system for SOPs. A training tracker for compliance. A separate
+        process for handling contractors.
+      </p>
+      <p>
+        This works in theory. In practice, it produces these problems:
+      </p>
+      <ul class="list">
+        <li><strong>Integration is fragile.</strong> APIs change. Vendors update. The integrations break and nobody notices until an audit reveals the gap.</li>
+        <li><strong>Cost adds up fast.</strong> A typical bolt-on stack runs $40K-$80K/year in licensing, plus integration work.</li>
+        <li><strong>Workflows don't actually connect.</strong> A failed PM checklist doesn't trigger a non-conformance in a separate quality system — somebody has to manually copy the information across.</li>
+        <li><strong>The audit trail is fragmented.</strong> When an inspector asks for evidence, you're pulling records from four systems and stapling them together.</li>
+      </ul>
+
+      <h2>The integrated alternative</h2>
+      <p>
+        A CMMS built for distribution operations should handle these adjacent realities natively:
+      </p>
+      <ul class="checklist">
+        <li>Contractor work captured via tokenized QR codes — no accounts, full audit trail</li>
+        <li>Environmental monitoring linked to the equipment that produces it</li>
+        <li>Quality and deviation workflow that connects to maintenance events</li>
+        <li>Training records that cover the full workforce, not just software users</li>
+        <li>Document control with version management for procedures and SOPs</li>
+      </ul>
+      <p>
+        This isn't a separate set of products. It's a CMMS that takes the distribution reality seriously from day one.
+      </p>
+
+      <h2>What this means for evaluating CMMS options</h2>
+      <p>
+        If you're evaluating CMMS systems for a distribution operation, the standard CMMS feature comparison won't tell the whole story.
+        The right evaluation includes:
+      </p>
+      <ul class="list">
+        <li><strong>How are outside contractors handled?</strong> If the answer is "they create accounts" or "internal staff enters their work," that's a gap.</li>
+        <li><strong>How does environmental data connect to maintenance?</strong> If the answer is "via API to a separate system," you're paying for integration brittleness.</li>
+        <li><strong>How are deviations and quality issues handled?</strong> If they're handled in a separate system, you're maintaining two parallel records of the same events.</li>
+        <li><strong>How is training compliance tracked?</strong> If the answer is "only for software users," you're missing most of your workforce.</li>
+        <li><strong>What does an audit look like?</strong> If audit-ready records require pulling from multiple systems, that's a structural problem.</li>
+      </ul>
+
+      <div class="card" style="margin-top:1.5rem">
+        <strong>QMS Pro CMMS is built for distribution operations end-to-end.</strong>
+        <p style="margin-top: 0.5rem;">
+          A modern CMMS with environmental monitoring, contractor management, quality workflows, training compliance, and document control
+          all integrated. See the <a href="/cmms">CMMS overview</a> or try the <a href="https://qms.vpickplus.us">live demo</a>.
+        </p>
+      </div>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/cmms">Explore QMS Pro CMMS</a>
+        <a class="btn btn-ghost" href="/learn/what-is-a-cmms" style="margin-left:8px;">What Is a CMMS?</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand
+    heading="See integrated maintenance and quality in action"
+    body="The demo includes the full CMMS + the modules that fill the gaps."
+    ctaText="Try the demo"
+    ctaHref="https://qms.vpickplus.us" />
+</BaseLayout>
