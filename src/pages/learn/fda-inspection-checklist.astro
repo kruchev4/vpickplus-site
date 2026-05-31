@@ -1,0 +1,260 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="FDA Inspection Checklist: How to Prepare a Food Distribution Center — VPick+"
+  description="A practical checklist for preparing a distribution center, 3PL, or food warehouse for an FDA inspection. What to have ready, what inspectors look for, and how to avoid the most common Form 483 findings."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">FDA Inspection Checklist</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">FDA Inspection Checklist: How to Prepare a Food Distribution Center</h1>
+      <p class="section-sub">A practical, distribution-focused checklist for the weeks before an FDA inspection — what to have ready, where the gaps usually are, and how to avoid the most common findings.</p>
+
+      <h2>How this checklist is organized</h2>
+      <p>
+        FDA inspections of food warehouses, distribution centers, and 3PLs follow predictable patterns. Inspectors don't ask random
+        questions — they work through specific areas of the operation, looking for specific evidence. This checklist mirrors that pattern.
+      </p>
+      <p>
+        It's organized into <strong>three time horizons</strong>:
+      </p>
+      <ul class="list">
+        <li><strong>Stage 1 (1-4 weeks out):</strong> Foundational documentation and program health</li>
+        <li><strong>Stage 2 (the week of):</strong> Practical readiness and operational tightening</li>
+        <li><strong>Stage 3 (the day of):</strong> Inspection-day execution</li>
+      </ul>
+      <p>
+        Each item references where the records actually need to be retrievable from — because the most common audit failure isn't missing
+        records, it's records the team can't produce quickly when asked.
+      </p>
+
+      <h2>Stage 1 — Foundational readiness (1-4 weeks out)</h2>
+
+      <h3>Food safety plan</h3>
+      <ul class="checklist">
+        <li>Current written food safety plan exists, dated, signed by the qualified individual</li>
+        <li>Hazard analysis is documented and reasonably current (typically reviewed annually)</li>
+        <li>Preventive controls are identified for each hazard</li>
+        <li>Monitoring procedures are specified for each control</li>
+        <li>Corrective action procedures are documented</li>
+        <li>Verification activities (review of records, calibration, etc.) are specified</li>
+        <li>Recall plan is included and tested at least annually</li>
+      </ul>
+
+      <h3>Sanitation program</h3>
+      <ul class="checklist">
+        <li>Master sanitation schedule exists and is current</li>
+        <li>Sanitation completion records exist for the past 12 months</li>
+        <li>Verification activities (visual inspection, ATP swabs, environmental monitoring) are documented</li>
+        <li>Failed sanitation checks have corrective action documented</li>
+        <li>Sanitation chemicals are inventoried with SDS sheets accessible</li>
+      </ul>
+
+      <h3>Pest control records</h3>
+      <ul class="checklist">
+        <li>Complete inspection records for the past 12 months — no gaps</li>
+        <li>Findings documented for each inspection (including "no activity")</li>
+        <li>Corrective action records for any findings, with verification of completion</li>
+        <li>Pest control contractor qualification documents on file</li>
+        <li>Trend data showing whether issues are recurring</li>
+      </ul>
+      <p class="muted small">
+        Pest control is one of the most consistently scrutinized areas in food warehouse inspections. Most facilities outsource it,
+        which means the records often live with the contractor. See <a href="/learn/working-with-outside-contractors">Working with Outside Contractors</a>
+        for how to close this gap.
+      </p>
+
+      <h3>Environmental monitoring</h3>
+      <ul class="checklist">
+        <li>Continuous temperature/humidity monitoring in storage areas</li>
+        <li>Mean kinetic temperature calculations where applicable (see <a href="/learn/mean-kinetic-temperature-explained">MKT explained</a>)</li>
+        <li>Sensor calibration records for the past 12 months</li>
+        <li>All excursion events documented with response</li>
+        <li>Excursion response includes: acknowledgment, investigation, product impact, corrective action, verification</li>
+      </ul>
+
+      <h3>Training records</h3>
+      <ul class="checklist">
+        <li>Initial food safety training documented for all employees who handle food</li>
+        <li>Annual refresher training records</li>
+        <li>SOP-specific training records for procedures requiring sign-off</li>
+        <li>Allergen training documented for relevant employees</li>
+        <li>Seasonal hires and contractors covered (not just permanent employees)</li>
+        <li>Training records retrievable by employee, by procedure, and by date</li>
+      </ul>
+
+      <h3>Maintenance and equipment</h3>
+      <ul class="checklist">
+        <li>Preventive maintenance schedules current and being executed (see <a href="/learn/pm-schedules-that-get-done">PM schedules that get done</a>)</li>
+        <li>Work order history available for past 12 months</li>
+        <li>Equipment failure events documented with root cause and corrective action</li>
+        <li>Maintenance manuals/procedures version-controlled</li>
+      </ul>
+
+      <h3>Supplier records</h3>
+      <ul class="checklist">
+        <li>Approved supplier list current and signed</li>
+        <li>Supplier qualification records for the past 12 months</li>
+        <li>Receiving inspection records</li>
+        <li>COAs (certificates of analysis) tied to specific lots where applicable</li>
+        <li>Foreign supplier verification records if you import food (FSVP)</li>
+      </ul>
+
+      <h3>Non-conformance and corrective actions</h3>
+      <ul class="checklist">
+        <li>All non-conformances from past 12 months documented</li>
+        <li>Root cause analysis completed for significant events</li>
+        <li>Corrective and preventive actions tracked to completion</li>
+        <li>Effectiveness verification for closed CAPAs</li>
+        <li>Previous audit findings show evidence of resolution</li>
+      </ul>
+
+      <h2>Stage 2 — Practical readiness (the week of)</h2>
+
+      <h3>Walk the facility</h3>
+      <ul class="checklist">
+        <li>Walk the facility as if you were the inspector — look at what they'll see</li>
+        <li>Visible cleanliness: floors, walls, ceilings, drains</li>
+        <li>Pest evidence: rodent stations, insect light traps, exterior bait stations</li>
+        <li>Equipment condition: cleanable, not rusted, gaskets intact</li>
+        <li>Storage practices: spacing from walls, off the floor, no products against the ceiling</li>
+        <li>Temperature recording devices visible and functioning</li>
+        <li>Allergen segregation maintained where required</li>
+        <li>Signage current: handwashing reminders, GMP requirements, allergen warnings</li>
+      </ul>
+
+      <h3>Employee readiness</h3>
+      <ul class="checklist">
+        <li>Brief the team on what to expect — calm and professional, not anxious</li>
+        <li>Reinforce: answer questions directly, don't volunteer information beyond what's asked</li>
+        <li>Designate who escorts the inspector and who handles record requests</li>
+        <li>Designate a single point of contact for the inspector</li>
+        <li>Have a backup if the primary contact is unavailable</li>
+      </ul>
+
+      <h3>Documentation access</h3>
+      <ul class="checklist">
+        <li>Verify all records mentioned in Stage 1 can actually be retrieved quickly</li>
+        <li>Test specific lookups: "show me the corrective action for [random NC from 6 months ago]"</li>
+        <li>Test by-date queries: "show me pest control inspections from January through March"</li>
+        <li>Test by-person queries: "show me allergen training for [specific employee]"</li>
+        <li>If anything takes more than 5 minutes to retrieve, fix it before the inspector arrives</li>
+      </ul>
+
+      <h3>Internal mock inspection</h3>
+      <ul class="checklist">
+        <li>Have someone with audit experience walk through as if they were the inspector</li>
+        <li>Use the question patterns in <a href="/learn/what-inspectors-actually-ask">What Inspectors Actually Ask</a></li>
+        <li>Document the gaps found and address them before the actual inspection</li>
+      </ul>
+
+      <h2>Stage 3 — Inspection day</h2>
+
+      <h3>When the inspector arrives</h3>
+      <ul class="checklist">
+        <li>Request their FDA credentials and a Form FDA 482 (Notice of Inspection)</li>
+        <li>Verify their identity matches the credentials</li>
+        <li>Brief them on facility safety requirements (PPE, restricted areas)</li>
+        <li>Have your designated escort with them at all times</li>
+        <li>Provide a workspace with internet access for their records review</li>
+      </ul>
+
+      <h3>During the inspection</h3>
+      <ul class="checklist">
+        <li>Answer questions factually and directly</li>
+        <li>If you don't know an answer, say so and find out</li>
+        <li>Take detailed notes of every observation and request</li>
+        <li>If photos or samples are taken, request copies/duplicates</li>
+        <li>Document everything they look at and everything they ask for</li>
+        <li>Don't argue findings in real-time — note them and address in your response</li>
+      </ul>
+
+      <h3>At the close-out meeting</h3>
+      <ul class="checklist">
+        <li>Listen to the inspector's findings without interrupting</li>
+        <li>Ask clarifying questions if needed</li>
+        <li>If Form 483 observations are issued, accept the form and note the response window</li>
+        <li>Confirm your contact information for any follow-up</li>
+        <li>Don't commit to specific corrective actions on the spot — those require formal response</li>
+      </ul>
+
+      <h2>The hidden checklist: what your software needs to support</h2>
+      <p>
+        Almost every item above ultimately comes down to one capability: <strong>can you find any specific record in seconds, by any
+        relevant dimension?</strong>
+      </p>
+      <p>
+        If your records live in five systems — sensor platform for temperature, CMMS for maintenance, document system for SOPs,
+        spreadsheet for training, email for contractor work — assembling the answer to a single inspector question takes 30 minutes.
+        Times 50 questions per inspection, that's a multi-day exercise.
+      </p>
+      <p>
+        Records that live in one integrated system, organized around the dimensions inspectors actually query (date, asset, person,
+        procedure, NC number), make this difference vanish. Each question becomes a 30-second filter and export.
+      </p>
+
+      <h2>The 12 most common findings to head off</h2>
+      <p>
+        Across published FDA Form 483s for food warehouses and distribution operations, certain findings recur with high frequency.
+        See our companion article on <a href="/learn/common-fda-483-findings">common Form 483 findings in food distribution</a>
+        for the detailed breakdown. The high-level pattern:
+      </p>
+      <ol class="list">
+        <li>Inadequate or outdated hazard analysis</li>
+        <li>Preventive controls not implemented or not monitored</li>
+        <li>Sanitation program gaps or undocumented completion</li>
+        <li>Pest control documentation incomplete or missing</li>
+        <li>Temperature monitoring records with gaps or unaddressed excursions</li>
+        <li>Training records missing for employees who handle food</li>
+        <li>SOP version control failures (employees following old procedures)</li>
+        <li>Supplier qualification records incomplete</li>
+        <li>Corrective actions not completed or not verified</li>
+        <li>Previous audit findings not adequately addressed</li>
+        <li>Allergen segregation procedures not followed</li>
+        <li>Recall procedures not tested or documented</li>
+      </ol>
+
+      <h2>If you're reading this because you have an inspection coming up</h2>
+      <p>
+        The honest answer: if you're discovering this checklist for the first time the week before an FDA inspection, you're behind.
+        The work of FSMA compliance is daily, not pre-audit. The right time to think about retrievability is when you're building the
+        system, not when the inspector is walking up the drive.
+      </p>
+      <p>
+        That said — even an inspection in two weeks is enough time to materially improve your readiness if you focus on the highest-risk
+        areas: pest control records, temperature excursion responses, training compliance for the workforce, and SOP version control.
+        These four areas account for a disproportionate share of Form 483 findings.
+      </p>
+      <p>
+        And for the next inspection, consider the structural fix: an integrated quality and maintenance system where records flow into
+        one audit-ready place automatically, instead of being assembled from five sources in the days before an inspection.
+      </p>
+
+      <div class="card" style="margin-top:1.5rem">
+        <strong>See what audit-ready records actually look like.</strong>
+        <p style="margin-top: 0.5rem;">
+          The <a href="https://qms.vpickplus.us">QMS Pro live demo</a> is loaded with a fictional food &amp; beverage 3PL. Try answering any
+          of the inspector-question patterns yourself — temperature excursion response, pest control inspection records, training compliance,
+          maintenance history. The retrieval times described in this article are achievable, but only with the right system design.
+        </p>
+      </div>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/qms">Explore QMS Pro</a>
+        <a class="btn btn-ghost" href="/learn/what-inspectors-actually-ask" style="margin-left:8px;">What inspectors actually ask</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand
+    heading="Be audit-ready every day, not just inspection week"
+    body="The demo shows what integrated records look like."
+    ctaText="Try the demo"
+    ctaHref="https://qms.vpickplus.us" />
+</BaseLayout>
