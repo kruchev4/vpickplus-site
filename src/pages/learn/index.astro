@@ -10,20 +10,23 @@ const vpickArticles = [
   { slug: 'android-for-voice-picking',     title: 'Why Move Pick-to-Voice to Android?',    summary: 'Hardware choice, MDM, cost, flexibility, future-readiness.' },
   { slug: 'scan-driven-mute-mode',         title: 'What is Scan-Driven Mute Mode?',        summary: 'Keep work flowing in noisy zones without losing accuracy.' },
   { slug: 'devices-for-voice-picking',     title: 'What Devices Work with Pick-to-Voice?', summary: 'Handhelds, wearables, Bluetooth scanners, and accessories.' },
-  { slug: 'warehouse-device-leasing',      title: 'Warehouse Device Leasing Explained',    summary: 'CAPEX vs OPEX, SLAs, refresh cycles, and what\'s included.' },
+  { slug: 'warehouse-device-leasing',      title: 'Warehouse Device Leasing Explained',    summary: "CAPEX vs OPEX, SLAs, refresh cycles, and what's included." },
   { slug: 'what-is-livemap',               title: 'What Is LiveMap™?',                     summary: 'Real-time visibility of active picker locations across the DC floor.' },
 ]
 
-// QMS Pro articles
-const qmsArticles = [
-  { slug: 'what-is-qms-for-distribution',     title: 'What Is a QMS for Distribution?',          summary: 'How distribution QMS differs from manufacturing QMS, and why it matters.' },
-  { slug: 'mean-kinetic-temperature-explained', title: 'Mean Kinetic Temperature Explained (USP <1118>)', summary: 'What MKT is, why USP <1118> matters, and how to calculate it.' },
-  { slug: 'working-with-outside-contractors', title: 'Working with Outside Contractors',         summary: 'How tokenized QR access closes the contractor audit gap.' },
+// QMS Pro / CMMS articles — combined section since it's one product
+const qmsCmmsArticles = [
+  { slug: 'what-is-a-cmms',                       title: 'What Is a CMMS?',                                summary: 'A practical guide to computerized maintenance management systems — what they do and how to evaluate them.' },
+  { slug: 'cmms-for-distribution-centers',        title: "CMMS for Distribution Centers: What's Different", summary: 'What makes maintenance management in DCs different from manufacturing, and what to look for.' },
+  { slug: 'why-standalone-cmms-isnt-enough',      title: "Why a Standalone CMMS Isn't Enough",             summary: 'The five gaps a generic CMMS leaves in a regulated distribution operation — and how to close them.' },
+  { slug: 'what-is-qms-for-distribution',         title: 'What Is a QMS for Distribution?',                summary: 'How distribution QMS differs from manufacturing QMS, and why it matters.' },
+  { slug: 'mean-kinetic-temperature-explained',   title: 'Mean Kinetic Temperature Explained (USP &lt;1118&gt;)', summary: 'What MKT is, why USP <1118> matters, and how to calculate it.' },
+  { slug: 'working-with-outside-contractors',     title: 'Working with Outside Contractors',               summary: 'How tokenized QR access closes the contractor audit gap.' },
 ]
 ---
 <BaseLayout
   title="Learn — VPick+"
-  description="Vendor-neutral answers about voice picking, multimodal warehouse workflows, quality management for distribution, FSMA, MKT, and more."
+  description="Vendor-neutral answers about voice picking, multimodal warehouse workflows, quality and maintenance management for distribution, FSMA, MKT, and more."
 >
   <nav class="breadcrumb container" aria-label="Breadcrumb">
     <a href="/">Home</a>
@@ -35,21 +38,21 @@ const qmsArticles = [
     <div class="container hero-wrap">
       <div class="hero-copy">
         <h1>Learn</h1>
-        <p class="lead">Vendor-neutral answers about modern warehouse workflows — picking, quality management, regulatory frameworks, and the technology behind them.</p>
+        <p class="lead">Vendor-neutral answers about modern warehouse and distribution operations — picking, maintenance, quality, compliance, and the technology behind them.</p>
       </div>
     </div>
   </section>
 
-  <!-- QMS Pro articles -->
+  <!-- QMS / CMMS articles -->
   <section>
     <div class="container">
       <div style="margin-bottom: 2rem;">
         <span class="pill teal">QMS Pro</span>
-        <h2 style="margin-top: 0.75rem;">Quality Management for Distribution</h2>
-        <p class="muted">Documents, deviations, environmental monitoring, and compliance for distribution operations.</p>
+        <h2 style="margin-top: 0.75rem;">Quality &amp; Maintenance for Distribution</h2>
+        <p class="muted">CMMS, quality management, environmental monitoring, and compliance for distribution operations.</p>
       </div>
       <div class="grid-2">
-        {qmsArticles.map((a) => (
+        {qmsCmmsArticles.map((a) => (
           <article class="card hover-lift">
             <h3><a href={`/learn/${a.slug}`} set:html={a.title} /></h3>
             <p class="muted" set:html={a.summary} />
