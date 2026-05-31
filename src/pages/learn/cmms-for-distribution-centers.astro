@@ -1,0 +1,188 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="CMMS for Distribution Centers: What's Different — VPick+"
+  description="What makes maintenance management in distribution centers different from manufacturing or property management — and what to look for in a CMMS that fits."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">CMMS for Distribution Centers</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">CMMS for Distribution Centers: What's Different</h1>
+      <p class="section-sub">Distribution maintenance has specific realities that generic CMMS tools don't address. Here's what's different and what to look for.</p>
+
+      <h2>The category problem</h2>
+      <p>
+        CMMS as a software category was shaped by manufacturing. Most of the conventions — equipment hierarchies, PM scheduling logic,
+        technician dispatch, parts inventory — make sense in a factory. They make less sense in a 500,000-square-foot warehouse with
+        rotating product, seasonal labor, and a fleet of contractor service providers.
+      </p>
+      <p>
+        That's not a small distinction. The way a CMMS is structured determines what's easy and what's painful. In a distribution
+        operation, the things a generic CMMS makes painful are exactly the things you do all day.
+      </p>
+
+      <h2>Five things that are different in a DC</h2>
+
+      <h3>1. The equipment mix is unusual</h3>
+      <p>
+        A manufacturing plant has a few hundred pieces of production equipment with deep, complex maintenance requirements.
+        A DC has more equipment but lighter individual maintenance loads:
+      </p>
+      <ul class="list">
+        <li><strong>Lift trucks</strong> — often dozens, daily inspections, OSHA documentation requirements</li>
+        <li><strong>Refrigeration systems</strong> — multiple coolers and freezers, regulatory environmental monitoring</li>
+        <li><strong>HVAC and dehumidification</strong> — multi-zone climate control with seasonal stress</li>
+        <li><strong>Dock equipment</strong> — levelers, restraints, doors — high cycle counts, safety-critical</li>
+        <li><strong>Conveyor and sortation</strong> — when present, downtime is operationally catastrophic</li>
+        <li><strong>Fire safety</strong> — sprinklers, alarms, extinguishers, all on inspection schedules</li>
+        <li><strong>Building infrastructure</strong> — roof, lighting, electrical, plumbing</li>
+      </ul>
+      <p>
+        Each category has different inspection frequencies, regulatory requirements, and service providers. A generic CMMS organizes
+        everything in one flat hierarchy and asks you to set up workflows manually.
+      </p>
+
+      <h3>2. Contractors do most of the regulated work</h3>
+      <p>
+        Pest control: contractor. Refrigeration service: usually contractor. Fire safety inspections: contractor. HVAC service:
+        often contractor. Lift truck repair beyond daily inspections: usually contractor. Sprinkler inspections: contractor.
+      </p>
+      <p>
+        The internal maintenance team in a DC often functions more as facility coordination than as the primary maintenance workforce.
+        A CMMS that treats contractors as an afterthought will leave most of your actual maintenance activity outside the system.
+      </p>
+
+      <h3>3. Equipment failures connect to compliance immediately</h3>
+      <p>
+        In manufacturing, equipment failure usually means lost production. In distribution, equipment failure often means regulatory exposure:
+      </p>
+      <ul class="list">
+        <li>Cooler failure → FSMA temperature compliance issue</li>
+        <li>Pest infrastructure failure → FSMA / FDA Form 483 risk</li>
+        <li>Dock leveler failure → OSHA documentation requirement</li>
+        <li>Sprinkler system failure → fire code violation</li>
+      </ul>
+      <p>
+        This means maintenance and compliance are the same workflow, not adjacent workflows. A CMMS that hands off to a separate
+        compliance system creates seams where audit findings hide.
+      </p>
+
+      <h3>4. The workforce model is different</h3>
+      <p>
+        Manufacturing typically has stable workforces with deep specialization. Distribution has seasonal expansions (peak season),
+        high turnover in operations roles, and a small permanent maintenance team augmented by contractors.
+      </p>
+      <p>
+        This means training compliance has to handle 200+ people who don't have software accounts but do operate equipment.
+        It means contractor relationships need to be managed at the company level, not the individual level. It means PM assignments
+        can't depend on "John handles the freezers" because John might leave in October.
+      </p>
+
+      <h3>5. The audit cadence is constant</h3>
+      <p>
+        FDA, FSMA, customer audits, third-party certifications (SQF, BRC), insurance audits, internal audits — a regulated DC
+        is in some form of audit prep or response throughout the year.
+      </p>
+      <p>
+        Each audit asks for specific evidence: inspection records, corrective actions, training documentation, environmental data,
+        maintenance history. A CMMS that takes 4 hours to produce these records during an audit is fundamentally the wrong tool.
+        It needs to be a 30-second export.
+      </p>
+
+      <h2>What "fits" looks like for a DC</h2>
+      <p>A CMMS that fits distribution operations should handle these things natively:</p>
+
+      <h3>Mobile-first technician workflow</h3>
+      <p>
+        Every asset has a QR code. Technicians complete work orders from their phone in the aisle. Photos, signatures, and notes
+        captured at the point of work, not transcribed later.
+      </p>
+
+      <h3>Tokenized contractor access</h3>
+      <p>
+        Contractors scan a QR code, fill out their inspection form on their phone, no account required. The submission flows directly
+        into the CMMS with audit trail, photos, and timestamp. (We wrote about why this matters in
+        <a href="/learn/working-with-outside-contractors">Working with Outside Contractors in Your QMS</a>.)
+      </p>
+
+      <h3>Environmental monitoring as part of the CMMS</h3>
+      <p>
+        Temperature and humidity sensor data tied to the assets that produce it. When a cooler drifts upward, the maintenance
+        history is one click away. (See <a href="/learn/mean-kinetic-temperature-explained">Mean Kinetic Temperature Explained</a>
+        for the regulatory context.)
+      </p>
+
+      <h3>Integrated quality and deviation workflow</h3>
+      <p>
+        When a PM checklist fails, the non-conformance is created automatically — linked to the asset, the technician, the time,
+        and the maintenance event. Root cause analysis and CAPA workflows live in the same system as the work orders.
+      </p>
+
+      <h3>Training that covers the full workforce</h3>
+      <p>
+        Documented training records for everyone who needs them — software users, warehouse staff, contractors, seasonal hires.
+        Annual recertification, SOP acknowledgments, audit-ready compliance reporting.
+      </p>
+
+      <h3>Document control with version management</h3>
+      <p>
+        SOPs, maintenance procedures, lockout/tagout instructions, safety documentation — version-controlled, approved, linked
+        to assets and work orders, and acknowledged by the people who use them.
+      </p>
+
+      <h2>What you can leave out</h2>
+      <p>
+        Some CMMS features are essential in manufacturing but rarely needed in distribution:
+      </p>
+      <ul class="list">
+        <li><strong>Predictive maintenance with sensor-based condition monitoring</strong> — useful, but the equipment in a DC is typically
+          simpler than in a process plant. Calendar-based PMs and runtime triggers cover most cases.</li>
+        <li><strong>Complex equipment hierarchies with thousands of nested assets</strong> — DCs don't have the same equipment depth as
+          a refinery or a paper mill. Flat or two-level hierarchies usually work.</li>
+        <li><strong>Heavy integration with MES and SCADA</strong> — these systems don't typically exist in distribution operations.
+          You need WMS integration far more often than MES.</li>
+      </ul>
+      <p>
+        A generic CMMS is built to handle the heavy-industrial scenarios, which makes it more complex than it needs to be for
+        distribution. A CMMS tuned for distribution can be simpler, faster to deploy, and easier for technicians to actually use.
+      </p>
+
+      <h2>Pricing considerations</h2>
+      <p>
+        Generic CMMS tools typically charge per-user. This works in a model where most maintenance workers are direct employees.
+        It works poorly in distribution, where you might want 10 internal users + access for 20 contractors + records for 200
+        warehouse staff training compliance.
+      </p>
+      <p>
+        Look for pricing models that don't penalize you for the right operational structure — flat-rate licensing or
+        per-facility pricing usually works better than per-seat for distribution.
+      </p>
+
+      <div class="card" style="margin-top:1.5rem">
+        <strong>QMS Pro CMMS is purpose-built for distribution operations.</strong>
+        <p style="margin-top: 0.5rem;">
+          Mobile-first work orders, tokenized contractor access, environmental monitoring, training compliance, and document control —
+          all integrated. The <a href="https://qms.vpickplus.us">live demo</a> is loaded with realistic 3PL data.
+          See the <a href="/cmms">CMMS overview</a> or read about <a href="/learn/why-standalone-cmms-isnt-enough">why a standalone CMMS isn't enough</a>.
+        </p>
+      </div>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/cmms">Explore QMS Pro CMMS</a>
+        <a class="btn btn-ghost" href="/learn/what-is-a-cmms" style="margin-left:8px;">What Is a CMMS?</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand
+    heading="See it built for distribution"
+    body="The demo is open. Try the maintenance workflows yourself."
+    ctaText="Try the demo"
+    ctaHref="https://qms.vpickplus.us" />
+</BaseLayout>
