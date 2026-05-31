@@ -1,0 +1,241 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="What Is FSMA? A Practical Guide for Distribution Operations — VPick+"
+  description="A clear explanation of the Food Safety Modernization Act (FSMA): what it requires of distribution centers and 3PLs, which rules apply to your operation, and what audit-ready compliance actually looks like."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">What Is FSMA?</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">What Is FSMA?</h1>
+      <p class="section-sub">A practical guide to the Food Safety Modernization Act for distribution centers, 3PLs, and warehouses handling human food.</p>
+
+      <h2>The short definition</h2>
+      <p>
+        The <strong>Food Safety Modernization Act (FSMA)</strong> is a 2011 U.S. law that reformed how food is regulated in the United States.
+        It moved the FDA's approach from reacting to contamination events after they happen to <em>preventing</em> them through systematic
+        controls — and it expanded the FDA's authority significantly.
+      </p>
+      <p>
+        For distribution operations, the practical impact is that <strong>any facility that stores, handles, or transports human food</strong>
+        is now subject to specific FDA requirements: documented preventive controls, sanitary transportation practices, allergen
+        management, supplier verification, and an audit trail that can withstand inspection.
+      </p>
+
+      <h2>Why FSMA exists</h2>
+      <p>
+        Before FSMA, U.S. food safety regulation was largely reactive. The FDA could respond to outbreaks, recall contaminated products,
+        and inspect facilities — but its authority to <em>require</em> preventive controls was limited.
+      </p>
+      <p>
+        A series of high-profile outbreaks in the 2000s (peanut butter, spinach, eggs) made it clear that reactive regulation wasn't enough.
+        FSMA was Congress's response: a comprehensive framework requiring food facilities to identify hazards and put preventive controls
+        in place before contamination happens, not after.
+      </p>
+
+      <h2>The seven major FSMA rules</h2>
+      <p>FSMA implementation is structured around seven rules. Not all apply to every operation — which ones apply to you depends on what you do.</p>
+
+      <h3>1. Preventive Controls for Human Food (21 CFR Part 117)</h3>
+      <p>
+        The cornerstone rule. Requires registered food facilities to develop a written food safety plan that:
+      </p>
+      <ul class="list">
+        <li>Identifies hazards reasonably likely to occur</li>
+        <li>Implements preventive controls for those hazards</li>
+        <li>Monitors the controls and verifies they're working</li>
+        <li>Documents everything</li>
+      </ul>
+      <p>
+        Many distribution centers fall under this rule if they hold food in conditions that affect safety (temperature, allergen exposure, pest control).
+      </p>
+
+      <h3>2. Sanitary Transportation (21 CFR Part 1, Subpart O)</h3>
+      <p>
+        Requires shippers, loaders, carriers, and receivers of food transported by motor vehicle or rail to use practices that ensure
+        food safety. Specific requirements around vehicle and equipment design, transportation operations, training, and records.
+      </p>
+      <p>
+        For 3PLs that handle inbound and outbound food movements, this rule generates substantial documentation requirements:
+        vehicle inspection records, temperature data during transit, cleaning protocols between loads.
+      </p>
+
+      <h3>3. Produce Safety Rule (21 CFR Part 112)</h3>
+      <p>
+        Applies to farms producing fresh produce. Generally not relevant to distribution operations unless you do significant produce handling
+        in ways that overlap with farm activities.
+      </p>
+
+      <h3>4. Foreign Supplier Verification Program (FSVP) (21 CFR Part 1, Subpart L)</h3>
+      <p>
+        If you import food, FSVP requires you to verify that your foreign suppliers meet U.S. food safety standards. Significant
+        documentation requirements: supplier evaluation, hazard analysis, verification activities.
+      </p>
+
+      <h3>5. Third-Party Certification (21 CFR Part 1, Subpart M)</h3>
+      <p>
+        Establishes a voluntary program for accredited third-party certifiers to conduct food safety audits and issue certifications.
+        Relevant if you're seeking specific FDA-recognized certifications.
+      </p>
+
+      <h3>6. Mitigation Strategies for Intentional Adulteration (21 CFR Part 121)</h3>
+      <p>
+        Requires food facilities to implement defenses against intentional contamination of food (food defense, distinct from food safety).
+        Required vulnerability assessments and mitigation strategies.
+      </p>
+
+      <h3>7. Food Traceability Rule (21 CFR Part 1, Subpart S) — the newest one</h3>
+      <p>
+        Finalized in November 2022, with a compliance date of <strong>January 20, 2026</strong>. Requires enhanced recordkeeping for
+        foods on the Food Traceability List (FTL) — leafy greens, soft cheeses, eggs, certain fish, certain ready-to-eat products,
+        and others.
+      </p>
+      <p>
+        For distribution operations handling FTL foods, this is the most significant new compliance requirement in years.
+        It requires capturing Key Data Elements (KDEs) at Critical Tracking Events (CTEs) throughout the supply chain, with
+        the ability to provide that data to the FDA within 24 hours of request.
+      </p>
+
+      <h2>What FSMA actually means for a distribution center</h2>
+      <p>
+        FSMA compliance for a typical food &amp; bev distribution operation translates into specific, observable practices:
+      </p>
+
+      <h3>Written food safety plan</h3>
+      <p>
+        A documented plan covering hazard analysis, preventive controls, monitoring procedures, corrective actions, verification activities,
+        and recordkeeping. This isn't a one-time document — it has to be reviewed annually and updated when conditions change.
+      </p>
+
+      <h3>Temperature monitoring with documented controls</h3>
+      <p>
+        Continuous monitoring of refrigerated and frozen storage, with documented response when temperatures drift outside specifications.
+        Increasingly, this means mean kinetic temperature (MKT) calculation rather than just min/max recording.
+        See <a href="/learn/mean-kinetic-temperature-explained">Mean Kinetic Temperature Explained</a> for the regulatory context.
+      </p>
+
+      <h3>Pest control with documented inspections</h3>
+      <p>
+        FSMA requires pest control programs with documented inspection cycles, findings, and corrective actions. Most operations
+        outsource this to contractors — which means the records need to flow into your food safety plan, not live in the contractor's truck.
+        See <a href="/learn/working-with-outside-contractors">Working with Outside Contractors in Your QMS</a> for how this works in practice.
+      </p>
+
+      <h3>Allergen management</h3>
+      <p>
+        Documented procedures for preventing allergen cross-contact, training records for handlers, and verification that procedures
+        are working. For 3PLs handling multiple customers, this means specific protocols for products containing the major allergens
+        (milk, eggs, fish, shellfish, tree nuts, wheat, peanuts, soybeans, sesame).
+      </p>
+
+      <h3>Supplier qualification</h3>
+      <p>
+        For ingredients and packaging that contact food, documented verification that suppliers meet relevant safety standards.
+        Approved supplier lists, periodic re-qualification, and corrective action processes when suppliers fail.
+      </p>
+
+      <h3>Sanitation programs with verification</h3>
+      <p>
+        Master sanitation schedules covering cleaning frequency and method for all relevant surfaces and equipment. Verification
+        that sanitation is happening as scheduled. Corrective action when it isn't.
+      </p>
+
+      <h3>Training records for the full workforce</h3>
+      <p>
+        Documented food safety training for everyone who handles food or works in areas where food is exposed. This includes seasonal hires,
+        contractors, and warehouse staff who don't have software accounts. Annual refreshers. Sign-off on SOPs.
+      </p>
+
+      <h3>Recall readiness</h3>
+      <p>
+        Documented procedures for executing a recall: how product is traced, how customers are notified, how the FDA is communicated with.
+        Most operations test recall procedures annually.
+      </p>
+
+      <h2>What FDA inspectors actually look for</h2>
+      <p>
+        FSMA inspections typically focus on documentation and verification — not on watching live operations. Common areas:
+      </p>
+      <ul class="list">
+        <li><strong>The written food safety plan</strong> — current, signed, comprehensive</li>
+        <li><strong>Temperature monitoring records</strong> — with documented response to excursions</li>
+        <li><strong>Pest control records</strong> — typically asking for 12 months of inspection history with findings and corrective actions</li>
+        <li><strong>Training records</strong> — for everyone the inspector asks about</li>
+        <li><strong>Sanitation records</strong> — master schedule plus completion verification</li>
+        <li><strong>Supplier qualification records</strong> — for ingredients and packaging</li>
+        <li><strong>Corrective action records</strong> — for previous findings and deviations</li>
+      </ul>
+      <p>
+        The pattern: inspectors ask for specific documentation, expect to receive it quickly, and look for evidence that controls are
+        actually being executed (not just documented). Records that can't be produced quickly raise concerns; records that show controls
+        weren't followed raise bigger concerns.
+      </p>
+
+      <h2>The Form 483 risk</h2>
+      <p>
+        When an FDA inspector identifies observations during an inspection, they're typically issued on a <strong>Form 483</strong> —
+        a formal list of observed deficiencies. Form 483s are publicly available and become part of your facility's record.
+      </p>
+      <p>
+        The observations on FSMA 483s tend to cluster in predictable categories:
+      </p>
+      <ul class="list">
+        <li>Inadequate or missing hazard analysis</li>
+        <li>Preventive controls not implemented or not verified</li>
+        <li>Inadequate monitoring records</li>
+        <li>Failure to take corrective action when deviations occur</li>
+        <li>Training deficiencies</li>
+        <li>Sanitation program gaps</li>
+        <li>Inadequate supplier verification</li>
+      </ul>
+      <p>
+        Almost all of these come down to documentation problems — controls that may have been performed but weren't recorded properly,
+        or whose records can't be quickly retrieved during inspection.
+      </p>
+
+      <h2>What FSMA compliance actually requires from your software</h2>
+      <p>
+        If you're running FSMA compliance through binders, spreadsheets, and a maintenance system that doesn't talk to your sensor data,
+        you're going to struggle. The specific software capabilities that materially help:
+      </p>
+      <ul class="checklist">
+        <li>Document control with version management for SOPs and food safety plans</li>
+        <li>Continuous temperature monitoring with MKT calculation</li>
+        <li>Pest control inspection records (typically contractor-driven) flowing into the QMS</li>
+        <li>Training compliance tracking for the full workforce</li>
+        <li>Supplier qualification records with re-verification reminders</li>
+        <li>Non-conformance workflow with documented corrective actions</li>
+        <li>Audit-ready export of all the above by date range</li>
+      </ul>
+      <p>
+        This is exactly the shape of an integrated QMS designed for distribution operations.
+      </p>
+
+      <div class="card" style="margin-top:1.5rem">
+        <strong>QMS Pro is built around FSMA-relevant workflows.</strong>
+        <p style="margin-top: 0.5rem;">
+          Document control, environmental monitoring with MKT, contractor inspections, training compliance, non-conformance workflow,
+          and audit-ready exports. The <a href="https://qms.vpickplus.us">live demo</a> is loaded with a fictional food &amp; beverage 3PL
+          so you can see FSMA-relevant records the way an inspector would.
+        </p>
+      </div>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/qms">Explore QMS Pro</a>
+        <a class="btn btn-ghost" href="/learn/what-is-qms-for-distribution" style="margin-left:8px;">What Is a QMS for Distribution?</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand
+    heading="FSMA-ready records in one system"
+    body="The demo shows what audit-ready compliance looks like in practice."
+    ctaText="Try the demo"
+    ctaHref="https://qms.vpickplus.us" />
+</BaseLayout>
