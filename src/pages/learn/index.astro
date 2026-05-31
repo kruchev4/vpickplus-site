@@ -14,19 +14,25 @@ const vpickArticles = [
   { slug: 'what-is-livemap',               title: 'What Is LiveMap™?',                     summary: 'Real-time visibility of active picker locations across the DC floor.' },
 ]
 
-// QMS Pro / CMMS articles — combined section since it's one product
+// QMS Pro / CMMS articles
 const qmsCmmsArticles = [
+  // Category anchors
   { slug: 'what-is-a-cmms',                       title: 'What Is a CMMS?',                                summary: 'A practical guide to computerized maintenance management systems — what they do and how to evaluate them.' },
+  { slug: 'what-is-fsma',                         title: 'What Is FSMA?',                                  summary: 'A practical guide to the Food Safety Modernization Act for distribution centers and 3PLs.' },
+  { slug: 'what-is-qms-for-distribution',         title: 'What Is a QMS for Distribution?',                summary: 'How distribution QMS differs from manufacturing QMS, and why it matters.' },
+  // Positioning
   { slug: 'cmms-for-distribution-centers',        title: "CMMS for Distribution Centers: What's Different", summary: 'What makes maintenance management in DCs different from manufacturing, and what to look for.' },
   { slug: 'why-standalone-cmms-isnt-enough',      title: "Why a Standalone CMMS Isn't Enough",             summary: 'The five gaps a generic CMMS leaves in a regulated distribution operation — and how to close them.' },
-  { slug: 'what-is-qms-for-distribution',         title: 'What Is a QMS for Distribution?',                summary: 'How distribution QMS differs from manufacturing QMS, and why it matters.' },
+  { slug: 'what-inspectors-actually-ask',         title: 'What Inspectors Actually Ask in Distribution Audits', summary: 'The specific questions FDA and customer auditors ask — and the records you need ready in seconds.' },
+  // Tactical / depth
+  { slug: 'pm-schedules-that-get-done',           title: 'How to Build PM Schedules That Actually Get Done', summary: 'Pick the right trigger type (calendar, runtime, condition), set the right cadence, and remove friction at the point of work.' },
   { slug: 'mean-kinetic-temperature-explained',   title: 'Mean Kinetic Temperature Explained (USP &lt;1118&gt;)', summary: 'What MKT is, why USP <1118> matters, and how to calculate it.' },
   { slug: 'working-with-outside-contractors',     title: 'Working with Outside Contractors',               summary: 'How tokenized QR access closes the contractor audit gap.' },
 ]
 ---
 <BaseLayout
   title="Learn — VPick+"
-  description="Vendor-neutral answers about voice picking, multimodal warehouse workflows, quality and maintenance management for distribution, FSMA, MKT, and more."
+  description="Vendor-neutral answers about voice picking, multimodal warehouse workflows, CMMS, quality management for distribution, FSMA, MKT, audit prep, and more."
 >
   <nav class="breadcrumb container" aria-label="Breadcrumb">
     <a href="/">Home</a>
@@ -49,7 +55,7 @@ const qmsCmmsArticles = [
       <div style="margin-bottom: 2rem;">
         <span class="pill teal">QMS Pro</span>
         <h2 style="margin-top: 0.75rem;">Quality &amp; Maintenance for Distribution</h2>
-        <p class="muted">CMMS, quality management, environmental monitoring, and compliance for distribution operations.</p>
+        <p class="muted">CMMS, quality management, environmental monitoring, FSMA compliance, and audit prep for distribution operations.</p>
       </div>
       <div class="grid-2">
         {qmsCmmsArticles.map((a) => (
