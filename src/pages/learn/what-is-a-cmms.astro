@@ -1,0 +1,174 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="What Is a CMMS? — VPick+"
+  description="A clear definition of CMMS (Computerized Maintenance Management System): what it does, who uses it, when you need one, and how to choose."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">What Is a CMMS?</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">What Is a CMMS?</h1>
+      <p class="section-sub">A practical guide to Computerized Maintenance Management Systems — what they do, who needs one, and how to evaluate options.</p>
+
+      <h2>Definition</h2>
+      <p>
+        A <strong>CMMS — Computerized Maintenance Management System</strong> — is software that manages maintenance work across
+        an organization. It centralizes work orders, preventive maintenance schedules, asset records, parts inventory, and
+        the people who do the work — replacing the binders, spreadsheets, and emails that maintenance teams typically rely on.
+      </p>
+      <p>
+        At its core, a CMMS answers four questions every maintenance manager needs to answer constantly:
+      </p>
+      <ul class="list">
+        <li><strong>What needs to be done today?</strong> Open work orders and PMs due.</li>
+        <li><strong>What got done yesterday?</strong> Completion history with photos, signatures, and notes.</li>
+        <li><strong>What's coming up?</strong> Scheduled maintenance for the next week, month, quarter.</li>
+        <li><strong>What broke and why?</strong> Failure history, root cause patterns, and equipment performance trends.</li>
+      </ul>
+
+      <h2>Who uses a CMMS</h2>
+      <p>
+        Any organization with significant equipment and a maintenance function eventually outgrows spreadsheets.
+        Common users:
+      </p>
+      <ul class="list">
+        <li><strong>Maintenance managers</strong> — planning, prioritization, technician assignment</li>
+        <li><strong>Maintenance technicians</strong> — receiving and completing work orders, recording labor and parts</li>
+        <li><strong>Operations leaders</strong> — equipment uptime visibility, planned vs unplanned ratios</li>
+        <li><strong>Finance</strong> — capital vs expense allocation, vendor spend, parts inventory value</li>
+        <li><strong>Compliance and safety</strong> — required inspection records, regulatory audit support</li>
+      </ul>
+      <p>
+        In distribution operations specifically, the maintenance function often coordinates closely with quality and compliance teams —
+        which is why a maintenance system in a warehouse needs to do more than a maintenance system in a generic facility.
+      </p>
+
+      <h2>What a CMMS actually does</h2>
+      <p>Every CMMS handles these core capabilities:</p>
+
+      <h3>Work order management</h3>
+      <p>
+        The transactional core. Create a work order, assign it to a technician, track status from open to in-progress to completed,
+        capture labor time and parts consumed, attach photos and notes. Mobile completion is now table stakes — technicians complete
+        WOs from their phone at the equipment, not at a desk hours later.
+      </p>
+
+      <h3>Preventive maintenance scheduling</h3>
+      <p>
+        Recurring maintenance triggered by calendar (every 90 days), runtime (every 2,000 hours), or condition (when a sensor reading
+        crosses a threshold). The CMMS generates work orders automatically and notifies the maintenance manager.
+      </p>
+
+      <h3>Asset registry</h3>
+      <p>
+        Every piece of equipment has a record: purchase information, warranty, service history, manuals, parts list, location.
+        Modern CMMS systems put a QR code on every asset so a technician can scan to pull up the record.
+      </p>
+
+      <h3>Parts inventory</h3>
+      <p>
+        Stock levels, reorder points, vendor information, and consumption tracking against specific work orders. When parts run out
+        unexpectedly, it usually means the CMMS wasn't actually being used.
+      </p>
+
+      <h3>Reporting and KPIs</h3>
+      <p>
+        Mean time between failures (MTBF), mean time to repair (MTTR), planned vs reactive maintenance ratio, PM compliance rate,
+        equipment downtime, and maintenance cost per asset. The numbers maintenance managers report to operations leadership.
+      </p>
+
+      <h2>How CMMS evolved</h2>
+      <p>
+        Maintenance management software dates back to the 1970s, when large industrial facilities first started computerizing
+        maintenance records. Through the 80s and 90s, CMMS systems were enterprise software — expensive, on-premise, complex,
+        usually a module of a larger enterprise asset management (EAM) suite.
+      </p>
+      <p>
+        Cloud-based CMMS arrived in the late 2000s and 2010s — UpKeep, Fiix, MaintainX, Limble Maintenance, and others.
+        These platforms made CMMS accessible to mid-market and small-business maintenance teams, and shifted the interaction model
+        toward mobile-first technician workflows.
+      </p>
+      <p>
+        Today, the question isn't whether to use a CMMS — it's which one fits your specific operational reality.
+      </p>
+
+      <h2>When you need a CMMS</h2>
+      <p>You probably need a CMMS if any of these are true:</p>
+      <ul class="checklist">
+        <li>You have 50+ pieces of equipment requiring scheduled maintenance</li>
+        <li>You have more than 2-3 maintenance technicians</li>
+        <li>You run preventive maintenance from a spreadsheet — and PMs are getting missed</li>
+        <li>You can't quickly answer "when was this last serviced?"</li>
+        <li>You're audited (FDA, FSMA, OSHA, ISO, customer audits) and asked to show maintenance records</li>
+        <li>Reactive maintenance accounts for more than 30% of your maintenance work</li>
+        <li>Outside contractors do significant work and their records are scattered</li>
+      </ul>
+
+      <h2>How to choose a CMMS</h2>
+      <p>
+        Most CMMS evaluations focus on the wrong things. Buyers spec out feature lists, but the actual success or failure of
+        a CMMS rollout depends on three less-obvious factors:
+      </p>
+
+      <h3>Will technicians actually use it?</h3>
+      <p>
+        The best CMMS is the one your technicians fill out. If the mobile interface is clunky, if it requires too many taps,
+        if the data entry feels like punishment — they'll do work orders on paper and "log them later" (which means "never").
+        Try the mobile experience yourself before buying.
+      </p>
+
+      <h3>Does it fit your industry's specific reality?</h3>
+      <p>
+        Generic CMMS tools work for generic facilities. Distribution centers, food processing plants, pharmaceutical warehouses,
+        hospitals — each has specific workflows, regulatory contexts, and contractor relationships that a generic tool may not handle well.
+        A CMMS built or configured for your industry will be significantly stickier.
+      </p>
+
+      <h3>What else does it touch?</h3>
+      <p>
+        Maintenance doesn't happen in isolation. Equipment failures cause quality issues. Sensor data informs PM scheduling.
+        Training compliance determines who can do what work. Outside contractors generate records that need to flow into your
+        compliance documentation. A CMMS that integrates with — or includes — these adjacent capabilities saves substantial overhead.
+      </p>
+
+      <h2>CMMS for distribution operations specifically</h2>
+      <p>
+        If you run a distribution center, 3PL, or cold-chain warehouse, your maintenance reality is different from a generic facility:
+      </p>
+      <ul class="list">
+        <li>A lot of regulated equipment is maintained by outside contractors (pest control, HVAC, fire safety, refrigeration)</li>
+        <li>Equipment failures often have direct regulatory consequences (cooler failures → FSMA exposure)</li>
+        <li>Your workforce includes seasonal hires and contractors who need training records but not software accounts</li>
+        <li>Environmental monitoring and equipment performance are connected problems</li>
+      </ul>
+      <p>
+        A CMMS designed for distribution should handle these realities natively — not require you to bolt on three other tools to fill the gaps.
+      </p>
+
+      <div class="card" style="margin-top:1.5rem">
+        <strong>See it in practice:</strong>
+        <p style="margin-top: 0.5rem;">
+          <a href="/cmms">QMS Pro CMMS</a> is a CMMS built specifically for distribution operations.
+          The <a href="https://qms.vpickplus.us">live demo</a> is loaded with realistic fictional data — open work orders, PM schedules, asset registry, contractor inspections, and the maintenance backlog of a working 3PL.
+        </p>
+      </div>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/cmms">Explore QMS Pro CMMS</a>
+        <a class="btn btn-ghost" href="/learn/cmms-vs-eam" style="margin-left:8px;">CMMS vs EAM</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand
+    heading="Curious about distribution-first CMMS?"
+    body="The QMS Pro demo is open. Maintenance manager perspective."
+    ctaText="Try the demo"
+    ctaHref="https://qms.vpickplus.us" />
+</BaseLayout>
