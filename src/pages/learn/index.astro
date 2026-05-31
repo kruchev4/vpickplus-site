@@ -14,7 +14,14 @@ const vpickArticles = [
   { slug: 'what-is-livemap',               title: 'What Is LiveMap™?',                     summary: 'Real-time visibility of active picker locations across the DC floor.' },
 ]
 
-// QMS Pro / CMMS articles
+// FDA audit prep cluster — grouped because they support each other
+const auditArticles = [
+  { slug: 'fda-inspection-checklist',      title: 'FDA Inspection Checklist for Food Distribution', summary: 'A practical, time-staged checklist for preparing a distribution center, 3PL, or food warehouse for an FDA inspection.' },
+  { slug: 'common-fda-483-findings',       title: 'Common FDA Form 483 Findings in Food Distribution', summary: 'The most common observations on Form 483s — what inspectors actually cite, and what the patterns reveal.' },
+  { slug: 'what-inspectors-actually-ask',  title: 'FDA Inspector Questions in Food Distribution Audits', summary: 'The specific questions inspectors ask — and the records you need ready in seconds, not hours.' },
+]
+
+// Quality & maintenance for distribution (everything else QMS/CMMS-related)
 const qmsCmmsArticles = [
   // Category anchors
   { slug: 'what-is-a-cmms',                       title: 'What Is a CMMS?',                                summary: 'A practical guide to computerized maintenance management systems — what they do and how to evaluate them.' },
@@ -23,7 +30,6 @@ const qmsCmmsArticles = [
   // Positioning
   { slug: 'cmms-for-distribution-centers',        title: "CMMS for Distribution Centers: What's Different", summary: 'What makes maintenance management in DCs different from manufacturing, and what to look for.' },
   { slug: 'why-standalone-cmms-isnt-enough',      title: "Why a Standalone CMMS Isn't Enough",             summary: 'The five gaps a generic CMMS leaves in a regulated distribution operation — and how to close them.' },
-  { slug: 'what-inspectors-actually-ask',         title: 'What Inspectors Actually Ask in Distribution Audits', summary: 'The specific questions FDA and customer auditors ask — and the records you need ready in seconds.' },
   // Tactical / depth
   { slug: 'pm-schedules-that-get-done',           title: 'How to Build PM Schedules That Actually Get Done', summary: 'Pick the right trigger type (calendar, runtime, condition), set the right cadence, and remove friction at the point of work.' },
   { slug: 'mean-kinetic-temperature-explained',   title: 'Mean Kinetic Temperature Explained (USP &lt;1118&gt;)', summary: 'What MKT is, why USP <1118> matters, and how to calculate it.' },
@@ -32,7 +38,7 @@ const qmsCmmsArticles = [
 ---
 <BaseLayout
   title="Learn — VPick+"
-  description="Vendor-neutral answers about voice picking, multimodal warehouse workflows, CMMS, quality management for distribution, FSMA, MKT, audit prep, and more."
+  description="Vendor-neutral answers about voice picking, multimodal warehouse workflows, CMMS, quality management for distribution, FSMA, MKT, FDA inspection prep, and more."
 >
   <nav class="breadcrumb container" aria-label="Breadcrumb">
     <a href="/">Home</a>
@@ -49,13 +55,32 @@ const qmsCmmsArticles = [
     </div>
   </section>
 
-  <!-- QMS / CMMS articles -->
+  <!-- FDA audit cluster -->
   <section>
+    <div class="container">
+      <div style="margin-bottom: 2rem;">
+        <span class="pill teal">FDA &amp; FSMA</span>
+        <h2 style="margin-top: 0.75rem;">Inspection Prep &amp; Audit Readiness</h2>
+        <p class="muted">For when an inspection is coming up — or might be.</p>
+      </div>
+      <div class="grid-2">
+        {auditArticles.map((a) => (
+          <article class="card hover-lift">
+            <h3><a href={`/learn/${a.slug}`} set:html={a.title} /></h3>
+            <p class="muted" set:html={a.summary} />
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Quality & Maintenance broader content -->
+  <section class="alt">
     <div class="container">
       <div style="margin-bottom: 2rem;">
         <span class="pill teal">QMS Pro</span>
         <h2 style="margin-top: 0.75rem;">Quality &amp; Maintenance for Distribution</h2>
-        <p class="muted">CMMS, quality management, environmental monitoring, FSMA compliance, and audit prep for distribution operations.</p>
+        <p class="muted">CMMS, quality management, environmental monitoring, FSMA compliance, and operational depth.</p>
       </div>
       <div class="grid-2">
         {qmsCmmsArticles.map((a) => (
@@ -69,7 +94,7 @@ const qmsCmmsArticles = [
   </section>
 
   <!-- VPick+ articles -->
-  <section class="alt">
+  <section>
     <div class="container">
       <div style="margin-bottom: 2rem;">
         <span class="pill teal">VPick+</span>
