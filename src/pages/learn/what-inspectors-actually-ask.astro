@@ -1,0 +1,259 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import CtaBand from '../../components/CtaBand.astro'
+---
+<BaseLayout
+  title="What FDA and Customer Auditors Actually Ask in Distribution Audits — VPick+"
+  description="The specific questions inspectors ask during FDA, FSMA, and customer audits of distribution centers — and the records you need ready to answer them in seconds, not hours."
+>
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="separator">›</span>
+    <a href="/learn">Learn</a><span class="separator">›</span>
+    <span aria-current="page">What Inspectors Actually Ask</span>
+  </nav>
+
+  <section>
+    <div class="container container-narrow">
+      <h1 class="section-title">What FDA and Customer Auditors Actually Ask in Distribution Audits</h1>
+      <p class="section-sub">The specific questions, the records they expect, and what "audit-ready" actually means in practice.</p>
+
+      <h2>The gap between audit prep and audit reality</h2>
+      <p>
+        Most distribution operations have an audit prep checklist somewhere. The food safety plan binder is up to date.
+        SOPs have been reviewed. The pest control folder has the recent reports filed. The quality team feels prepared.
+      </p>
+      <p>
+        Then the inspector arrives, asks for "the corrective action documentation for the temperature excursion on March 14th,"
+        and the next 90 minutes are spent searching through email, file cabinets, sensor exports, and the maintenance manager's
+        notebook to piece together a record that should have been one place.
+      </p>
+      <p>
+        The records exist. They're just scattered. And the inspector's job — implicitly — is to make you produce them in the format
+        and time frame that demonstrates your controls are actually functional, not just documented.
+      </p>
+      <p>
+        This article is the list of questions inspectors actually ask, the records they expect, and the rough time window in which
+        they expect to receive them. Treat it as a stress test for your current systems.
+      </p>
+
+      <h2>The pattern: specific, dated, end-to-end</h2>
+      <p>
+        Inspector questions tend to share three characteristics:
+      </p>
+      <ul class="list">
+        <li><strong>Specific:</strong> They ask about a particular event, asset, or person — not a general topic</li>
+        <li><strong>Dated:</strong> They ask for records covering a specific time range — usually the past 6 or 12 months</li>
+        <li><strong>End-to-end:</strong> They follow a thread from beginning to closure — not just one record</li>
+      </ul>
+      <p>
+        A question like "show me your pest control program" doesn't really get asked. A question like "show me the inspection records,
+        findings, and corrective actions for pest control from January through April" does.
+      </p>
+
+      <h2>Common question patterns and the records they require</h2>
+
+      <h3>Environmental compliance</h3>
+      <p><em>"Show me documented response to the temperature excursion on [specific date]."</em></p>
+      <p>What the inspector expects to see:</p>
+      <ul class="checklist">
+        <li>Sensor data confirming the excursion (extent, duration, peak value)</li>
+        <li>Acknowledgment record (who acknowledged, when)</li>
+        <li>Investigation findings — what caused the excursion</li>
+        <li>Product impact assessment — was anything affected, and what did you do about it</li>
+        <li>Corrective action — what changed to prevent recurrence</li>
+        <li>Effectiveness verification — did the corrective action work</li>
+      </ul>
+      <p>
+        Expected timeframe to produce: minutes, not hours.
+      </p>
+
+      <h3>Pest control</h3>
+      <p><em>"Show me the pest control inspection records, findings, and corrective actions for the past 12 months."</em></p>
+      <p>What the inspector expects to see:</p>
+      <ul class="checklist">
+        <li>Inspection records for every scheduled visit (no gaps)</li>
+        <li>Findings from each inspection — including "no activity" findings</li>
+        <li>Corrective actions for any findings, with completion verification</li>
+        <li>Trend data — are you seeing the same issues recurring</li>
+        <li>The contractor's certification and qualification records</li>
+      </ul>
+      <p>
+        Critical detail: the inspector wants to see <em>continuous</em> records. A four-month gap in inspections is a finding, even if
+        every inspection that did happen was thorough.
+      </p>
+
+      <h3>Maintenance and equipment</h3>
+      <p><em>"Show me the maintenance history on [specific cooler / freezer / asset] from the past six months."</em></p>
+      <p>What the inspector expects to see:</p>
+      <ul class="checklist">
+        <li>Complete work order history for the asset</li>
+        <li>PM completion records (with checklist results, not just "completed")</li>
+        <li>Linked environmental data showing performance</li>
+        <li>Any failures and how they were addressed</li>
+        <li>Linkage to any related quality events</li>
+      </ul>
+      <p>
+        The linkage matters. If the inspector sees a cooler had a temperature excursion <em>and</em> a maintenance event around the same time
+        — but they're in separate systems with no obvious connection — the question shifts to "how do you know these aren't related?"
+      </p>
+
+      <h3>Training compliance</h3>
+      <p><em>"Show me proof that [specific employee] was trained on [specific procedure]."</em></p>
+      <p>What the inspector expects to see:</p>
+      <ul class="checklist">
+        <li>The specific training record with date and signature</li>
+        <li>The version of the SOP the employee was trained on</li>
+        <li>Any required refresher or recertification cadence</li>
+        <li>Records of recent completions</li>
+      </ul>
+      <p>
+        Variants of this question target specific risks: "Show me allergen training for everyone in receiving." "Show me lockout/tagout
+        training for everyone authorized to perform maintenance." The records have to be retrievable by person, by procedure, and by date.
+      </p>
+
+      <h3>SOP version control</h3>
+      <p><em>"Show me which version of [specific SOP] is currently in effect, and which employees have acknowledged the current version."</em></p>
+      <p>What the inspector expects to see:</p>
+      <ul class="checklist">
+        <li>The current approved version with effective date</li>
+        <li>Version history showing what changed and when</li>
+        <li>The approval chain (who approved, when)</li>
+        <li>Acknowledgment records for relevant employees</li>
+        <li>Documented training on changes if the revision was significant</li>
+      </ul>
+      <p>
+        Common failure mode: the SOP in the binder isn't the current version. The current version is in someone's email. Acknowledgments
+        of the new version are inconsistent. Inspectors find this routinely.
+      </p>
+
+      <h3>Supplier quality</h3>
+      <p><em>"Show me the qualification records for [specific supplier] and the most recent inspection findings."</em></p>
+      <p>What the inspector expects to see:</p>
+      <ul class="checklist">
+        <li>The supplier's approval history</li>
+        <li>Most recent qualification or re-qualification</li>
+        <li>Receiving inspection records for the past 6-12 months</li>
+        <li>Any non-conformances tied to this supplier</li>
+        <li>Corrective action requests issued and supplier responses</li>
+        <li>Most recent COA or certificate of analysis if applicable</li>
+      </ul>
+
+      <h3>Non-conformance and CAPA</h3>
+      <p><em>"Show me the corrective action taken following the [specific finding from a previous audit / specific event]."</em></p>
+      <p>What the inspector expects to see:</p>
+      <ul class="checklist">
+        <li>The original non-conformance record</li>
+        <li>Root cause analysis (5-Why or equivalent)</li>
+        <li>Corrective action plan with owner and due date</li>
+        <li>Completion verification — what was actually done</li>
+        <li>Effectiveness verification — did it work</li>
+        <li>Approval and closure records</li>
+      </ul>
+      <p>
+        This is one of the most common follow-up questions in repeat audits. Inspectors revisit previous findings to verify the
+        corrective actions actually solved the underlying issue, not just the symptom.
+      </p>
+
+      <h3>Recall readiness</h3>
+      <p><em>"Walk me through how you would execute a recall on lot [specific lot]."</em></p>
+      <p>What the inspector expects to see:</p>
+      <ul class="checklist">
+        <li>The current recall procedure</li>
+        <li>Lot trace records showing where the product came from and where it went</li>
+        <li>Customer contact records</li>
+        <li>Evidence of recent recall drills or tabletop exercises</li>
+        <li>Documentation showing the team knows their roles</li>
+      </ul>
+
+      <h2>The time dimension</h2>
+      <p>
+        Inspectors don't just want the records — they want them in a time frame that demonstrates your system actually works.
+      </p>
+      <p>
+        A useful rule of thumb:
+      </p>
+      <ul class="list">
+        <li><strong>Single specific record:</strong> seconds to a minute</li>
+        <li><strong>Time-range query (e.g., 12 months of inspections):</strong> 1-3 minutes</li>
+        <li><strong>End-to-end thread (event → investigation → corrective action → closure):</strong> 3-5 minutes</li>
+        <li><strong>Cross-functional query (e.g., training + procedure + maintenance):</strong> 5-10 minutes</li>
+      </ul>
+      <p>
+        When a record takes 30 minutes to produce, the inspector is forming a different opinion about your operation than when it takes
+        30 seconds. The actual record might be the same. The retrieval time is itself part of what's being audited.
+      </p>
+
+      <h2>What "audit-ready" actually means in practice</h2>
+      <p>
+        Audit-ready means three specific things:
+      </p>
+
+      <h3>1. Records are in one place</h3>
+      <p>
+        Not "in one place after I export from three systems." Actually in one system with consistent retrieval. The inspector should not
+        be watching you wait for an export from a sensor platform while you also pull a PDF from email and a spreadsheet from a shared drive.
+      </p>
+
+      <h3>2. Records are searchable by the dimensions auditors use</h3>
+      <p>
+        By date range. By asset. By person. By procedure. By non-conformance number. By supplier. A system that can't filter by these
+        dimensions forces you to manually assemble what the inspector asked for, which is slow and error-prone.
+      </p>
+
+      <h3>3. Records connect to each other</h3>
+      <p>
+        Temperature excursion connects to the maintenance event that caused it connects to the corrective action that resolved it
+        connects to the SOP that was updated as a result. When the inspector follows the thread, the connections are visible —
+        not reconstructed verbally.
+      </p>
+
+      <h2>Where systems typically fall short</h2>
+      <p>
+        The most common audit-prep failure modes — by far — come from records being in the wrong system or in no system:
+      </p>
+      <ul class="list">
+        <li><strong>Contractor records in email or paper.</strong> The pest control company's records are in their software, not yours.</li>
+        <li><strong>Sensor data in a separate platform from the maintenance system.</strong> The excursion and the work order are two records, not one event.</li>
+        <li><strong>Training in spreadsheets.</strong> Often outdated, often incomplete, often missing seasonal hires entirely.</li>
+        <li><strong>SOP versions inconsistent across locations.</strong> The current version exists, but isn't where the inspector looks.</li>
+        <li><strong>Non-conformances tracked outside the main system.</strong> Often in separate trackers or spreadsheets that nobody updates after an event closes.</li>
+      </ul>
+      <p>
+        Every one of these comes back to the same root cause: the records exist, but the system architecture doesn't put them where audit
+        retrieval naturally happens.
+      </p>
+
+      <h2>The honest framing</h2>
+      <p>
+        Audit readiness isn't a feature you add. It's a property that emerges from how your operational systems are structured.
+        If your maintenance, environmental, training, and contractor records all live in one integrated system with consistent retrieval,
+        you're audit-ready by default. If they don't, no amount of binder-prep solves the underlying problem — you're just deferring
+        the gap to the next audit.
+      </p>
+      <p>
+        The strongest indicator that an operation is genuinely audit-ready: the quality director can demonstrate the answer to any of the
+        questions in this article in front of you, on a live system, in under 5 minutes. If you can't do that today, your next audit is
+        going to be harder than it should be.
+      </p>
+
+      <div class="card" style="margin-top:1.5rem">
+        <strong>See audit-ready records in one place.</strong>
+        <p style="margin-top: 0.5rem;">
+          The <a href="https://qms.vpickplus.us">QMS Pro demo</a> is loaded with a fictional food &amp; beverage 3PL. Try answering any
+          of the questions in this article using the live system — temperature excursions, contractor records, training compliance,
+          maintenance history. The point of the demo is to show that the retrieval times described above are achievable.
+        </p>
+      </div>
+
+      <p style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="/qms">Explore QMS Pro</a>
+        <a class="btn btn-ghost" href="/learn/why-standalone-cmms-isnt-enough" style="margin-left:8px;">Why a standalone CMMS isn't enough</a>
+      </p>
+    </div>
+  </section>
+  <CtaBand
+    heading="Be audit-ready by default, not by scramble"
+    body="The demo shows what integrated records look like."
+    ctaText="Try the demo"
+    ctaHref="https://qms.vpickplus.us" />
+</BaseLayout>
